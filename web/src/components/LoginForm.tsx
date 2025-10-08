@@ -1,14 +1,29 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login:", { email, password });
+
+    // Demo amaçlı - Gerçek uygulamada API'den gelecek
+    const demoUser = {
+      id: "1",
+      firstName: "Bayram",
+      lastName: "Dikmen",
+      email: email,
+      // profileImage: "/profile.jpg" // Profil resmi varsa
+    };
+
+    login(demoUser);
+    router.push("/");
   };
 
   return (
