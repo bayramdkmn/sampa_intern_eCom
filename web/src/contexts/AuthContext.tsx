@@ -7,14 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profileImage?: string;
-}
+import { User } from "@/app/types/User";
 
 interface AuthContextType {
   user: User | null;

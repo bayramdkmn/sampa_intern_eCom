@@ -117,7 +117,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => setIsModalOpen(!isModalOpen)}
-              className="flex items-center gap-2 rounded-full border border-black/10 px-2 md:px-3 py-2 hover:bg-black/5 transition-colors"
+              className="flex items-center gap-2 rounded-full border border-black/10 px-2 md:px-3 py-2 hover:bg-black/5 transition-colors cursor-pointer"
             >
               {user?.profileImage ? (
                 <img
@@ -203,7 +203,7 @@ export default function Navbar() {
         ) : (
           <Link
             href="/login"
-            className="flex items-center gap-2 rounded-full border border-black/10 px-2 md:px-3 py-2 hover:bg-black/5 transition-colors"
+            className="flex items-center gap-2 rounded-full border border-black/10 px-2 md:px-3 py-2 hover:bg-black/5 transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
