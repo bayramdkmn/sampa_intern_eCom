@@ -1,42 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useMemo } from "react";
-import Image from "next/image";
 
 export default function Navbar() {
-  const pathname = usePathname();
-
-  const links = useMemo(
-    () => [
-      { href: "/", label: "Anasayfa" },
-      { href: "/products", label: "Ürünler" },
-      { href: "/cart", label: "Sepet" },
-      { href: "/auth/login", label: "Giriş" },
-    ],
-    []
-  );
-
   return (
     <div className="bg-white text-black flex-row flex justify-between px-4 py-4">
       <div className="flex flex-row gap-32 items-center justify-center">
-        <div className="flex flex-row pl-10">
+        <Link href="/" className="flex flex-row pl-10 cursor-pointer">
           <img src="/sampa-logo.png" alt="logo" width={50} height={50} />
-        </div>
+        </Link>
         <div className="gap-10 flex flex-row">
-          <div className=" hover:text-blue-500 hover:scale-105 transition-all duration-300">
+          <Link
+            href="/"
+            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+          >
             Home
-          </div>
-          <div className=" hover:text-blue-500 hover:scale-105 transition-all duration-300">
+          </Link>
+          <Link
+            href="/products"
+            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+          >
             Shop
-          </div>
-          <div className=" hover:text-blue-500 hover:scale-105 transition-all duration-300">
+          </Link>
+          <Link
+            href="/new-arrivals"
+            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+          >
             New Arrivals
-          </div>
-          <div className=" hover:text-blue-500 hover:scale-125 transition-all duration-300">
-            Sale
-          </div>
+          </Link>
         </div>
       </div>
       <div className="flex items-center gap-4">
@@ -54,7 +45,7 @@ export default function Navbar() {
           </svg>
           <input
             type="text"
-            placeholder="Ürün ara..."
+            placeholder="Search for products..."
             className="w-52 text-sm outline-none placeholder:text-black/40"
           />
         </div>
@@ -77,12 +68,21 @@ export default function Navbar() {
           </svg>
         </Link>
         <Link
-          href="/profile"
-          className="flex items-center gap-2 rounded-full border border-black/10 px-2 py-1 hover:bg-black/5 transition-colors"
+          href="/login"
+          className="flex items-center gap-2 rounded-full border border-black/10 px-3 py-2 hover:bg-black/5 transition-colors"
         >
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/10 text-sm font-medium">
-            B
-          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-5 w-5"
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span className="text-sm font-medium">Login</span>
         </Link>
       </div>
     </div>
