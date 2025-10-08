@@ -1,7 +1,6 @@
 import React from "react";
+import BasketComponent from "@/components/BasketComponent";
 
-const page = () => {
-  return <div>page</div>;
-};
-
-export default page;
+export default function BasketPage() {
+  return <BasketComponent />;
+}

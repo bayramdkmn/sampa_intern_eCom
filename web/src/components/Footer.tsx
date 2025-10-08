@@ -5,28 +5,35 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 const Footer = () => {
   return (
     <footer className="bg-white text-black border-t border-black/10">
-      <div className="flex flex-row justify-between px-4 py-4">
-        <div>
+      <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-4 px-4 py-6 md:py-4">
+        {/* Logo */}
+        <div className="flex justify-center md:justify-start">
           <img src="/sampa-logo.png" alt="logo" width={150} height={150} />
         </div>
-        <div>
+
+        {/* Shop */}
+        <div className="text-center md:text-left">
           <span className="text-xl font-semibold">Shop</span>
-          <div className="flex flex-col gap-4 text-gray-500">
+          <div className="flex flex-col gap-2 md:gap-4 text-gray-500 mt-2">
             <span>Products</span>
             <span>Categories</span>
             <span>Brands</span>
           </div>
         </div>
-        <div className="flex flex-col gap-4">
+
+        {/* Support */}
+        <div className="flex flex-col gap-2 md:gap-4 text-center md:text-left">
           <span className="text-xl font-semibold">Support</span>
-          <div className="flex flex-col gap-4 text-gray-500">
+          <div className="flex flex-col gap-2 md:gap-4 text-gray-500">
             <span>Contact Us</span>
             <span>Privacy Policy</span>
           </div>
         </div>
-        <div className="pr-20 flex justify-center flex-col">
-          <span className="pl-3 text-xl font-semibold my-2">Follow Us</span>
-          <div className="flex flex-row gap-4 w-full h-full">
+
+        {/* Social Media */}
+        <div className="flex justify-center flex-col items-center md:items-start md:pr-20">
+          <span className="text-xl font-semibold my-2">Follow Us</span>
+          <div className="flex flex-row gap-4">
             <InstagramIcon sx={{ width: 50, height: 30 }} />
             <TwitterIcon sx={{ width: 50, height: 30 }} />
             <LinkedInIcon sx={{ width: 50, height: 30 }} />

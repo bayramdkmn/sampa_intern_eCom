@@ -14,23 +14,24 @@ export default function ForgotPasswordForm() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row justify-between items-center px-30 3xl:px-60 gap-20">
-      <div className="w-3/5 flex lg:justify-start justify-center">
+    <div className="flex flex-col lg:flex-row justify-between items-center px-4 sm:px-6 lg:px-12 xl:px-30 3xl:px-60 gap-8 lg:gap-20">
+      {/* Logo - Responsive sizing */}
+      <div className="w-full lg:w-3/5 flex justify-center lg:justify-start">
         <img
           src="/sampaConnect-logo.png"
           alt="Sampa Logo"
-          className="aspect-auto object-contain"
+          className="aspect-auto object-contain max-w-[200px] sm:max-w-[300px] lg:max-w-full"
         />
       </div>
 
-      <div className="w-full max-w-md p-10 bg-white rounded-2xl shadow-2xl">
+      <div className="w-full max-w-md p-6 sm:p-8 lg:p-10 bg-white rounded-2xl shadow-2xl">
         {!isSubmitted ? (
           <>
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Forgot Password
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Enter your email address and we'll send you a link to reset your
                 password
               </p>

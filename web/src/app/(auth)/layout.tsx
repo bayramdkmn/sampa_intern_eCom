@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div
-      className="min-h-screen flex justify-end items-center bg-cover bg-center bg-no-repeat"
+      className="min-h-screen flex justify-center lg:justify-end items-center bg-cover bg-center bg-no-repeat p-4"
       style={{ backgroundImage: "url('/login_background.png')" }}
     >
       <div className="absolute inset-0 bg-black/25" />

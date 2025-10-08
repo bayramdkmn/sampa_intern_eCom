@@ -1,3 +1,4 @@
+"use server";
 import dynamic from "next/dynamic";
 import LoadingIndicator from "@/components/LoadingIndicator";
 

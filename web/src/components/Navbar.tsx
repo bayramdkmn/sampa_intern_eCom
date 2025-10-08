@@ -4,33 +4,37 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <div className="bg-white text-black flex-row flex justify-between px-4 py-4">
-      <div className="flex flex-row gap-32 items-center justify-center">
-        <Link href="/" className="flex flex-row pl-10 cursor-pointer">
-          <img src="/sampa-logo.png" alt="logo" width={50} height={50} />
+    <div className="bg-white text-black flex flex-row justify-between items-center px-4 py-4 border-b border-black/10">
+      {/* Logo */}
+      <Link href="/" className="flex flex-row cursor-pointer">
+        <img src="/sampa-logo.png" alt="logo" width={50} height={50} />
+      </Link>
+
+      {/* Desktop Navigation - Hidden on mobile */}
+      <div className="hidden lg:flex flex-row gap-10 items-center">
+        <Link
+          href="/"
+          className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+        >
+          Home
         </Link>
-        <div className="gap-10 flex flex-row">
-          <Link
-            href="/"
-            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
-          >
-            Home
-          </Link>
-          <Link
-            href="/products"
-            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
-          >
-            Shop
-          </Link>
-          <Link
-            href="/new-arrivals"
-            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
-          >
-            New Arrivals
-          </Link>
-        </div>
+        <Link
+          href="/products"
+          className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+        >
+          Shop
+        </Link>
+        <Link
+          href="/new-arrivals"
+          className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+        >
+          New Arrivals
+        </Link>
       </div>
-      <div className="flex items-center gap-4">
+
+      {/* Right Side Actions */}
+      <div className="flex items-center gap-2 md:gap-4">
+        {/* Search - Hidden on mobile */}
         <div className="hidden md:flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 bg-white focus-within:ring-2 focus-within:ring-blue-500/40">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -49,10 +53,12 @@ export default function Navbar() {
             className="w-52 text-sm outline-none placeholder:text-black/40"
           />
         </div>
+
+        {/* Basket - Hidden on mobile */}
         <Link
           href="/basket"
-          className="rounded-full border border-black/10 p-2 hover:bg-black/5 transition-colors"
-          aria-label="Mesajlar"
+          className="hidden md:flex rounded-full border border-black/10 p-2 hover:bg-black/5 transition-colors"
+          aria-label="Sepet"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -67,9 +73,11 @@ export default function Navbar() {
             <path d="M3 4h2l1.6 8.1a2 2 0 0 0 2 1.9h7.7a2 2 0 0 0 2-1.6L20 8H7" />
           </svg>
         </Link>
+
+        {/* Login/Profile - Always visible */}
         <Link
           href="/login"
-          className="flex items-center gap-2 rounded-full border border-black/10 px-3 py-2 hover:bg-black/5 transition-colors"
+          className="flex items-center gap-2 rounded-full border border-black/10 px-2 md:px-3 py-2 hover:bg-black/5 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -82,7 +90,7 @@ export default function Navbar() {
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          <span className="text-sm font-medium">Login</span>
+          <span className="hidden md:inline text-sm font-medium">Login</span>
         </Link>
       </div>
     </div>
