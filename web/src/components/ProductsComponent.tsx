@@ -1,18 +1,26 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import { useCart } from "@/contexts/CartContext";
 
 interface ProductProps {
   id: string;
 }
 
 export default function ProductsComponent({ id }: ProductProps) {
+  const router = useRouter();
+  const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<"specifications" | "reviews">(
     "specifications"
   );
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const product = {
     name: "The Serenity Sofa",
@@ -35,6 +43,35 @@ export default function ProductsComponent({ id }: ProductProps) {
       assembly: "Partial assembly required (legs)",
       care: "Spot clean with a damp cloth",
     },
+  };
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: id,
+      name: product.name,
+      price: product.price,
+      color: product.colors[selectedColor].name,
+      image: product.images[0],
+      quantity: quantity,
+    });
+
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+  };
+
+  const handleBuyNow = () => {
+    handleAddToCart();
+    router.push("/basket");
+  };
+
+  const increaseQuantity = () => {
+    setQuantity((prev) => prev + 1);
+  };
+
+  const decreaseQuantity = () => {
+    if (quantity > 1) {
+      setQuantity((prev) => prev - 1);
+    }
   };
 
   return (
@@ -119,11 +156,69 @@ export default function ProductsComponent({ id }: ProductProps) {
             </div>
           </div>
 
+          {/* Quantity Selector */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3">
+              Quantity
+            </h3>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center rounded-lg border-2 border-gray-300">
+                <button
+                  onClick={decreaseQuantity}
+                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                  disabled={quantity <= 1}
+                >
+                  <RemoveIcon className="text-gray-600" />
+                </button>
+                <span className="px-6 py-2 font-semibold text-gray-900 min-w-[60px] text-center">
+                  {quantity}
+                </span>
+                <button
+                  onClick={increaseQuantity}
+                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
+                >
+                  <AddIcon className="text-gray-600" />
+                </button>
+              </div>
+              <span className="text-sm text-gray-600">In Stock</span>
+            </div>
+          </div>
+
+          {/* Success Message */}
+          {showSuccessMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-green-800">
+                Ürün sepete eklendi!
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-4 pt-4">
-            <button className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors cursor-pointer">
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+            >
               Add to Cart
             </button>
-            <button className="flex-1 bg-gray-900 text-white py-4 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors cursor-pointer">
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 bg-gray-900 text-white py-4 px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors cursor-pointer"
+            >
               Buy Now
             </button>
           </div>

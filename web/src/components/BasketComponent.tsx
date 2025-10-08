@@ -3,69 +3,21 @@
 import React, { useState } from "react";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Link from "next/link";
-import Image from "next/image";
-
-interface CartItem {
-  id: number;
-  name: string;
-  color: string;
-  size: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
+import { useCart } from "@/contexts/CartContext";
 
 export default function BasketComponent() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Summer Dress",
-      color: "Blue",
-      size: "M",
-      price: 49.99,
-      quantity: 1,
-      image: "/placeholder-dress.jpg",
-    },
-    {
-      id: 2,
-      name: "Casual Shirt",
-      color: "White",
-      size: "L",
-      price: 29.99,
-      quantity: 2,
-      image: "/placeholder-shirt.jpg",
-    },
-    {
-      id: 3,
-      name: "Winter Jacket",
-      color: "Black",
-      size: "XL",
-      price: 79.99,
-      quantity: 1,
-      image: "/placeholder-jacket.jpg",
-    },
-  ]);
-
+  const { cartItems, updateQuantity, removeFromCart } = useCart();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    setCartItems(
-      cartItems.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-
-  const handleDeleteClick = (id: number) => {
+  const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
     setShowDeleteModal(true);
   };
 
   const confirmDelete = () => {
     if (itemToDelete !== null) {
-      setCartItems(cartItems.filter((item) => item.id !== itemToDelete));
+      removeFromCart(itemToDelete);
     }
     setShowDeleteModal(false);
     setItemToDelete(null);
@@ -76,10 +28,11 @@ export default function BasketComponent() {
     setItemToDelete(null);
   };
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const calculateSubtotal = () => {
+    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  };
+
+  const subtotal = calculateSubtotal();
 
   return (
     <div className="w-full py-4 md:py-8">
@@ -130,7 +83,8 @@ export default function BasketComponent() {
                               {item.name}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Color: {item.color}, Size: {item.size}
+                              Color: {item.color}
+                              {item.size ? `, Size: ${item.size}` : ""}
                             </p>
                           </div>
                         </div>
@@ -205,7 +159,8 @@ export default function BasketComponent() {
                               {item.name}
                             </h3>
                             <p className="text-xs text-gray-600 mt-1">
-                              {item.color}, {item.size}
+                              {item.color}
+                              {item.size ? `, ${item.size}` : ""}
                             </p>
                             <p className="text-sm font-semibold text-gray-900 mt-1">
                               ${item.price.toFixed(2)}

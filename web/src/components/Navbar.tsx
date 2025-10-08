@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useCart } from "@/contexts/CartContext";
 
 export default function Navbar() {
+  const { getTotalItems } = useCart();
   return (
     <div className="bg-white text-black flex flex-row justify-between items-center px-4 py-4 border-b border-black/10">
       {/* Logo */}
@@ -57,7 +59,7 @@ export default function Navbar() {
         {/* Basket - Hidden on mobile */}
         <Link
           href="/basket"
-          className="hidden md:flex rounded-full border border-black/10 p-2 hover:bg-black/5 transition-colors"
+          className="hidden md:flex rounded-full border border-black/10 p-2 hover:bg-black/5 transition-colors relative"
           aria-label="Sepet"
         >
           <svg
@@ -72,6 +74,11 @@ export default function Navbar() {
             <circle cx="17" cy="20" r="1.5" />
             <path d="M3 4h2l1.6 8.1a2 2 0 0 0 2 1.9h7.7a2 2 0 0 0 2-1.6L20 8H7" />
           </svg>
+          {getTotalItems() > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              {getTotalItems()}
+            </span>
+          )}
         </Link>
 
         {/* Login/Profile - Always visible */}
