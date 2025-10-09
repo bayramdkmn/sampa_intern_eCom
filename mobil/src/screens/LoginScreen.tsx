@@ -14,12 +14,14 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import { useAuthStore } from "../store";
+import { useTheme } from "../context/ThemeContext";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { login, isLoading } = useAuthStore();
+  const { theme } = useTheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,7 +66,7 @@ const LoginScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={tw`flex-1 bg-white`}
+      style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
     >
       <ScrollView
         contentContainerStyle={tw`flex-1`}
@@ -75,24 +77,43 @@ const LoginScreen: React.FC = () => {
             onPress={() => navigation.goBack()}
             style={tw`mt-12 mb-8`}
           >
-            <Text style={tw`text-2xl`}>←</Text>
+            <Text style={[tw`text-2xl`, { color: theme.colors.text }]}>←</Text>
           </TouchableOpacity>
 
           <View style={tw`mb-8`}>
-            <Text style={tw`text-gray-800 text-3xl font-bold mb-2`}>
+            <Text
+              style={[
+                tw`text-3xl font-bold mb-2`,
+                { color: theme.colors.text },
+              ]}
+            >
               Hoş Geldiniz! 👋
             </Text>
-            <Text style={tw`text-gray-500 text-base`}>
+            <Text
+              style={[tw`text-base`, { color: theme.colors.textSecondary }]}
+            >
               Hesabınıza giriş yapın
             </Text>
           </View>
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-700 font-semibold mb-2`}>E-posta</Text>
+            <Text
+              style={[tw`font-semibold mb-2`, { color: theme.colors.text }]}
+            >
+              E-posta
+            </Text>
             <TextInput
-              style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
-                errors.email ? "border-2 border-red-500" : ""
-              }`}
+              style={[
+                tw`rounded-xl px-4 py-3 text-base`,
+                {
+                  backgroundColor: theme.colors.inputBackground,
+                  color: theme.colors.text,
+                  borderWidth: errors.email ? 2 : 0,
+                  borderColor: errors.email
+                    ? theme.colors.error
+                    : theme.colors.inputBorder,
+                },
+              ]}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -101,10 +122,12 @@ const LoginScreen: React.FC = () => {
               placeholder="ornek@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.colors.textTertiary}
             />
             {errors.email ? (
-              <Text style={tw`text-red-500 text-sm mt-1`}>{errors.email}</Text>
+              <Text style={[tw`text-sm mt-1`, { color: theme.colors.error }]}>
+                {errors.email}
+              </Text>
             ) : null}
           </View>
 

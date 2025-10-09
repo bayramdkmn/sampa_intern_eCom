@@ -14,12 +14,14 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import { useAuthStore } from "../store";
+import { useTheme } from "../context/ThemeContext";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { register, isLoading } = useAuthStore();
+  const { theme } = useTheme();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -94,7 +96,7 @@ const RegisterScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={tw`flex-1 bg-white`}
+      style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
     >
       <ScrollView
         contentContainerStyle={tw`flex-grow`}

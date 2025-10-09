@@ -10,6 +10,7 @@ import {
 import tw from "twrnc";
 import { useNavigation } from "@react-navigation/native";
 import { usePaymentStore } from "../store";
+import { useTheme } from "../context/ThemeContext";
 import PaymentMethodCard from "../components/PaymentMethodCard";
 import PaymentMethodForm from "../components/PaymentMethodForm";
 import { PaymentMethod } from "../types";
@@ -22,6 +23,7 @@ const PaymentMethodsScreen: React.FC = () => {
     deletePaymentMethod,
     setDefaultPaymentMethod,
   } = usePaymentStore();
+  const { theme } = useTheme();
 
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -61,17 +63,29 @@ const PaymentMethodsScreen: React.FC = () => {
         </View>
       </Modal>
 
-      <View style={tw`flex-1 bg-gray-50`}>
+      <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
         {/* Header */}
-        <View style={tw`bg-blue-600 pt-12 pb-6 px-4`}>
+        <View
+          style={[
+            tw`pt-12 pb-6 px-4`,
+            { backgroundColor: theme.colors.primary },
+          ]}
+        >
           <View style={tw`flex-row items-center mb-2`}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={tw`mr-4`}
             >
-              <Text style={tw`text-white text-2xl`}>←</Text>
+              <Text style={[tw`text-2xl`, { color: theme.colors.onPrimary }]}>
+                ←
+              </Text>
             </TouchableOpacity>
-            <Text style={tw`text-white text-2xl font-bold flex-1`}>
+            <Text
+              style={[
+                tw`text-2xl font-bold flex-1`,
+                { color: theme.colors.onPrimary },
+              ]}
+            >
               Ödeme Yöntemlerim
             </Text>
           </View>

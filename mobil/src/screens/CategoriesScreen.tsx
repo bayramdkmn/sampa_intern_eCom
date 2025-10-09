@@ -12,6 +12,7 @@ import {
 import tw from "twrnc";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Category, Product } from "../types";
+import { useTheme } from "../context/ThemeContext";
 
 type CategoriesScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -105,6 +106,7 @@ const PRICE_RANGES = [
 ];
 
 const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
+  const { theme } = useTheme();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     "all",
   ]);
@@ -192,26 +194,49 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
     (sortBy !== "default" ? 1 : 0);
 
   return (
-    <View style={tw`flex-1 bg-gray-50`}>
+    <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={tw`bg-blue-600 pt-12 pb-4 px-4`}>
-        <Text style={tw`text-white text-2xl font-bold mb-4`}>Ürünler</Text>
+      <View
+        style={[tw`pt-12 pb-4 px-4`, { backgroundColor: theme.colors.primary }]}
+      >
+        <Text
+          style={[
+            tw`text-2xl font-bold mb-4`,
+            { color: theme.colors.onPrimary },
+          ]}
+        >
+          Ürünler
+        </Text>
 
         {/* Search Bar */}
-        <View style={tw`bg-white rounded-xl px-4 py-3 flex-row items-center`}>
+        <View
+          style={[
+            tw`rounded-xl px-4 py-3 flex-row items-center`,
+            { backgroundColor: theme.colors.card },
+          ]}
+        >
           <Text style={tw`text-xl mr-2`}>🔍</Text>
           <TextInput
             placeholder="Ürün ara..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            style={tw`flex-1 text-gray-800`}
+            style={[tw`flex-1`, { color: theme.colors.text }]}
           />
         </View>
       </View>
 
       {/* Quick Categories Scroll */}
-      <View style={tw`bg-white py-3 border-b border-gray-200`}>
+      <View
+        style={[
+          tw`py-3`,
+          {
+            backgroundColor: theme.colors.card,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.colors.divider,
+          },
+        ]}
+      >
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={tw`flex-row px-4 gap-2`}>
             {CATEGORIES.map((category) => (
@@ -221,8 +246,8 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                 style={[
                   tw`px-4 py-2 rounded-full flex-row items-center`,
                   selectedCategories.includes(category.id)
-                    ? tw`bg-blue-600`
-                    : tw`bg-gray-100`,
+                    ? { backgroundColor: theme.colors.primary }
+                    : { backgroundColor: theme.colors.surfaceVariant },
                 ]}
               >
                 <Text style={tw`text-base mr-1`}>{category.icon}</Text>
@@ -230,8 +255,8 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                   style={[
                     tw`font-semibold text-sm`,
                     selectedCategories.includes(category.id)
-                      ? tw`text-white`
-                      : tw`text-gray-700`,
+                      ? { color: theme.colors.onPrimary }
+                      : { color: theme.colors.textSecondary },
                   ]}
                 >
                   {category.name}
@@ -244,26 +269,50 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* Filter & Sort Bar */}
       <View
-        style={tw`bg-white px-4 py-3 flex-row items-center justify-between border-b border-gray-200`}
+        style={[
+          tw`px-4 py-3 flex-row items-center justify-between`,
+          {
+            backgroundColor: theme.colors.card,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.colors.divider,
+          },
+        ]}
       >
         <TouchableOpacity
           onPress={() => setFilterModalVisible(true)}
-          style={tw`flex-row items-center bg-gray-100 px-4 py-2 rounded-xl`}
+          style={[
+            tw`flex-row items-center px-4 py-2 rounded-xl`,
+            { backgroundColor: theme.colors.surfaceVariant },
+          ]}
         >
           <Text style={tw`text-lg mr-2`}>🎛️</Text>
-          <Text style={tw`text-gray-700 font-semibold`}>Filtrele</Text>
+          <Text
+            style={[tw`font-semibold`, { color: theme.colors.textSecondary }]}
+          >
+            Filtrele
+          </Text>
           {activeFilterCount > 0 && (
             <View
-              style={tw`ml-2 bg-blue-600 rounded-full w-5 h-5 items-center justify-center`}
+              style={[
+                tw`ml-2 rounded-full w-5 h-5 items-center justify-center`,
+                { backgroundColor: theme.colors.primary },
+              ]}
             >
-              <Text style={tw`text-white text-xs font-bold`}>
+              <Text
+                style={[
+                  tw`text-xs font-bold`,
+                  { color: theme.colors.onPrimary },
+                ]}
+              >
                 {activeFilterCount}
               </Text>
             </View>
           )}
         </TouchableOpacity>
 
-        <Text style={tw`text-gray-500`}>{filteredProducts.length} ürün</Text>
+        <Text style={[tw``, { color: theme.colors.textSecondary }]}>
+          {filteredProducts.length} ürün
+        </Text>
       </View>
 
       {/* Products Grid */}
@@ -278,29 +327,57 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
             <TouchableOpacity
               key={product.id}
               onPress={() => handleProductPress(product.id)}
-              style={tw`bg-white rounded-2xl overflow-hidden shadow-sm w-[48%]`}
+              style={[
+                tw`rounded-2xl overflow-hidden shadow-sm w-[48%]`,
+                {
+                  backgroundColor: theme.colors.card,
+                  shadowColor: theme.colors.shadow,
+                },
+              ]}
             >
               <Image
                 source={{ uri: product.image }}
-                style={tw`w-full h-48 bg-gray-200`}
+                style={[
+                  tw`w-full h-48`,
+                  { backgroundColor: theme.colors.surfaceVariant },
+                ]}
               />
               <View style={tw`p-3`}>
                 <Text
-                  style={tw`text-gray-800 font-bold text-sm mb-1`}
+                  style={[
+                    tw`font-bold text-sm mb-1`,
+                    { color: theme.colors.text },
+                  ]}
                   numberOfLines={2}
                 >
                   {product.name}
                 </Text>
-                <Text style={tw`text-gray-500 text-xs mb-2`} numberOfLines={1}>
+                <Text
+                  style={[
+                    tw`text-xs mb-2`,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                  numberOfLines={1}
+                >
                   {product.description}
                 </Text>
                 <View style={tw`flex-row justify-between items-center`}>
-                  <Text style={tw`text-blue-600 font-bold text-base`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-base`,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
                     ₺{product.price.toLocaleString("tr-TR")}
                   </Text>
                   <View style={tw`flex-row items-center`}>
                     <Text style={tw`text-yellow-500 text-xs mr-1`}>⭐</Text>
-                    <Text style={tw`text-gray-600 text-xs font-semibold`}>
+                    <Text
+                      style={[
+                        tw`text-xs font-semibold`,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
                       {product.rating}
                     </Text>
                   </View>
@@ -313,10 +390,15 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
         {filteredProducts.length === 0 && (
           <View style={tw`items-center py-16`}>
             <Text style={tw`text-6xl mb-3`}>🔍</Text>
-            <Text style={tw`text-gray-500 text-lg font-semibold mb-1`}>
+            <Text
+              style={[
+                tw`text-lg font-semibold mb-1`,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               Ürün bulunamadı
             </Text>
-            <Text style={tw`text-gray-400`}>
+            <Text style={[tw``, { color: theme.colors.textTertiary }]}>
               Filtrelerinizi değiştirmeyi deneyin
             </Text>
           </View>

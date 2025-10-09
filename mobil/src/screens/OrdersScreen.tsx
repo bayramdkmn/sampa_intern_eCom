@@ -10,6 +10,7 @@ import {
   Image,
 } from "react-native";
 import tw from "twrnc";
+import { useTheme } from "../context/ThemeContext";
 
 interface OrderItem {
   id: string;
@@ -239,9 +240,10 @@ const OrdersScreen: React.FC = () => {
     );
   };
 
+  const { theme } = useTheme();
+
   return (
-    <View style={tw`flex-1 bg-gray-50`}>
-      {/* Order Detail Modal */}
+    <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
       <Modal
         animationType="slide"
         transparent={true}
@@ -251,9 +253,8 @@ const OrdersScreen: React.FC = () => {
         <View style={tw`flex-1 bg-black/50`}>
           <View style={tw`flex-1 mt-20`}>
             <View style={tw`flex-1 bg-white rounded-t-3xl`}>
-              {/* Modal Header */}
               <View
-                style={tw`flex-row items-center justify-between px-6 py-4 border-b border-gray-200`}
+                style={tw`flex-row items-center justify-between px-6 py-4 border-b border-gray-200 `}
               >
                 <View>
                   <Text style={tw`text-gray-800 text-xl font-bold`}>
@@ -412,15 +413,26 @@ const OrdersScreen: React.FC = () => {
       </Modal>
 
       {/* Header */}
-      <View style={tw`bg-blue-600 pt-12 pb-6 px-4`}>
-        <Text style={tw`text-white text-2xl font-bold`}>Siparişlerim</Text>
-        <Text style={tw`text-blue-100 text-sm mt-1`}>
+      <View
+        style={[tw`pt-12 pb-6 px-4`, { backgroundColor: theme.colors.primary }]}
+      >
+        <Text
+          style={[tw`text-2xl font-bold`, { color: theme.colors.onPrimary }]}
+        >
+          Siparişlerim
+        </Text>
+        <Text
+          style={[
+            tw`text-sm mt-1`,
+            { color: theme.colors.onPrimary, opacity: 0.8 },
+          ]}
+        >
           {orders.length} sipariş
         </Text>
       </View>
 
       <ScrollView
-        style={tw`flex-1`}
+        style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
         contentContainerStyle={{
           paddingBottom: Platform.OS === "ios" ? 110 : 90,
           padding: 16,
@@ -433,12 +445,20 @@ const OrdersScreen: React.FC = () => {
           return (
             <View
               key={order.id}
-              style={tw`bg-white rounded-2xl p-4 mb-4 shadow-sm`}
+              style={[
+                tw`rounded-2xl p-4 mb-4 shadow-sm`,
+                { backgroundColor: theme.colors.card },
+              ]}
             >
               {/* Order Header */}
               <View style={tw`flex-row items-center justify-between mb-3`}>
                 <View style={tw`flex-row items-center`}>
-                  <Text style={tw`text-blue-600 font-bold text-lg mr-2`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-lg mr-2`,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
                     {order.orderNumber}
                   </Text>
                   <View
@@ -457,36 +477,53 @@ const OrdersScreen: React.FC = () => {
               {/* Order Info */}
               <View style={tw`mb-3`}>
                 <View style={tw`flex-row items-center mb-2`}>
-                  <Text style={tw`text-gray-500 text-sm mr-2`}>📅</Text>
-                  <Text style={tw`text-gray-600 text-sm`}>
+                  <Text style={tw`text-sm mr-2`}>📅</Text>
+                  <Text style={[tw`text-sm`, { color: theme.colors.text }]}>
                     {formatDate(order.date)}
                   </Text>
                 </View>
                 <View style={tw`flex-row items-center mb-2`}>
                   <Text style={tw`text-gray-500 text-sm mr-2`}>📦</Text>
-                  <Text style={tw`text-gray-600 text-sm`}>
+                  <Text
+                    style={[tw`text-sm`, { color: theme.colors.textSecondary }]}
+                  >
                     {order.items} ürün
                   </Text>
                 </View>
                 <View style={tw`flex-row items-center`}>
                   <Text style={tw`text-gray-500 text-sm mr-2`}>💰</Text>
-                  <Text style={tw`text-gray-800 font-bold text-base`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-base`,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
                     {formatPrice(order.total)}
                   </Text>
                 </View>
               </View>
 
-              {/* Divider */}
-              <View style={tw`border-t border-gray-100 my-3`} />
+              <View
+                style={[
+                  tw`border-t my-3`,
+                  { borderTopColor: theme.colors.divider },
+                ]}
+              />
 
               {/* Action Buttons */}
               <View style={tw`flex-row gap-2`}>
                 <TouchableOpacity
                   onPress={() => handleViewOrder(order)}
-                  style={tw`flex-1 bg-blue-600 py-3 rounded-xl`}
+                  style={[
+                    tw`flex-1 py-3 rounded-xl`,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
                 >
                   <Text
-                    style={tw`text-white font-semibold text-center text-sm`}
+                    style={[
+                      tw`font-semibold text-center text-sm`,
+                      { color: theme.colors.onPrimary },
+                    ]}
                   >
                     Detayları Gör
                   </Text>
@@ -495,10 +532,16 @@ const OrdersScreen: React.FC = () => {
                 {canCancel && (
                   <TouchableOpacity
                     onPress={() => handleCancelOrder(order)}
-                    style={tw`flex-1 bg-red-500 py-3 rounded-xl`}
+                    style={[
+                      tw`flex-1 py-3 rounded-xl`,
+                      { backgroundColor: theme.colors.error },
+                    ]}
                   >
                     <Text
-                      style={tw`text-white font-semibold text-center text-sm`}
+                      style={[
+                        tw`font-semibold text-center text-sm`,
+                        { color: theme.colors.onPrimary },
+                      ]}
                     >
                       İptal Et
                     </Text>
@@ -512,10 +555,20 @@ const OrdersScreen: React.FC = () => {
         {orders.length === 0 && (
           <View style={tw`items-center justify-center py-20`}>
             <Text style={tw`text-6xl mb-4`}>📦</Text>
-            <Text style={tw`text-gray-500 text-lg font-semibold mb-2`}>
+            <Text
+              style={[
+                tw`text-lg font-semibold mb-2`,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               Henüz siparişiniz yok
             </Text>
-            <Text style={tw`text-gray-400 text-sm text-center`}>
+            <Text
+              style={[
+                tw`text-sm text-center`,
+                { color: theme.colors.textTertiary },
+              ]}
+            >
               Alışverişe başlayın ve siparişlerinizi buradan takip edin
             </Text>
           </View>

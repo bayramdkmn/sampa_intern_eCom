@@ -7,6 +7,7 @@ import {
   Dimensions,
 } from "react-native";
 import tw from "twrnc";
+import { useTheme } from "../context/ThemeContext";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
@@ -20,6 +21,7 @@ const WelcomeSuccessScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<WelcomeSuccessRouteProp>();
   const { userName } = route.params;
+  const { theme } = useTheme();
 
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
@@ -58,7 +60,7 @@ const WelcomeSuccessScreen: React.FC = () => {
   };
 
   return (
-    <View style={tw`flex-1 bg-blue-600`}>
+    <View style={[tw`flex-1`, { backgroundColor: theme.colors.primary }]}>
       <View style={tw`flex-1 items-center justify-center px-8`}>
         <Animated.View
           style={[
@@ -70,7 +72,10 @@ const WelcomeSuccessScreen: React.FC = () => {
           ]}
         >
           <View
-            style={tw`w-32 h-32 bg-white/20 rounded-full items-center justify-center mb-6`}
+            style={[
+              tw`w-32 h-32 rounded-full items-center justify-center mb-6`,
+              { backgroundColor: theme.colors.card, opacity: 0.2 },
+            ]}
           >
             <Text style={tw`text-6xl`}>🎉</Text>
           </View>
@@ -85,13 +90,28 @@ const WelcomeSuccessScreen: React.FC = () => {
             },
           ]}
         >
-          <Text style={tw`text-white text-4xl font-bold mb-4 text-center`}>
+          <Text
+            style={[
+              tw`text-4xl font-bold mb-4 text-center`,
+              { color: theme.colors.onPrimary },
+            ]}
+          >
             Hoş Geldiniz!
           </Text>
-          <Text style={tw`text-white text-2xl font-bold mb-2 text-center`}>
+          <Text
+            style={[
+              tw`text-2xl font-bold mb-2 text-center`,
+              { color: theme.colors.onPrimary },
+            ]}
+          >
             {userName}
           </Text>
-          <Text style={tw`text-blue-100 text-lg text-center leading-6`}>
+          <Text
+            style={[
+              tw`text-lg text-center leading-6`,
+              { color: theme.colors.onPrimary, opacity: 0.8 },
+            ]}
+          >
             Hesabınız başarıyla oluşturuldu.
           </Text>
         </Animated.View>

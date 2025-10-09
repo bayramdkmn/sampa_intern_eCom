@@ -14,12 +14,14 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import { useAuthStore } from "../store";
+import { useTheme } from "../context/ThemeContext";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ForgotPasswordScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { resetPassword, isLoading } = useAuthStore();
+  const { theme } = useTheme();
 
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -98,7 +100,7 @@ const ForgotPasswordScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={tw`flex-1 bg-white`}
+      style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
     >
       <ScrollView
         contentContainerStyle={tw`flex-1`}

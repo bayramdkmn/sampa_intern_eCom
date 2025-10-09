@@ -13,6 +13,7 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList, Product } from "../types";
 import { useCartStore } from "../store";
 import { useFavoriteStore } from "../store/favoriteStore";
+import { useTheme } from "../context/ThemeContext";
 
 type ProductDetailScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -74,6 +75,7 @@ const REVIEWS = [
 ];
 
 const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { theme } = useTheme();
   const [quantity, setQuantity] = useState(1);
 
   const { addToCart } = useCartStore();
@@ -99,18 +101,31 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
       <View
-        style={tw`bg-blue-600 pt-12 pb-4 px-4 flex-row items-center justify-between`}
+        style={[
+          tw`pt-12 pb-4 px-4 flex-row items-center justify-between`,
+          { backgroundColor: theme.colors.primary },
+        ]}
       >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={tw`w-10 h-10 bg-white/20 rounded-full items-center justify-center`}
+          style={[
+            tw`w-10 h-10 rounded-full items-center justify-center`,
+            { backgroundColor: theme.colors.card, opacity: 0.2 },
+          ]}
         >
-          <Text style={tw`text-white text-xl`}>←</Text>
+          <Text style={[tw`text-xl`, { color: theme.colors.onPrimary }]}>
+            ←
+          </Text>
         </TouchableOpacity>
-        <Text style={tw`text-white text-lg font-bold flex-1 text-center`}>
+        <Text
+          style={[
+            tw`text-lg font-bold flex-1 text-center`,
+            { color: theme.colors.onPrimary },
+          ]}
+        >
           Ürün Detayı
         </Text>
         <TouchableOpacity
@@ -158,17 +173,23 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </View>
 
-            <Text style={tw`text-blue-600 text-3xl font-bold`}>
+            <Text
+              style={[tw`text-3xl font-bold`, { color: theme.colors.primary }]}
+            >
               ₺{PRODUCT.price.toLocaleString("tr-TR")}
             </Text>
           </View>
 
           {/* Description */}
           <View style={tw`mb-6`}>
-            <Text style={tw`text-gray-800 font-bold text-lg mb-2`}>
+            <Text
+              style={[tw`font-bold text-lg mb-2`, { color: theme.colors.text }]}
+            >
               Ürün Açıklaması
             </Text>
-            <Text style={tw`text-gray-600 leading-6`}>
+            <Text
+              style={[tw`leading-6`, { color: theme.colors.textSecondary }]}
+            >
               {PRODUCT.description}
             </Text>
           </View>
@@ -177,33 +198,70 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
       {/* Bottom Action Bar */}
       <View
-        style={tw`bg-white border-t border-gray-200 px-4 pb-8 pt-3 flex-row items-center justify-between shadow-lg`}
+        style={[
+          tw`px-4 pb-8 pt-3 flex-row items-center justify-between shadow-lg`,
+          {
+            backgroundColor: theme.colors.card,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.divider,
+            shadowColor: theme.colors.shadow,
+          },
+        ]}
       >
         {/* Quantity Selector */}
-        <View style={tw`flex-row items-center bg-gray-100 rounded-xl`}>
+        <View
+          style={[
+            tw`flex-row items-center rounded-xl`,
+            { backgroundColor: theme.colors.surfaceVariant },
+          ]}
+        >
           <TouchableOpacity
             onPress={() => setQuantity(Math.max(1, quantity - 1))}
             style={tw`w-10 h-10 items-center justify-center`}
           >
-            <Text style={tw`text-gray-600 text-xl font-bold`}>−</Text>
+            <Text
+              style={[
+                tw`text-xl font-bold`,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              −
+            </Text>
           </TouchableOpacity>
-          <Text style={tw`text-gray-800 font-bold text-lg px-4`}>
+          <Text
+            style={[tw`font-bold text-lg px-4`, { color: theme.colors.text }]}
+          >
             {quantity}
           </Text>
           <TouchableOpacity
             onPress={() => setQuantity(quantity + 1)}
             style={tw`w-10 h-10 items-center justify-center`}
           >
-            <Text style={tw`text-gray-600 text-xl font-bold`}>+</Text>
+            <Text
+              style={[
+                tw`text-xl font-bold`,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              +
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Add to Cart Button */}
         <TouchableOpacity
           onPress={handleAddToCart}
-          style={tw`flex-1 ml-3 bg-blue-600 py-4 rounded-xl`}
+          style={[
+            tw`flex-1 ml-3 py-4 rounded-xl`,
+            { backgroundColor: theme.colors.primary },
+          ]}
         >
-          <Text style={tw`text-white text-center font-bold text-base`}>
+          <Text
+            style={[
+              tw`text-center font-bold text-base`,
+              { color: theme.colors.onPrimary },
+            ]}
+          >
             Sepete Ekle - ₺{(PRODUCT.price * quantity).toLocaleString("tr-TR")}
           </Text>
         </TouchableOpacity>

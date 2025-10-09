@@ -10,6 +10,7 @@ export { useOrderStore } from "./orderStore";
 export { useFavoriteStore } from "./favoriteStore";
 export { useAddressStore } from "./addressStore";
 export { usePaymentStore } from "./paymentStore";
+export { useThemeStore } from "./themeStore";
 
 // Types'ı da export et
 export type { Order } from "./orderStore";

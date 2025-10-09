@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import tw from "twrnc";
 import { useCartStore, useOrderStore } from "../store";
+import { useTheme } from "../context/ThemeContext";
 
 const CartScreen: React.FC = () => {
   // 🎯 Zustand Store'dan veri al
@@ -16,6 +17,7 @@ const CartScreen: React.FC = () => {
   // Zustand'da: direkt store'dan al!
   const { items, total, updateQuantity, removeFromCart } = useCartStore();
   const { createOrder } = useOrderStore();
+  const { theme } = useTheme();
 
   const calculateShipping = () => {
     return total > 500 ? 0 : 29.99;
@@ -45,22 +47,48 @@ const CartScreen: React.FC = () => {
 
   if (items.length === 0) {
     return (
-      <View style={tw`flex-1 bg-white`}>
-        <View style={tw`bg-blue-600 pt-12 pb-4 px-4`}>
-          <Text style={tw`text-white text-2xl font-bold`}>Sepetim</Text>
+      <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
+        <View
+          style={[
+            tw`pt-12 pb-4 px-4`,
+            { backgroundColor: theme.colors.primary },
+          ]}
+        >
+          <Text
+            style={[tw`text-2xl font-bold`, { color: theme.colors.onPrimary }]}
+          >
+            Sepetim
+          </Text>
         </View>
 
         <View style={tw`flex-1 items-center justify-center px-6`}>
           <Text style={tw`text-8xl mb-4`}>🛒</Text>
-          <Text style={tw`text-gray-800 text-2xl font-bold mb-2`}>
+          <Text
+            style={[tw`text-2xl font-bold mb-2`, { color: theme.colors.text }]}
+          >
             Sepetiniz Boş
           </Text>
-          <Text style={tw`text-gray-500 text-center mb-6`}>
+          <Text
+            style={[
+              tw`text-center mb-6`,
+              { color: theme.colors.textSecondary },
+            ]}
+          >
             Sepetinizde henüz ürün bulunmuyor. Alışverişe başlamak için
             kategorilere göz atın.
           </Text>
-          <TouchableOpacity style={tw`bg-blue-600 px-8 py-4 rounded-xl`}>
-            <Text style={tw`text-white font-bold text-base`}>
+          <TouchableOpacity
+            style={[
+              tw`px-8 py-4 rounded-xl`,
+              { backgroundColor: theme.colors.primary },
+            ]}
+          >
+            <Text
+              style={[
+                tw`font-bold text-base`,
+                { color: theme.colors.onPrimary },
+              ]}
+            >
               Alışverişe Başla
             </Text>
           </TouchableOpacity>
@@ -70,13 +98,26 @@ const CartScreen: React.FC = () => {
   }
 
   return (
-    <View style={tw`flex-1 bg-gray-50`}>
+    <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={tw`bg-blue-600 pt-12 pb-4 px-4`}>
+      <View
+        style={[tw`pt-12 pb-4 px-4`, { backgroundColor: theme.colors.primary }]}
+      >
         <View style={tw`flex-row justify-between items-center`}>
-          <Text style={tw`text-white text-2xl font-bold`}>Sepetim</Text>
-          <View style={tw`bg-white/20 px-3 py-1 rounded-full`}>
-            <Text style={tw`text-white font-bold`}>{items.length} Ürün</Text>
+          <Text
+            style={[tw`text-2xl font-bold`, { color: theme.colors.onPrimary }]}
+          >
+            Sepetim
+          </Text>
+          <View
+            style={[
+              tw`px-3 py-1 rounded-full`,
+              { backgroundColor: theme.colors.card, opacity: 0.2 },
+            ]}
+          >
+            <Text style={[tw`font-bold`, { color: theme.colors.onPrimary }]}>
+              {items.length} Ürün
+            </Text>
           </View>
         </View>
       </View>
@@ -92,25 +133,42 @@ const CartScreen: React.FC = () => {
           {items.map((item) => (
             <View
               key={item.product.id}
-              style={tw`bg-white rounded-2xl mb-3 overflow-hidden shadow-sm`}
+              style={[
+                tw`rounded-2xl mb-3 overflow-hidden shadow-sm`,
+                {
+                  backgroundColor: theme.colors.card,
+                  shadowColor: theme.colors.shadow,
+                },
+              ]}
             >
               <View style={tw`flex-row p-3`}>
                 {/* Product Image */}
                 <Image
                   source={{ uri: item.product.image }}
-                  style={tw`w-24 h-24 rounded-xl bg-gray-200`}
+                  style={[
+                    tw`w-24 h-24 rounded-xl`,
+                    { backgroundColor: theme.colors.surfaceVariant },
+                  ]}
                 />
 
                 {/* Product Info */}
                 <View style={tw`flex-1 ml-3 justify-between`}>
                   <View>
                     <Text
-                      style={tw`text-gray-800 font-bold text-base mb-1`}
+                      style={[
+                        tw`font-bold text-base mb-1`,
+                        { color: theme.colors.text },
+                      ]}
                       numberOfLines={2}
                     >
                       {item.product.name}
                     </Text>
-                    <Text style={tw`text-blue-600 font-bold text-lg`}>
+                    <Text
+                      style={[
+                        tw`font-bold text-lg`,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
                       ₺{item.product.price.toLocaleString("tr-TR")}
                     </Text>
                   </View>

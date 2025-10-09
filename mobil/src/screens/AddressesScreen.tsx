@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Address } from "../types";
 import { useAddressStore } from "../store";
+import { useTheme } from "../context/ThemeContext";
 import AddressCard from "../components/AddressCard";
 import AddressFormModal from "../components/AddressFormModal";
 
@@ -19,6 +20,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const AddressesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { addresses, deleteAddress, setDefaultAddress } = useAddressStore();
+  const { theme } = useTheme();
 
   const [formVisible, setFormVisible] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -44,18 +46,42 @@ const AddressesScreen: React.FC = () => {
   };
 
   return (
-    <View style={tw`flex-1 bg-gray-50`}>
+    <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={tw`bg-blue-600 pt-12 pb-4 px-4 flex-row items-center`}>
+      <View
+        style={[
+          tw`pt-12 pb-4 px-4 flex-row items-center`,
+          { backgroundColor: theme.colors.primary },
+        ]}
+      >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={tw`w-10 h-10 bg-white/20 rounded-full items-center justify-center mr-3`}
+          style={[
+            tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+            { backgroundColor: theme.colors.card, opacity: 0.2 },
+          ]}
         >
-          <Text style={tw`text-white text-xl`}>←</Text>
+          <Text style={[tw`text-xl`, { color: theme.colors.onPrimary }]}>
+            ←
+          </Text>
         </TouchableOpacity>
-        <Text style={tw`text-white text-xl font-bold flex-1`}>Adreslerim</Text>
-        <View style={tw`bg-white/20 px-3 py-1 rounded-full`}>
-          <Text style={tw`text-white font-bold`}>{addresses.length}</Text>
+        <Text
+          style={[
+            tw`text-xl font-bold flex-1`,
+            { color: theme.colors.onPrimary },
+          ]}
+        >
+          Adreslerim
+        </Text>
+        <View
+          style={[
+            tw`px-3 py-1 rounded-full`,
+            { backgroundColor: theme.colors.card, opacity: 0.2 },
+          ]}
+        >
+          <Text style={[tw`font-bold`, { color: theme.colors.onPrimary }]}>
+            {addresses.length}
+          </Text>
         </View>
       </View>
 

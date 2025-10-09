@@ -7,29 +7,31 @@ import CartScreen from "../screens/CartScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import { View, Text, Platform } from "react-native";
 import { useCartStore } from "../store";
+import { useTheme } from "../context/ThemeContext";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const BottomTabNavigator: React.FC = () => {
   // 🛒 Sepetteki ürün sayısını al (dinamik badge için)
   const itemCount = useCartStore((state) => state.itemCount);
+  const { theme } = useTheme();
 
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#2563EB", // blue-600
-        tabBarInactiveTintColor: "#6B7280", // gray-500
+        tabBarActiveTintColor: theme.colors.tabBarActive,
+        tabBarInactiveTintColor: theme.colors.tabBarInactive,
         tabBarStyle: {
           position: "absolute",
           bottom: 0,
           left: 0,
           right: 0,
           height: Platform.OS === "ios" ? 85 : 70,
-          backgroundColor: "#FFFFFF",
+          backgroundColor: theme.colors.tabBarBackground,
           borderTopWidth: 0,
           elevation: 20,
-          shadowColor: "#000",
+          shadowColor: theme.colors.shadow,
           shadowOffset: { width: 0, height: -3 },
           shadowOpacity: 0.1,
           shadowRadius: 8,
@@ -60,7 +62,9 @@ const BottomTabNavigator: React.FC = () => {
                 width: 50,
                 height: 50,
                 borderRadius: 15,
-                backgroundColor: focused ? "#EFF6FF" : "transparent",
+                backgroundColor: focused
+                  ? theme.colors.surfaceVariant
+                  : "transparent",
               }}
             >
               <Text style={{ fontSize: 26 }}>{focused ? "🏠" : "🏡"}</Text>
@@ -81,7 +85,9 @@ const BottomTabNavigator: React.FC = () => {
                 width: 50,
                 height: 50,
                 borderRadius: 15,
-                backgroundColor: focused ? "#EFF6FF" : "transparent",
+                backgroundColor: focused
+                  ? theme.colors.surfaceVariant
+                  : "transparent",
               }}
             >
               <Text style={{ fontSize: 26 }}>{focused ? "📱" : "📲"}</Text>
@@ -102,7 +108,9 @@ const BottomTabNavigator: React.FC = () => {
                 width: 50,
                 height: 50,
                 borderRadius: 15,
-                backgroundColor: focused ? "#EFF6FF" : "transparent",
+                backgroundColor: focused
+                  ? theme.colors.surfaceVariant
+                  : "transparent",
                 position: "relative",
               }}
             >
@@ -113,7 +121,7 @@ const BottomTabNavigator: React.FC = () => {
                     position: "absolute",
                     top: 5,
                     right: 5,
-                    backgroundColor: "#EF4444",
+                    backgroundColor: theme.colors.error,
                     borderRadius: 10,
                     minWidth: 20,
                     height: 20,
@@ -151,7 +159,9 @@ const BottomTabNavigator: React.FC = () => {
                 width: 50,
                 height: 50,
                 borderRadius: 15,
-                backgroundColor: focused ? "#EFF6FF" : "transparent",
+                backgroundColor: focused
+                  ? theme.colors.surfaceVariant
+                  : "transparent",
               }}
             >
               <Text style={{ fontSize: 26 }}>{focused ? "👤" : "👥"}</Text>

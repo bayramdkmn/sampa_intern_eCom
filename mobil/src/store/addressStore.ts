@@ -59,11 +59,9 @@ export const useAddressStore = create<AddressState>()((set, get) => ({
     }
   },
 
-  // ✏️ Adresi Güncelle
   updateAddress: (id: string, updatedData: Partial<Address>) => {
     const { addresses } = get();
     
-    // Eğer varsayılan adres değiştiriliyorsa, diğer adreslerin varsayılanını kaldır
     if (updatedData.isDefault) {
       const newAddresses = addresses.map(addr => ({
         ...addr,

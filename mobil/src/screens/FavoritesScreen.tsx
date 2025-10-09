@@ -12,12 +12,14 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import { useFavoriteStore } from "../store/favoriteStore";
+import { useTheme } from "../context/ThemeContext";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { favorites, removeFromFavorites } = useFavoriteStore();
+  const { theme } = useTheme();
 
   const handleProductPress = (productId: string) => {
     navigation.navigate("ProductDetail", { productId });
@@ -29,33 +31,66 @@ const FavoritesScreen: React.FC = () => {
 
   if (favorites.length === 0) {
     return (
-      <View style={tw`flex-1 bg-gray-50`}>
-        <View style={tw`bg-blue-600 pt-12 pb-4 px-4 flex-row items-center`}>
+      <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
+        <View
+          style={[
+            tw`pt-12 pb-4 px-4 flex-row items-center`,
+            { backgroundColor: theme.colors.primary },
+          ]}
+        >
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={tw`w-10 h-10 bg-white/20 rounded-full items-center justify-center mr-3`}
+            style={[
+              tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+              { backgroundColor: theme.colors.card, opacity: 0.2 },
+            ]}
           >
-            <Text style={tw`text-white text-xl`}>←</Text>
+            <Text style={[tw`text-xl`, { color: theme.colors.onPrimary }]}>
+              ←
+            </Text>
           </TouchableOpacity>
-          <Text style={tw`text-white text-xl font-bold flex-1`}>
+          <Text
+            style={[
+              tw`text-xl font-bold flex-1`,
+              { color: theme.colors.onPrimary },
+            ]}
+          >
             Favorilerim
           </Text>
         </View>
 
         <View style={tw`flex-1 justify-center items-center px-8`}>
           <Text style={tw`text-8xl mb-6`}>❤️</Text>
-          <Text style={tw`text-gray-800 text-2xl font-bold mb-3 text-center`}>
+          <Text
+            style={[
+              tw`text-2xl font-bold mb-3 text-center`,
+              { color: theme.colors.text },
+            ]}
+          >
             Favori Ürününüz Yok
           </Text>
-          <Text style={tw`text-gray-500 text-center text-base mb-8`}>
+          <Text
+            style={[
+              tw`text-center text-base mb-8`,
+              { color: theme.colors.textSecondary },
+            ]}
+          >
             Beğendiğiniz ürünleri favorilerinize ekleyerek daha sonra kolayca
             ulaşabilirsiniz.
           </Text>
           <TouchableOpacity
             onPress={() => navigation.navigate("MainTabs")}
-            style={tw`bg-blue-600 px-8 py-4 rounded-xl`}
+            style={[
+              tw`px-8 py-4 rounded-xl`,
+              { backgroundColor: theme.colors.primary },
+            ]}
           >
-            <Text style={tw`text-white font-bold text-base`}>
+            <Text
+              style={[
+                tw`font-bold text-base`,
+                { color: theme.colors.onPrimary },
+              ]}
+            >
               Alışverişe Başla
             </Text>
           </TouchableOpacity>

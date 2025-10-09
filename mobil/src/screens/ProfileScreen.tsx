@@ -21,6 +21,8 @@ import {
   usePaymentStore,
   useAuthStore,
 } from "../store";
+import { useTheme } from "../context/ThemeContext";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -34,7 +36,7 @@ const USER: User = {
 
 const SETTINGS_ITEMS = [
   { id: "1", icon: "🔔", title: "Bildirimler" },
-  { id: "2", icon: "🌙", title: "Karanlık Mod" },
+  { id: "2", icon: "🌙", title: "Tema Değiştir", isThemeToggle: true },
   { id: "3", icon: "🌍", title: "Dil Seçimi" },
   { id: "4", icon: "🔒", title: "Gizlilik ve Güvenlik" },
   { id: "5", icon: "❓", title: "Yardım ve Destek" },
@@ -47,6 +49,7 @@ const ProfileScreen: React.FC = () => {
   const { addresses } = useAddressStore();
   const { paymentMethods } = usePaymentStore();
   const { user, isAuthenticated, updateUser } = useAuthStore();
+  const { theme } = useTheme();
 
   // Fallback to mock user if not authenticated
   const currentUser = user || USER;
@@ -110,9 +113,13 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleSettingsPress = (itemId: string) => {
+    if (itemId === "2") {
+      // Tema değiştirme butonu - burada hiçbir şey yapma, component kendisi halledecek
+      return;
+    }
+
     const settingsItems: { [key: string]: string } = {
       "1": "Bildirimler",
-      "2": "Karanlık Mod",
       "3": "Dil Seçimi",
       "4": "Gizlilik ve Güvenlik",
       "5": "Yardım ve Destek",
@@ -247,64 +254,132 @@ const ProfileScreen: React.FC = () => {
       </Modal>
 
       <ScrollView
-        style={tw`flex-1 bg-gray-50`}
+        style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
         contentContainerStyle={{
           paddingBottom: Platform.OS === "ios" ? 110 : 90,
         }}
       >
         {/* Header */}
-        <View style={tw`bg-blue-600 pt-12 pb-8 px-4`}>
-          <Text style={tw`text-white text-2xl font-bold mb-6`}>Profilim</Text>
+        <View
+          style={[
+            tw`pt-12 pb-8 px-4`,
+            { backgroundColor: theme.colors.primary },
+          ]}
+        >
+          <Text
+            style={[
+              tw`text-2xl font-bold mb-6`,
+              { color: theme.colors.onPrimary },
+            ]}
+          >
+            Profilim
+          </Text>
 
           {isAuthenticated ? (
             // Authenticated User Info Card
-            <View style={tw`bg-white/10 rounded-2xl p-4 flex-row items-center`}>
+            <View
+              style={[
+                tw`rounded-2xl p-4 flex-row items-center`,
+                { backgroundColor: theme.colors.card, opacity: 0.1 },
+              ]}
+            >
               <Image
                 source={{ uri: currentUser.avatar }}
-                style={tw`w-20 h-20 rounded-full bg-white/20 mr-4`}
+                style={[
+                  tw`w-20 h-20 rounded-full mr-4`,
+                  { backgroundColor: theme.colors.card, opacity: 0.2 },
+                ]}
               />
               <View style={tw`flex-1`}>
-                <Text style={tw`text-white text-xl font-bold mb-1`}>
+                <Text
+                  style={[
+                    tw`text-xl font-bold mb-1`,
+                    { color: theme.colors.onPrimary },
+                  ]}
+                >
                   {currentUser.name}
                 </Text>
-                <Text style={tw`text-blue-100 text-sm mb-1`}>
+                <Text
+                  style={[
+                    tw`text-sm mb-1`,
+                    { color: theme.colors.onPrimary, opacity: 0.8 },
+                  ]}
+                >
                   {currentUser.email}
                 </Text>
                 {currentUser.phone && (
-                  <Text style={tw`text-blue-100 text-sm`}>
+                  <Text
+                    style={[
+                      tw`text-sm`,
+                      { color: theme.colors.onPrimary, opacity: 0.8 },
+                    ]}
+                  >
                     {currentUser.phone}
                   </Text>
                 )}
               </View>
               <TouchableOpacity onPress={handleEditPress}>
-                <Text style={tw`text-white text-2xl`}>✏️</Text>
+                <Text style={[tw`text-2xl`, { color: theme.colors.onPrimary }]}>
+                  ✏️
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
             // Guest User - Login/Register Card
-            <View style={tw`bg-white/10 rounded-2xl p-6`}>
+            <View
+              style={[
+                tw`rounded-2xl p-6`,
+                { backgroundColor: theme.colors.card, opacity: 0.1 },
+              ]}
+            >
               <View style={tw`items-center mb-4`}>
-                <Text style={tw`text-white text-lg font-bold mb-2`}>
+                <Text
+                  style={[
+                    tw`text-lg font-bold mb-2`,
+                    { color: theme.colors.onPrimary },
+                  ]}
+                >
                   Hesabınıza Giriş Yapın
                 </Text>
-                <Text style={tw`text-blue-100 text-center text-sm`}>
+                <Text
+                  style={[
+                    tw`text-center text-sm`,
+                    { color: theme.colors.onPrimary, opacity: 0.8 },
+                  ]}
+                >
                   Siparişlerinizi takip edin ve özel fırsatlardan yararlanın
                 </Text>
               </View>
               <View style={tw`flex-row gap-3`}>
                 <TouchableOpacity
                   onPress={() => navigation.navigate("Login")}
-                  style={tw`flex-1 bg-white py-3 rounded-xl`}
+                  style={[
+                    tw`flex-1 py-3 rounded-xl`,
+                    { backgroundColor: theme.colors.card },
+                  ]}
                 >
-                  <Text style={tw`text-blue-600 font-bold text-center`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-center`,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
                     Giriş Yap
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => navigation.navigate("Register")}
-                  style={tw`flex-1 bg-white/20 py-3 rounded-xl`}
+                  style={[
+                    tw`flex-1 py-3 rounded-xl`,
+                    { backgroundColor: theme.colors.card, opacity: 0.2 },
+                  ]}
                 >
-                  <Text style={tw`text-white font-bold text-center`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-center`,
+                      { color: theme.colors.onPrimary },
+                    ]}
+                  >
                     Kayıt Ol
                   </Text>
                 </TouchableOpacity>
@@ -315,26 +390,89 @@ const ProfileScreen: React.FC = () => {
 
         {/* Stats Cards */}
         <View style={tw`px-4 -mt-6 mb-4`}>
-          <View style={tw`bg-white rounded-2xl shadow-md p-4 flex-row`}>
-            <View style={tw`flex-1 items-center border-r border-gray-200`}>
-              <Text style={tw`text-blue-600 text-2xl font-bold mb-1`}>12</Text>
-              <Text style={tw`text-gray-500 text-xs`}>Sipariş</Text>
+          <View
+            style={[
+              tw`rounded-2xl shadow-md p-4 flex-row`,
+              {
+                backgroundColor: theme.colors.card,
+                shadowColor: theme.colors.shadow,
+              },
+            ]}
+          >
+            <View
+              style={[
+                tw`flex-1 items-center`,
+                { borderRightWidth: 1, borderRightColor: theme.colors.divider },
+              ]}
+            >
+              <Text
+                style={[
+                  tw`text-2xl font-bold mb-1`,
+                  { color: theme.colors.primary },
+                ]}
+              >
+                12
+              </Text>
+              <Text
+                style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
+              >
+                Sipariş
+              </Text>
             </View>
-            <View style={tw`flex-1 items-center border-r border-gray-200`}>
-              <Text style={tw`text-blue-600 text-2xl font-bold mb-1`}>8</Text>
-              <Text style={tw`text-gray-500 text-xs`}>Beklemede</Text>
+            <View
+              style={[
+                tw`flex-1 items-center`,
+                { borderRightWidth: 1, borderRightColor: theme.colors.divider },
+              ]}
+            >
+              <Text
+                style={[
+                  tw`text-2xl font-bold mb-1`,
+                  { color: theme.colors.primary },
+                ]}
+              >
+                8
+              </Text>
+              <Text
+                style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
+              >
+                Beklemede
+              </Text>
             </View>
             <View style={tw`flex-1 items-center`}>
-              <Text style={tw`text-blue-600 text-2xl font-bold mb-1`}>4</Text>
-              <Text style={tw`text-gray-500 text-xs`}>Teslim Edildi</Text>
+              <Text
+                style={[
+                  tw`text-2xl font-bold mb-1`,
+                  { color: theme.colors.primary },
+                ]}
+              >
+                4
+              </Text>
+              <Text
+                style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
+              >
+                Teslim Edildi
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Menu Items */}
         <View style={tw`px-4 mb-4`}>
-          <Text style={tw`text-gray-800 font-bold text-lg mb-3`}>Hesabım</Text>
-          <View style={tw`bg-white rounded-2xl overflow-hidden shadow-sm`}>
+          <Text
+            style={[tw`font-bold text-lg mb-3`, { color: theme.colors.text }]}
+          >
+            Hesabım
+          </Text>
+          <View
+            style={[
+              tw`rounded-2xl overflow-hidden shadow-sm`,
+              {
+                backgroundColor: theme.colors.card,
+                shadowColor: theme.colors.shadow,
+              },
+            ]}
+          >
             {MENU_ITEMS.map((item, index) => (
               <TouchableOpacity
                 key={item.id}
@@ -374,25 +512,49 @@ const ProfileScreen: React.FC = () => {
 
         {/* Settings */}
         <View style={tw`px-4 mb-4`}>
-          <Text style={tw`text-gray-800 font-bold text-lg mb-3`}>Ayarlar</Text>
-          <View style={tw`bg-white rounded-2xl overflow-hidden shadow-sm`}>
+          <Text
+            style={[tw`font-bold text-lg mb-3`, { color: theme.colors.text }]}
+          >
+            Ayarlar
+          </Text>
+          <View
+            style={[
+              tw`rounded-2xl overflow-hidden shadow-sm`,
+              {
+                backgroundColor: theme.colors.card,
+                shadowColor: theme.colors.shadow,
+              },
+            ]}
+          >
             {SETTINGS_ITEMS.map((item, index) => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => handleSettingsPress(item.id)}
                 style={[
                   tw`p-4 flex-row items-center justify-between`,
-                  index < SETTINGS_ITEMS.length - 1 &&
-                    tw`border-b border-gray-100`,
+                  index < SETTINGS_ITEMS.length - 1 && {
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.colors.divider,
+                  },
                 ]}
               >
                 <View style={tw`flex-row items-center flex-1`}>
                   <Text style={tw`text-2xl mr-3`}>{item.icon}</Text>
-                  <Text style={tw`text-gray-800 font-semibold`}>
+                  <Text
+                    style={[tw`font-semibold`, { color: theme.colors.text }]}
+                  >
                     {item.title}
                   </Text>
                 </View>
-                <Text style={tw`text-gray-400 text-xl`}>›</Text>
+                {item.isThemeToggle ? (
+                  <ThemeToggle />
+                ) : (
+                  <Text
+                    style={[tw`text-xl`, { color: theme.colors.textTertiary }]}
+                  >
+                    ›
+                  </Text>
+                )}
               </TouchableOpacity>
             ))}
           </View>
