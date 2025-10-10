@@ -9,12 +9,7 @@ import {
   Platform,
 } from "react-native";
 import tw from "twrnc";
-import { PaymentMethod } from "../types";
-
-interface PaymentMethodFormProps {
-  onSubmit: (paymentMethod: Omit<PaymentMethod, "id">) => void;
-  onCancel: () => void;
-}
+import { PaymentMethodFormProps } from "../types";
 
 const PaymentMethodForm: React.FC<PaymentMethodFormProps> = ({
   onSubmit,

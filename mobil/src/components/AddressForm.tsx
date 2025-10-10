@@ -7,23 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import tw from "twrnc";
-
-interface AddressFormProps {
-  title: string;
-  fullName: string;
-  phone: string;
-  city: string;
-  district: string;
-  fullAddress: string;
-  isDefault: boolean;
-  onTitleChange: (value: string) => void;
-  onFullNameChange: (value: string) => void;
-  onPhoneChange: (value: string) => void;
-  onCityChange: (value: string) => void;
-  onDistrictChange: (value: string) => void;
-  onFullAddressChange: (value: string) => void;
-  onIsDefaultChange: (value: boolean) => void;
-}
+import { AddressFormProps } from "../types";
 
 const AddressForm: React.FC<AddressFormProps> = ({
   title,

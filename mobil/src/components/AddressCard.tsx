@@ -1,14 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import tw from "twrnc";
-import { Address } from "../types";
-
-interface AddressCardProps {
-  address: Address;
-  onEdit: () => void;
-  onDelete: () => void;
-  onSetDefault: () => void;
-}
+import { AddressCardProps } from "../types";
 
 const AddressCard: React.FC<AddressCardProps> = ({
   address,

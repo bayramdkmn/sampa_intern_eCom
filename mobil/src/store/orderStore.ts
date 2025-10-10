@@ -1,32 +1,19 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CartItem } from "../types";
-
-// Sipariş Tipi
-export interface Order {
-  id: string;
-  items: CartItem[];
-  total: number;
-  shippingCost: number;
-  finalTotal: number;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  createdAt: string;
-  deliveryAddress?: string;
-  paymentMethod?: string;
-}
+import { CartItem, StoreOrder } from "../types";
 
 interface OrderState {
-  // State
-  orders: Order[];
-  currentOrder: Order | null;
+  
+  orders: StoreOrder[];
+  currentOrder: StoreOrder | null;
   isLoading: boolean;
   error: string | null;
 
-  // Actions
-  createOrder: (items: CartItem[], total: number, shippingCost: number) => Promise<Order>;
+  
+  createOrder: (items: CartItem[], total: number, shippingCost: number) => Promise<StoreOrder>;
   fetchOrders: () => Promise<void>;
-  fetchOrderById: (orderId: string) => Promise<Order | null>;
+  fetchOrderById: (orderId: string) => Promise<StoreOrder | null>;
   cancelOrder: (orderId: string) => Promise<void>;
   clearCurrentOrder: () => void;
 }
@@ -34,15 +21,13 @@ interface OrderState {
 export const useOrderStore = create<OrderState>()(
   persist(
     (set, get) => ({
-      // Initial State
+      
       orders: [],
       currentOrder: null,
       isLoading: false,
       error: null,
 
-      // 🛍️ Sipariş Oluştur
-      // Redux'ta: dispatch(createOrder(orderData))
-      // Zustand'da: await createOrder(items, total) - Çok kolay!
+      
       createOrder: async (items: CartItem[], total: number, shippingCost: number) => {
         try {
           set({ isLoading: true, error: null });
@@ -55,7 +40,7 @@ export const useOrderStore = create<OrderState>()(
           // const data = await response.json();
 
           // Mock sipariş oluştur
-          const newOrder: Order = {
+          const newOrder: StoreOrder = {
             id: `order_${Date.now()}`,
             items: items,
             total: total,
@@ -81,7 +66,6 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // 📋 Siparişleri Çek
       fetchOrders: async () => {
         try {
           set({ isLoading: true, error: null });
@@ -90,7 +74,6 @@ export const useOrderStore = create<OrderState>()(
           // const response = await fetch('YOUR_API/orders');
           // const data = await response.json();
 
-          // Mock siparişler (şimdilik mevcut siparişleri kullan)
           const orders = get().orders;
 
           set({ isLoading: false });
@@ -102,7 +85,6 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // 🔍 ID'ye Göre Sipariş Bul
       fetchOrderById: async (orderId: string) => {
         try {
           set({ isLoading: true, error: null });
@@ -124,7 +106,6 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // ❌ Siparişi İptal Et
       cancelOrder: async (orderId: string) => {
         try {
           set({ isLoading: true, error: null });
@@ -150,15 +131,13 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // 🧹 Mevcut Siparişi Temizle
       clearCurrentOrder: () => {
         set({ currentOrder: null });
       },
     }),
     {
-      name: "order-storage", // AsyncStorage key
+      name: "order-storage", 
       storage: createJSONStorage(() => AsyncStorage),
-      // Siparişleri kaydet
       partialize: (state) => ({
         orders: state.orders,
       }),

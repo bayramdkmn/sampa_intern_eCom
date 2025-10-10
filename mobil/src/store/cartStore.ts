@@ -4,7 +4,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Product, CartItem } from "../types";
 
 interface CartState {
-  // State
   items: CartItem[];
   total: number;
   itemCount: number;
@@ -20,20 +19,17 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
-      // Initial State
       items: [],
       total: 0,
       itemCount: 0,
 
-      // 🛒 Sepete Ürün Ekle
-      // Redux'ta: dispatch(addToCart(product))
-      // Zustand'da: addToCart(product) - Direkt!
+      
       addToCart: (product: Product, quantity: number = 1) => {
         const items = get().items;
         const existingItem = items.find((item) => item.product.id === product.id);
 
         if (existingItem) {
-          // Ürün zaten sepette, miktarı arttır
+          
           set({
             items: items.map((item) =>
               item.product.id === product.id
@@ -42,7 +38,7 @@ export const useCartStore = create<CartState>()(
             ),
           });
         } else {
-          // Yeni ürün ekle
+          
           set({
             items: [...items, { product, quantity }],
           });
@@ -52,7 +48,6 @@ export const useCartStore = create<CartState>()(
         get().calculateTotal();
       },
 
-      // 🗑️ Sepetten Ürün Çıkar
       removeFromCart: (productId: string) => {
         set({
           items: get().items.filter((item) => item.product.id !== productId),
@@ -60,7 +55,6 @@ export const useCartStore = create<CartState>()(
         get().calculateTotal();
       },
 
-      // 📊 Miktar Güncelle
       updateQuantity: (productId: string, quantity: number) => {
         if (quantity <= 0) {
           // Miktar 0 ise sil
@@ -75,7 +69,6 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      // 🧹 Sepeti Temizle
       clearCart: () => {
         set({
           items: [],
@@ -84,7 +77,6 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      // 💰 Toplam Hesapla
       calculateTotal: () => {
         const items = get().items;
         const total = items.reduce(
@@ -97,11 +89,9 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: "cart-storage", // AsyncStorage key
+      name: "cart-storage", 
       storage: createJSONStorage(() => AsyncStorage),
-      // Sepet verilerini kaydet (app kapansa bile kalsın)
       onRehydrateStorage: () => (state) => {
-        // Yüklendiğinde toplamı tekrar hesapla
         if (state) {
           state.calculateTotal();
         }

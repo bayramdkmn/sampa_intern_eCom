@@ -1,13 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import tw from "twrnc";
-import { PaymentMethod } from "../types";
-
-interface PaymentMethodCardProps {
-  paymentMethod: PaymentMethod;
-  onDelete: (id: string) => void;
-  onSetDefault: (id: string) => void;
-}
+import { PaymentMethodCardProps } from "../types";
 
 const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   paymentMethod,

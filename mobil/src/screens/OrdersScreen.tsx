@@ -11,37 +11,20 @@ import {
 } from "react-native";
 import tw from "twrnc";
 import { useTheme } from "../context/ThemeContext";
+import { BaseOrder, OrderItem } from "../types";
 
-interface OrderItem {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  quantity: number;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  date: string;
-  total: number;
-  status: "processing" | "shipped" | "delivered" | "cancelled";
-  items: number;
-  products?: OrderItem[];
-  shippingCost?: number;
-  address?: string;
-}
-
-const ORDERS: Order[] = [
+const ORDERS: BaseOrder[] = [
   {
     id: "1",
     orderNumber: "#12345",
+    createdAt: "2024-01-15",
     date: "2024-01-15",
     total: 150.0,
     status: "shipped",
-    items: 3,
+    items: [], // CartItem array - boş bırakıyoruz çünkü products kullanıyoruz
     shippingCost: 15.0,
     address: "Atatürk Cad. No:123, Kadıköy/İstanbul",
+    deliveryAddress: "Atatürk Cad. No:123, Kadıköy/İstanbul",
     products: [
       {
         id: "1",
@@ -62,12 +45,14 @@ const ORDERS: Order[] = [
   {
     id: "2",
     orderNumber: "#12346",
+    createdAt: "2024-02-20",
     date: "2024-02-20",
     total: 200.0,
     status: "delivered",
-    items: 5,
+    items: [],
     shippingCost: 20.0,
     address: "Bağdat Cad. No:456, Kadıköy/İstanbul",
+    deliveryAddress: "Bağdat Cad. No:456, Kadıköy/İstanbul",
     products: [
       {
         id: "3",
@@ -88,12 +73,14 @@ const ORDERS: Order[] = [
   {
     id: "3",
     orderNumber: "#12347",
+    createdAt: "2024-03-05",
     date: "2024-03-05",
     total: 75.0,
     status: "processing",
-    items: 2,
+    items: [],
     shippingCost: 10.0,
     address: "İstiklal Cad. No:789, Beyoğlu/İstanbul",
+    deliveryAddress: "İstiklal Cad. No:789, Beyoğlu/İstanbul",
     products: [
       {
         id: "5",
@@ -107,12 +94,14 @@ const ORDERS: Order[] = [
   {
     id: "4",
     orderNumber: "#12348",
+    createdAt: "2024-04-10",
     date: "2024-04-10",
     total: 300.0,
     status: "delivered",
-    items: 7,
+    items: [],
     shippingCost: 25.0,
     address: "Nişantaşı Mah. No:321, Şişli/İstanbul",
+    deliveryAddress: "Nişantaşı Mah. No:321, Şişli/İstanbul",
     products: [
       {
         id: "6",
@@ -133,12 +122,14 @@ const ORDERS: Order[] = [
   {
     id: "5",
     orderNumber: "#12349",
+    createdAt: "2024-05-12",
     date: "2024-05-12",
     total: 100.0,
     status: "shipped",
-    items: 4,
+    items: [],
     shippingCost: 15.0,
     address: "Çamlıca Mah. No:567, Üsküdar/İstanbul",
+    deliveryAddress: "Çamlıca Mah. No:567, Üsküdar/İstanbul",
     products: [
       {
         id: "8",
@@ -152,12 +143,19 @@ const ORDERS: Order[] = [
 ];
 
 const OrdersScreen: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>(ORDERS);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orders, setOrders] = useState<BaseOrder[]>(ORDERS);
+  const [selectedOrder, setSelectedOrder] = useState<BaseOrder | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
-  const getStatusConfig = (status: Order["status"]) => {
+  const getStatusConfig = (status: BaseOrder["status"]) => {
     switch (status) {
+      case "pending":
+        return {
+          label: "Beklemede",
+          bgColor: "bg-gray-100",
+          textColor: "text-gray-800",
+          icon: "⏳",
+        };
       case "processing":
         return {
           label: "Hazırlanıyor",
@@ -186,10 +184,17 @@ const OrdersScreen: React.FC = () => {
           textColor: "text-red-800",
           icon: "❌",
         };
+      default:
+        return {
+          label: "Bilinmiyor",
+          bgColor: "bg-gray-100",
+          textColor: "text-gray-800",
+          icon: "❓",
+        };
     }
   };
 
-  const handleCancelOrder = (order: Order) => {
+  const handleCancelOrder = (order: BaseOrder) => {
     Alert.alert(
       "Siparişi İptal Et",
       `${order.orderNumber} numaralı siparişi iptal etmek istediğinize emin misiniz?`,
@@ -214,12 +219,13 @@ const OrdersScreen: React.FC = () => {
     );
   };
 
-  const handleViewOrder = (order: Order) => {
+  const handleViewOrder = (order: BaseOrder) => {
     setSelectedOrder(order);
     setDetailModalVisible(true);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "Tarih bilinmiyor";
     const date = new Date(dateString);
     return date.toLocaleDateString("tr-TR", {
       day: "numeric",
@@ -232,7 +238,7 @@ const OrdersScreen: React.FC = () => {
     return `₺${price.toFixed(2)}`;
   };
 
-  const calculateSubtotal = (order: Order) => {
+  const calculateSubtotal = (order: BaseOrder) => {
     if (!order.products) return order.total;
     return order.products.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -299,22 +305,23 @@ const OrdersScreen: React.FC = () => {
                     )}
                     <View style={tw`flex-row items-center`}>
                       <Text style={tw`text-gray-500 text-sm mr-2`}>📦</Text>
-                      <View
-                        style={tw`${
-                          getStatusConfig(selectedOrder.status).bgColor
-                        } px-3 py-1 rounded-full flex-row items-center`}
-                      >
-                        <Text style={tw`mr-1`}>
-                          {getStatusConfig(selectedOrder.status).icon}
-                        </Text>
-                        <Text
-                          style={tw`${
-                            getStatusConfig(selectedOrder.status).textColor
-                          } text-xs font-semibold`}
-                        >
-                          {getStatusConfig(selectedOrder.status).label}
-                        </Text>
-                      </View>
+                      {(() => {
+                        const statusConfig = getStatusConfig(
+                          selectedOrder.status
+                        );
+                        return (
+                          <View
+                            style={tw`${statusConfig.bgColor} px-3 py-1 rounded-full flex-row items-center`}
+                          >
+                            <Text style={tw`mr-1`}>{statusConfig.icon}</Text>
+                            <Text
+                              style={tw`${statusConfig.textColor} text-xs font-semibold`}
+                            >
+                              {statusConfig.label}
+                            </Text>
+                          </View>
+                        );
+                      })()}
                     </View>
                   </View>
 
@@ -482,7 +489,7 @@ const OrdersScreen: React.FC = () => {
                   <Text
                     style={[tw`text-sm`, { color: theme.colors.textSecondary }]}
                   >
-                    {order.items} ürün
+                    {order.products?.length || 0} ürün
                   </Text>
                 </View>
                 <View style={tw`flex-row items-center`}>

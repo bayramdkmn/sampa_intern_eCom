@@ -3,9 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "../types";
 
-// 🔥 ZUSTAND vs REDUX:
-// Redux'ta: actions, reducers, types ayrı ayrı dosyalar
-// Zustand'da: Hepsi tek yerde, çok daha basit!
+
 
 interface AuthState {
   // State
@@ -14,7 +12,6 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 
-  // Actions (Redux'taki dispatch'e gerek yok, direkt çağırıyorsun!)
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -24,18 +21,13 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()(
-  // persist middleware: AsyncStorage'a otomatik kaydeder (Redux Persist gibi ama çok kolay!)
   persist(
     (set, get) => ({
-      // Initial State
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
 
-      // 🔐 Login Action
-      // Redux'ta: dispatch(loginAction(email, password))
-      // Zustand'da: login(email, password) - Direkt çağır!
       login: async (email: string, password: string) => {
         try {
           set({ isLoading: true });
@@ -47,7 +39,6 @@ export const useAuthStore = create<AuthState>()(
           // });
           // const data = await response.json();
 
-          // Şimdilik mock data
           const mockUser: User = {
             id: "1",
             name: "Bayram Dikmen",
@@ -70,7 +61,6 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 📝 Register Action
       register: async (name: string, email: string, password: string) => {
         try {
           set({ isLoading: true });
@@ -102,7 +92,6 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 🔄 Reset Password Action
       resetPassword: async (email: string) => {
         try {
           set({ isLoading: true });
@@ -113,7 +102,6 @@ export const useAuthStore = create<AuthState>()(
           //   body: JSON.stringify({ email })
           // });
 
-          // Şimdilik sadece loading state'i değiştir
           await new Promise(resolve => setTimeout(resolve, 1000)); // Simüle edilmiş API çağrısı
 
           set({ isLoading: false });
@@ -123,9 +111,6 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 🚪 Logout Action
-      // Redux'ta: dispatch({ type: 'LOGOUT' })
-      // Zustand'da: logout() - Bu kadar basit!
       logout: () => {
         set({
           user: null,
@@ -134,7 +119,6 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      // ✏️ Update User Action
       updateUser: (userData: Partial<User>) => {
         const currentUser = get().user;
         if (currentUser) {
@@ -144,15 +128,13 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 🔑 Set Token Action
       setToken: (token: string) => {
         set({ token });
       },
     }),
     {
-      name: "auth-storage", // AsyncStorage key'i
-      storage: createJSONStorage(() => AsyncStorage), // AsyncStorage kullan
-      // Sadece bunları kaydet (token ve user yeterli)
+      name: "auth-storage", 
+      storage: createJSONStorage(() => AsyncStorage), 
       partialize: (state) => ({
         user: state.user,
         token: state.token,

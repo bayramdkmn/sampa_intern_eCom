@@ -2,10 +2,9 @@ import { create } from "zustand";
 import { Address } from "../types";
 
 interface AddressState {
-  // State
   addresses: Address[];
   
-  // Actions
+  
   addAddress: (address: Omit<Address, "id">) => void;
   updateAddress: (id: string, address: Partial<Address>) => void;
   deleteAddress: (id: string) => void;
@@ -13,7 +12,7 @@ interface AddressState {
   getDefaultAddress: () => Address | null;
 }
 
-// Mock initial data
+
 const MOCK_ADDRESSES: Address[] = [
   {
     id: "1",
@@ -38,7 +37,7 @@ const MOCK_ADDRESSES: Address[] = [
 ];
 
 export const useAddressStore = create<AddressState>()((set, get) => ({
-  // Initial State
+  
   addresses: MOCK_ADDRESSES,
 
   // 📍 Yeni Adres Ekle

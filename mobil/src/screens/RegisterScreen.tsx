@@ -117,7 +117,7 @@ const RegisterScreen: React.FC = () => {
                 { color: theme.colors.text },
               ]}
             >
-              Hesap Oluştur 🎉
+              Hesap Oluştur
             </Text>
             <Text style={tw`text-gray-500 text-base`}>
               Hemen üye olun ve alışverişe başlayın

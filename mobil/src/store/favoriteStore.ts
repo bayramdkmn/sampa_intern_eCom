@@ -2,10 +2,8 @@ import { create } from "zustand";
 import { Product } from "../types";
 
 interface FavoriteState {
-  // State
   favorites: Product[];
   
-  // Actions
   addToFavorites: (product: Product) => void;
   removeFromFavorites: (productId: string) => void;
   isFavorite: (productId: string) => boolean;
@@ -13,14 +11,11 @@ interface FavoriteState {
 }
 
 export const useFavoriteStore = create<FavoriteState>()((set, get) => ({
-  // Initial State
   favorites: [],
 
-  // ❤️ Favorilere Ürün Ekle
   addToFavorites: (product: Product) => {
     const { favorites } = get();
     
-    // Ürün zaten favorilerdeyse ekleme
     if (favorites.find(p => p.id === product.id)) {
       return;
     }
@@ -28,19 +23,16 @@ export const useFavoriteStore = create<FavoriteState>()((set, get) => ({
     set({ favorites: [...favorites, product] });
   },
 
-  // 💔 Favorilerden Ürün Çıkar
   removeFromFavorites: (productId: string) => {
     const { favorites } = get();
     set({ favorites: favorites.filter(p => p.id !== productId) });
   },
 
-  // ✨ Ürün Favorilerde mi Kontrol Et
   isFavorite: (productId: string) => {
     const { favorites } = get();
     return favorites.some(p => p.id === productId);
   },
 
-  // 🗑️ Tüm Favorileri Temizle
   clearFavorites: () => {
     set({ favorites: [] });
   },

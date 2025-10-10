@@ -11,12 +11,7 @@ import tw from "twrnc";
 import { Address } from "../types";
 import { useAddressStore } from "../store";
 import AddressForm from "./AddressForm";
-
-interface AddressFormModalProps {
-  visible: boolean;
-  editingAddress: Address | null;
-  onClose: () => void;
-}
+import { AddressFormModalProps } from "../types";
 
 const AddressFormModal: React.FC<AddressFormModalProps> = ({
   visible,
