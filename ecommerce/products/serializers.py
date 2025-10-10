@@ -1,9 +1,15 @@
 from rest_framework import serializers
-from .models import Product, ProductRating
+from .models import Product, ProductRating, Brands, Categories
 
 class ProductSerializer(serializers.ModelSerializer):
     rating_average = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
     rating_count = serializers.IntegerField(read_only=True)
+    # Read brand/category as names, write with *_id
+    brand = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    brand_id = serializers.PrimaryKeyRelatedField(queryset=Brands.objects.all(), source='brand', write_only=True, required=False)
+    category = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    category_id = serializers.PrimaryKeyRelatedField(queryset=Categories.objects.all(), source='category', write_only=True, required=False)
+
     class Meta:
         model = Product
         fields = '__all__'
