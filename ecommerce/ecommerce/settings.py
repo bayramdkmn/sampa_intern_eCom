@@ -157,3 +157,22 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS
+# Frontend ile API iletişimi için izin verilen origin'ler
+# .env'de DJANGO_CORS_ALLOWED_ORIGINS virgülle ayrılmış olarak verilebilir
+DJANGO_CORS_ALLOWED = os.getenv('DJANGO_CORS_ALLOWED_ORIGINS')
+if DJANGO_CORS_ALLOWED:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in DJANGO_CORS_ALLOWED.split(',') if o.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+    ]
+
+# Gerekirse cookie/tabanlı auth ve cross-site isteklerde kimlik bilgileri
+CORS_ALLOW_CREDENTIALS = True
+
+# Development ortamında tüm origin'lere izin vermek isterseniz (opsiyonel):
+# if DEBUG:
+#     CORS_ALLOW_ALL_ORIGINS = True
