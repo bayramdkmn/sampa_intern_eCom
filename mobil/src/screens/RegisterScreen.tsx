@@ -111,7 +111,12 @@ const RegisterScreen: React.FC = () => {
           </TouchableOpacity>
 
           <View style={tw`mb-8`}>
-            <Text style={tw`text-gray-800 text-3xl font-bold mb-2`}>
+            <Text
+              style={[
+                tw` text-3xl font-bold mb-2`,
+                { color: theme.colors.text },
+              ]}
+            >
               Hesap Oluştur 🎉
             </Text>
             <Text style={tw`text-gray-500 text-base`}>
@@ -120,11 +125,23 @@ const RegisterScreen: React.FC = () => {
           </View>
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-700 font-semibold mb-2`}>Ad Soyad</Text>
+            <Text
+              style={[tw`font-semibold mb-2`, { color: theme.colors.text }]}
+            >
+              Ad Soyad
+            </Text>
             <TextInput
-              style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
-                errors.name ? "border-2 border-red-500" : ""
-              }`}
+              style={[
+                tw`rounded-xl px-4 py-3 text-base`,
+                {
+                  backgroundColor: theme.colors.inputBackground,
+                  color: theme.colors.text,
+                  borderWidth: errors.name ? 2 : 0,
+                  borderColor: errors.name
+                    ? theme.colors.error
+                    : theme.colors.inputBorder,
+                },
+              ]}
               value={name}
               onChangeText={(text) => {
                 setName(text);
@@ -139,11 +156,26 @@ const RegisterScreen: React.FC = () => {
           </View>
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-700 font-semibold mb-2`}>E-posta</Text>
+            <Text
+              style={[
+                tw`text-gray-700 font-semibold mb-2`,
+                { color: theme.colors.text },
+              ]}
+            >
+              E-posta
+            </Text>
             <TextInput
-              style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
-                errors.email ? "border-2 border-red-500" : ""
-              }`}
+              style={[
+                tw`rounded-xl px-4 py-3 text-base`,
+                {
+                  backgroundColor: theme.colors.inputBackground,
+                  color: theme.colors.text,
+                  borderWidth: errors.email ? 2 : 0,
+                  borderColor: errors.email
+                    ? theme.colors.error
+                    : theme.colors.inputBorder,
+                },
+              ]}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -160,12 +192,24 @@ const RegisterScreen: React.FC = () => {
           </View>
 
           <View style={tw`mb-4`}>
-            <Text style={tw`text-gray-700 font-semibold mb-2`}>Şifre</Text>
+            <Text
+              style={[tw`font-semibold mb-2`, { color: theme.colors.text }]}
+            >
+              Şifre
+            </Text>
             <View style={tw`relative`}>
               <TextInput
-                style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
-                  errors.password ? "border-2 border-red-500" : ""
-                }`}
+                style={[
+                  tw`rounded-xl px-4 py-3 text-base`,
+                  {
+                    backgroundColor: theme.colors.inputBackground,
+                    color: theme.colors.text,
+                    borderWidth: errors.password ? 2 : 0,
+                    borderColor: errors.password
+                      ? theme.colors.error
+                      : theme.colors.inputBorder,
+                  },
+                ]}
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
@@ -190,14 +234,24 @@ const RegisterScreen: React.FC = () => {
           </View>
 
           <View style={tw`mb-6`}>
-            <Text style={tw`text-gray-700 font-semibold mb-2`}>
+            <Text
+              style={[tw`font-semibold mb-2`, { color: theme.colors.text }]}
+            >
               Şifre Tekrar
             </Text>
             <View style={tw`relative`}>
               <TextInput
-                style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
-                  errors.confirmPassword ? "border-2 border-red-500" : ""
-                }`}
+                style={[
+                  tw`rounded-xl px-4 py-3 text-base`,
+                  {
+                    backgroundColor: theme.colors.inputBackground,
+                    color: theme.colors.text,
+                    borderWidth: errors.confirmPassword ? 2 : 0,
+                    borderColor: errors.confirmPassword
+                      ? theme.colors.error
+                      : theme.colors.inputBorder,
+                  },
+                ]}
                 value={confirmPassword}
                 onChangeText={(text) => {
                   setConfirmPassword(text);
@@ -246,7 +300,9 @@ const RegisterScreen: React.FC = () => {
           </View>
 
           <View style={tw`flex-row justify-center items-center mb-6`}>
-            <Text style={tw`text-gray-600`}>Zaten hesabınız var mı? </Text>
+            <Text style={[{ color: theme.colors.text }]}>
+              Zaten hesabınız var mı?{" "}
+            </Text>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
               <Text style={tw`text-blue-600 font-bold`}>Giriş Yap</Text>
             </TouchableOpacity>

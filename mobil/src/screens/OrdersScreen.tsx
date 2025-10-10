@@ -412,20 +412,17 @@ const OrdersScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Header */}
       <View
-        style={[tw`pt-12 pb-6 px-4`, { backgroundColor: theme.colors.primary }]}
+        style={[
+          tw`pt-16 pb-6 px-4`,
+          { backgroundColor: theme.colors.headerBackground },
+        ]}
       >
-        <Text
-          style={[tw`text-2xl font-bold`, { color: theme.colors.onPrimary }]}
-        >
+        <Text style={[tw`text-2xl font-bold`, { color: theme.colors.text }]}>
           Siparişlerim
         </Text>
         <Text
-          style={[
-            tw`text-sm mt-1`,
-            { color: theme.colors.onPrimary, opacity: 0.8 },
-          ]}
+          style={[tw`text-sm mt-1`, { color: theme.colors.text, opacity: 0.8 }]}
         >
           {orders.length} sipariş
         </Text>
@@ -450,7 +447,6 @@ const OrdersScreen: React.FC = () => {
                 { backgroundColor: theme.colors.card },
               ]}
             >
-              {/* Order Header */}
               <View style={tw`flex-row items-center justify-between mb-3`}>
                 <View style={tw`flex-row items-center`}>
                   <Text
@@ -474,7 +470,6 @@ const OrdersScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Order Info */}
               <View style={tw`mb-3`}>
                 <View style={tw`flex-row items-center mb-2`}>
                   <Text style={tw`text-sm mr-2`}>📅</Text>
@@ -510,19 +505,20 @@ const OrdersScreen: React.FC = () => {
                 ]}
               />
 
-              {/* Action Buttons */}
               <View style={tw`flex-row gap-2`}>
                 <TouchableOpacity
                   onPress={() => handleViewOrder(order)}
                   style={[
                     tw`flex-1 py-3 rounded-xl`,
-                    { backgroundColor: theme.colors.primary },
+                    {
+                      backgroundColor: theme.colors.buttonSecondary,
+                    },
                   ]}
                 >
                   <Text
                     style={[
                       tw`font-semibold text-center text-sm`,
-                      { color: theme.colors.onPrimary },
+                      { color: theme.colors.text },
                     ]}
                   >
                     Detayları Gör

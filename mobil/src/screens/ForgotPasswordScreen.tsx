@@ -120,20 +120,43 @@ const ForgotPasswordScreen: React.FC = () => {
             >
               <Text style={tw`text-4xl`}>🔒</Text>
             </View>
-            <Text style={tw`text-gray-800 text-3xl font-bold mb-2`}>
+            <Text
+              style={[
+                tw`text-gray-800 text-3xl font-bold mb-2`,
+                { color: theme.colors.text },
+              ]}
+            >
               Şifrenizi mi Unuttunuz?
             </Text>
-            <Text style={tw`text-gray-500 text-center`}>
+            <Text
+              style={[
+                tw`text-gray-500 text-center`,
+                { color: theme.colors.text },
+              ]}
+            >
               E-posta adresinizi girin, şifre sıfırlama bağlantısı gönderelim
             </Text>
           </View>
 
           <View style={tw`mb-6`}>
-            <Text style={tw`text-gray-700 font-semibold mb-2`}>E-posta</Text>
+            <Text
+              style={[
+                tw`text-gray-700 font-semibold mb-2`,
+                { color: theme.colors.text },
+              ]}
+            >
+              E-posta
+            </Text>
             <TextInput
-              style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
-                emailError ? "border-2 border-red-500" : ""
-              }`}
+              style={[
+                tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
+                  emailError ? "border-2 border-red-500" : ""
+                }`,
+                {
+                  color: theme.colors.text,
+                  backgroundColor: theme.colors.surfaceVariant,
+                },
+              ]}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -178,14 +201,29 @@ const ForgotPasswordScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          <View style={tw`mt-8 bg-blue-50 rounded-xl p-4`}>
+          <View
+            style={[
+              tw`mt-8 bg-blue-50 rounded-xl p-4`,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
+          >
             <View style={tw`flex-row items-start`}>
               <Text style={tw`text-xl mr-3`}>🔐</Text>
               <View style={tw`flex-1`}>
-                <Text style={tw`text-blue-800 font-semibold mb-1`}>
+                <Text
+                  style={[
+                    tw`text-blue-800 font-semibold mb-1`,
+                    { color: theme.colors.text },
+                  ]}
+                >
                   Güvenlik
                 </Text>
-                <Text style={tw`text-blue-600 text-sm`}>
+                <Text
+                  style={[
+                    tw`text-blue-600 text-sm`,
+                    { color: theme.colors.text },
+                  ]}
+                >
                   Sıfırlama bağlantısı 1 saat geçerlidir ve tek kullanımlıktır.
                 </Text>
               </View>

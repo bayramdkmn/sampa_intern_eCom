@@ -80,7 +80,7 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
       <View
         style={[
-          tw`pt-12 pb-4 px-4 flex-row items-center justify-between`,
+          tw`pt-15 pb-4 px-4 flex-row items-center justify-between`,
           { backgroundColor: theme.colors.card },
         ]}
       >
@@ -118,8 +118,7 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           paddingBottom: Platform.OS === "ios" ? 130 : 110,
         }}
       >
-        {/* Product Image */}
-        <View style={tw`bg-gray-100 items-center py-6`}>
+        <View style={tw`items-center py-6`}>
           <Image
             source={{ uri: PRODUCT.image }}
             style={tw`w-80 h-80 rounded-xl`}
@@ -150,7 +149,6 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={tw`text-gray-700 font-bold`}>
                   {PRODUCT.rating}
                 </Text>
-                <Text style={tw`text-gray-500 ml-1`}>(234 değerlendirme)</Text>
               </View>
             </View>
 
@@ -161,7 +159,6 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             </Text>
           </View>
 
-          {/* Description */}
           <View style={tw`mb-6`}>
             <Text
               style={[tw`font-bold text-lg mb-2`, { color: theme.colors.text }]}
@@ -177,7 +174,6 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      {/* Bottom Action Bar */}
       <View
         style={[
           tw`px-4 pb-8 pt-3 flex-row items-center justify-between shadow-lg`,
@@ -189,7 +185,6 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           },
         ]}
       >
-        {/* Quantity Selector */}
         <View
           style={[
             tw`flex-row items-center rounded-xl`,

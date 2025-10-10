@@ -87,7 +87,7 @@ export const lightTheme: ThemeColors = {
   divider: '#F3F4F6',
   
   // Card and shadow colors
-  card: '#FFFFFF',
+  card: '#E8E8E8',
   shadow: 'rgba(0, 0, 0, 0.1)',
   
   // Input colors
@@ -97,7 +97,7 @@ export const lightTheme: ThemeColors = {
   
   // Button colors
   buttonPrimary: '#3B82F6',
-  buttonSecondary: '#F3F4F6',
+  buttonSecondary: '#E5E7EB',
   buttonText: '#FFFFFF',
   
   // Tab bar colors
@@ -106,7 +106,7 @@ export const lightTheme: ThemeColors = {
   tabBarInactive: '#9CA3AF',
   
   // Header colors
-  headerBackground: '#FFFFFF',
+  headerBackground: '#F8F9FA',
   headerText: '#1A1A1A',
 };
 

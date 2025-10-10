@@ -210,7 +210,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
           Ürünler
         </Text>
 
-        {/* Search Bar */}
         <View
           style={[
             tw`rounded-xl px-4 py-3 flex-row items-center`,
@@ -220,7 +219,7 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={tw`text-xl mr-2`}>🔍</Text>
           <TextInput
             placeholder="Ürün ara..."
-            placeholderTextColor={theme.colors.buttonText}
+            placeholderTextColor={theme.mode === "dark" ? "#FFFFFF" : "#000000"}
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={[tw`flex-1`, { color: theme.colors.text }]}
@@ -228,7 +227,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Quick Categories Scroll */}
       <View
         style={[
           tw`py-3`,
@@ -257,7 +255,7 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                   style={[
                     tw`font-semibold text-sm`,
                     selectedCategories.includes(category.id)
-                      ? { color: theme.colors.onPrimary }
+                      ? { color: theme.colors.buttonText }
                       : { color: theme.colors.textSecondary },
                   ]}
                 >

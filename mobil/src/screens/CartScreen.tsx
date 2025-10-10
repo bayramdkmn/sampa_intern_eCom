@@ -10,6 +10,9 @@ import {
 import tw from "twrnc";
 import { useCartStore, useOrderStore } from "../store";
 import { useTheme } from "../context/ThemeContext";
+import { useNavigation } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { RootStackParamList } from "../types";
 
 const CartScreen: React.FC = () => {
   // 🎯 Zustand Store'dan veri al
@@ -18,6 +21,7 @@ const CartScreen: React.FC = () => {
   const { items, total, updateQuantity, removeFromCart } = useCartStore();
   const { createOrder } = useOrderStore();
   const { theme } = useTheme();
+  const navigation = useNavigation();
 
   const calculateShipping = () => {
     return total > 500 ? 0 : 29.99;
@@ -50,13 +54,11 @@ const CartScreen: React.FC = () => {
       <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
         <View
           style={[
-            tw`pt-12 pb-4 px-4`,
-            { backgroundColor: theme.colors.primary },
+            tw`pt-16 pb-4 px-4`,
+            { backgroundColor: theme.colors.headerBackground },
           ]}
         >
-          <Text
-            style={[tw`text-2xl font-bold`, { color: theme.colors.onPrimary }]}
-          >
+          <Text style={[tw`text-2xl font-bold`, { color: theme.colors.text }]}>
             Sepetim
           </Text>
         </View>
@@ -82,6 +84,7 @@ const CartScreen: React.FC = () => {
               tw`px-8 py-4 rounded-xl`,
               { backgroundColor: theme.colors.primary },
             ]}
+            onPress={() => (navigation as any).navigate("Categories")}
           >
             <Text
               style={[

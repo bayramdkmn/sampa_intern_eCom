@@ -36,10 +36,9 @@ const USER: User = {
 const SETTINGS_ITEMS = [
   { id: "1", icon: "🔔", title: "Bildirimler" },
   { id: "2", icon: "🌙", title: "Tema Değiştir" },
-  { id: "3", icon: "🌍", title: "Dil Seçimi" },
-  { id: "4", icon: "🔒", title: "Gizlilik ve Güvenlik" },
-  { id: "5", icon: "❓", title: "Yardım ve Destek" },
-  { id: "6", icon: "📄", title: "Kullanım Koşulları" },
+  { id: "3", icon: "🔒", title: "Gizlilik ve Güvenlik" },
+  { id: "4", icon: "❓", title: "Yardım ve Destek" },
+  { id: "5", icon: "📄", title: "Kullanım Koşulları" },
 ];
 
 const ProfileScreen: React.FC = () => {
@@ -116,10 +115,9 @@ const ProfileScreen: React.FC = () => {
 
     const settingsItems: { [key: string]: string } = {
       "1": "Bildirimler",
-      "3": "Dil Seçimi",
-      "4": "Gizlilik ve Güvenlik",
-      "5": "Yardım ve Destek",
-      "6": "Kullanım Koşulları",
+      "2": "Gizlilik ve Güvenlik",
+      "3": "Yardım ve Destek",
+      "4": "Kullanım Koşulları",
     };
 
     const itemName = settingsItems[itemId];
@@ -166,13 +164,20 @@ const ProfileScreen: React.FC = () => {
         >
           <View style={tw`flex-1 justify-end bg-black/50`}>
             <View
-              style={tw`bg-white rounded-t-3xl p-6 ${
-                Platform.OS === "ios" ? "pb-10" : "pb-6"
-              }`}
+              style={[
+                tw`bg-white rounded-t-3xl p-6 ${
+                  Platform.OS === "ios" ? "pb-10" : "pb-6"
+                }`,
+                { backgroundColor: theme.colors.card },
+              ]}
             >
-              {/* Header */}
               <View style={tw`flex-row items-center justify-between mb-6`}>
-                <Text style={tw`text-gray-800 text-xl font-bold`}>
+                <Text
+                  style={[
+                    tw`text-gray-800 text-xl font-bold`,
+                    { color: theme.colors.text },
+                  ]}
+                >
                   Profili Düzenle
                 </Text>
                 <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -180,13 +185,23 @@ const ProfileScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* Form Fields */}
               <View style={tw`mb-4`}>
-                <Text style={tw`text-gray-700 font-semibold mb-2`}>
+                <Text
+                  style={[
+                    tw`text-gray-700 font-semibold mb-2`,
+                    { color: theme.colors.text },
+                  ]}
+                >
                   Ad Soyad
                 </Text>
                 <TextInput
-                  style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`}
+                  style={[
+                    tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`,
+                    {
+                      color: theme.colors.text,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                  ]}
                   value={editedName}
                   onChangeText={setEditedName}
                   placeholder="Ad Soyad"
@@ -195,11 +210,22 @@ const ProfileScreen: React.FC = () => {
               </View>
 
               <View style={tw`mb-4`}>
-                <Text style={tw`text-gray-700 font-semibold mb-2`}>
+                <Text
+                  style={[
+                    tw`text-gray-700 font-semibold mb-2`,
+                    { color: theme.colors.text },
+                  ]}
+                >
                   E-posta
                 </Text>
                 <TextInput
-                  style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`}
+                  style={[
+                    tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`,
+                    {
+                      color: theme.colors.text,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                  ]}
                   value={editedEmail}
                   onChangeText={setEditedEmail}
                   placeholder="E-posta"
@@ -210,11 +236,22 @@ const ProfileScreen: React.FC = () => {
               </View>
 
               <View style={tw`mb-6`}>
-                <Text style={tw`text-gray-700 font-semibold mb-2`}>
+                <Text
+                  style={[
+                    tw`text-gray-700 font-semibold mb-2`,
+                    { color: theme.colors.text },
+                  ]}
+                >
                   Telefon
                 </Text>
                 <TextInput
-                  style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`}
+                  style={[
+                    tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`,
+                    {
+                      color: theme.colors.text,
+                      backgroundColor: theme.colors.surfaceVariant,
+                    },
+                  ]}
                   value={editedPhone}
                   onChangeText={setEditedPhone}
                   placeholder="Telefon"
@@ -258,7 +295,7 @@ const ProfileScreen: React.FC = () => {
         <View
           style={[
             tw`pt-12 pb-8 px-4`,
-            { backgroundColor: theme.mode === "dark" ? "#333333" : "#F5F5F5" },
+            { backgroundColor: theme.mode === "dark" ? "#0F0F0F" : "#F5F5F5" },
           ]}
         >
           <Text
@@ -271,7 +308,7 @@ const ProfileScreen: React.FC = () => {
             <View
               style={[
                 tw`rounded-2xl p-4 flex-row items-center`,
-                { backgroundColor: theme.colors.card, opacity: 0.94 },
+                { backgroundColor: theme.colors.card },
               ]}
             >
               <Image
@@ -447,7 +484,6 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Menu Items */}
         <View style={tw`px-4 mb-4`}>
           <Text
             style={[tw`font-bold text-lg mb-3`, { color: theme.colors.text }]}
@@ -512,7 +548,6 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Settings */}
         <View style={tw`px-4 mb-4`}>
           <Text
             style={[tw`font-bold text-lg mb-3`, { color: theme.colors.text }]}
