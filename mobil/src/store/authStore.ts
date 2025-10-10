@@ -2,6 +2,11 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "../types";
+import { useFavoriteStore } from "./favoriteStore";
+import { useCartStore } from "./cartStore";
+import { useAddressStore } from "./addressStore";
+import { usePaymentStore } from "./paymentStore";
+import { useOrderStore } from "./orderStore";
 
 
 
@@ -112,6 +117,20 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Diğer store'ları temizle
+        const { clearFavorites } = useFavoriteStore.getState();
+        const { clearCart } = useCartStore.getState();
+        
+        // Store'ları temizle
+        clearFavorites();
+        clearCart();
+        
+        // Adresleri ve ödeme yöntemlerini temizle (mock data'yı sıfırla)
+        // Store'ları sıfırla
+        useAddressStore.setState({ addresses: [] });
+        usePaymentStore.setState({ paymentMethods: [] });
+        useOrderStore.setState({ orders: [], currentOrder: null });
+
         set({
           user: null,
           token: null,
