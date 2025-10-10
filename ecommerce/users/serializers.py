@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework import serializers
-from .models import Address, PaymentCard, Favorite, Message, Notification, PasswordResetCode
+from .models import Address, PaymentCard, Favorite, Message, Notification, PasswordResetCode, UserProfile
 from products.models import Product
 import re
 import random
@@ -84,6 +84,20 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = '__all__'
         read_only_fields = ('user', 'created_at')
+
+    def create(self, validated_data):
+        is_primary = validated_data.get('is_primary', False)
+        address = super().create(validated_data)
+        if is_primary:
+            Address.objects.filter(user=address.user).exclude(pk=address.pk).update(is_primary=False)
+        return address
+
+    def update(self, instance, validated_data):
+        is_primary = validated_data.get('is_primary', instance.is_primary)
+        address = super().update(instance, validated_data)
+        if is_primary:
+            Address.objects.filter(user=address.user).exclude(pk=address.pk).update(is_primary=False)
+        return address
 
 class PaymentCardSerializer(serializers.ModelSerializer):
     class Meta:
@@ -197,3 +211,27 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             'last_name': user.last_name,
         }
         return data
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    phone_number = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'phone_number')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['phone_number'] = getattr(instance.profile, 'phone_number', '')
+        return data
+
+    def update(self, instance, validated_data):
+        phone_number = validated_data.pop('phone_number', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save(update_fields=['first_name', 'last_name'])
+        if phone_number is not None:
+            profile, _ = UserProfile.objects.get_or_create(user=instance)
+            profile.phone_number = phone_number
+            profile.save(update_fields=['phone_number'])
+        return instance

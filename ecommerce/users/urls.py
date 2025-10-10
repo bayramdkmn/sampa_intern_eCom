@@ -7,7 +7,8 @@ from .views import (
     MessageListCreateView, MessageDetailView,
     NotificationListView, NotificationDetailView,
     PasswordResetRequestView, PasswordResetConfirmView,
-    EmailTokenObtainPairView
+    EmailTokenObtainPairView,
+    MeUpdateView
 )
 from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 
@@ -28,4 +29,5 @@ urlpatterns = [
     path('notifications/<int:pk>/', NotificationDetailView.as_view(), name='notification-detail'),
     path('password-reset/request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+    path('me/', MeUpdateView.as_view(), name='me-update'),
 ]

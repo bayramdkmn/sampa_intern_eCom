@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from products.models import Product
 import random
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.db.models import Q
 
 # Create your models here.
 
@@ -15,9 +18,19 @@ class Address(models.Model):
     postal_code = models.CharField(max_length=20)
     country = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_primary = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.title}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=Q(is_primary=True),
+                name='unique_primary_address_per_user'
+            )
+        ]
 
 class PaymentCard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cards')
@@ -62,6 +75,19 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.notification_type}: {self.content[:20]}"
 
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance: User, created: bool, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
 
 class PasswordResetCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_codes')

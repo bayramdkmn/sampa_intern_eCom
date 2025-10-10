@@ -13,6 +13,7 @@ from rest_framework.response import Response
 import os
 import requests
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import serializers
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -165,3 +166,28 @@ class PasswordResetConfirmView(generics.GenericAPIView):
 class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
     permission_classes = [AllowAny]
+
+
+class MeUpdateView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = None  # will set dynamically
+
+    def get_serializer_class(self):
+        from .serializers import UserUpdateSerializer
+        return UserUpdateSerializer
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
