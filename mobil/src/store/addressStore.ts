@@ -18,7 +18,7 @@ const MOCK_ADDRESSES: Address[] = [
   {
     id: "1",
     title: "Ev",
-    fullName: "Ahmet Yılmaz",
+    fullName: "Bayram Dikmen",
     phone: "+90 555 123 45 67",
     city: "İstanbul",
     district: "Kadıköy",
@@ -28,7 +28,7 @@ const MOCK_ADDRESSES: Address[] = [
   {
     id: "2",
     title: "İş",
-    fullName: "Ahmet Yılmaz",
+    fullName: "Bayram Dikmen",
     phone: "+90 555 123 45 67",
     city: "İstanbul",
     district: "Şişli",

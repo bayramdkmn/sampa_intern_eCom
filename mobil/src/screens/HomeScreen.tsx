@@ -8,7 +8,6 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
-  StyleSheet,
 } from "react-native";
 import tw from "twrnc";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -67,11 +66,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       }}
     >
       <View
-        style={[tw`pt-12 pb-6 px-4`, { backgroundColor: theme.colors.primary }]}
+        style={[
+          tw`pt-12 pb-6 px-4`,
+          { backgroundColor: theme.colors.barColor },
+        ]}
       >
         <View style={tw`flex-row items-center justify-between mb-4`}>
           <Text
-            style={[tw`text-2xl font-bold`, { color: theme.colors.onPrimary }]}
+            style={[tw`text-2xl font-bold`, { color: theme.colors.buttonText }]}
           >
             Sampa Shop
           </Text>
@@ -93,14 +95,13 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Auth Banner veya Promo Banner */}
       {!isAuthenticated ? (
         <View style={tw`mx-4 mt-4 rounded-2xl overflow-hidden`}>
-          <View style={[tw`p-6`, { backgroundColor: theme.colors.primary }]}>
+          <View style={[tw`p-6`, { backgroundColor: theme.colors.barColor }]}>
             <Text
               style={[
                 tw`text-2xl font-bold mb-2`,
-                { color: theme.colors.onPrimary },
+                { color: theme.colors.buttonText },
               ]}
             >
               Hoş Geldiniz! 👋
@@ -108,7 +109,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text
               style={[
                 tw`mb-4`,
-                { color: theme.colors.onPrimary, opacity: 0.8 },
+                { color: theme.colors.buttonText, opacity: 0.8 },
               ]}
             >
               Üye olun ve özel indirimlerden faydalanın
@@ -134,13 +135,13 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 onPress={() => navigation.navigate("Login")}
                 style={[
                   tw`px-6 py-3 rounded-xl flex-1`,
-                  { backgroundColor: theme.colors.card, opacity: 0.2 },
+                  { backgroundColor: theme.colors.card },
                 ]}
               >
                 <Text
                   style={[
                     tw`font-bold text-center`,
-                    { color: theme.colors.onPrimary },
+                    { color: theme.colors.primary },
                   ]}
                 >
                   Giriş Yap
@@ -151,11 +152,16 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       ) : (
         <View style={tw`mx-4 mt-4 rounded-2xl overflow-hidden`}>
-          <View style={[tw`p-6`, { backgroundColor: theme.colors.secondary }]}>
+          <View
+            style={[
+              tw`p-6`,
+              { backgroundColor: theme.colors.homePageCatalogCard },
+            ]}
+          >
             <Text
               style={[
                 tw`text-2xl font-bold mb-2`,
-                { color: theme.colors.onSecondary },
+                { color: theme.colors.buttonText },
               ]}
             >
               Kış İndirimleri! 🎉
@@ -163,7 +169,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text
               style={[
                 tw`mb-4`,
-                { color: theme.colors.onSecondary, opacity: 0.8 },
+                { color: theme.colors.buttonText, opacity: 0.8 },
               ]}
             >
               Tüm kategorilerde %50'ye varan indirimler
@@ -174,7 +180,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 { backgroundColor: theme.colors.card },
               ]}
             >
-              <Text style={[tw`font-bold`, { color: theme.colors.secondary }]}>
+              <Text style={[tw`font-bold`, { color: theme.colors.text }]}>
                 Keşfet
               </Text>
             </TouchableOpacity>

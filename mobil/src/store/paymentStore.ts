@@ -18,7 +18,7 @@ const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "1",
     cardNumber: "**** **** **** 1234",
-    cardHolderName: "AHMET YILMAZ",
+    cardHolderName: "Bayram Dikmen",
     expiryDate: "12/25",
     cardType: "visa",
     isDefault: true,
@@ -26,7 +26,7 @@ const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "2",
     cardNumber: "**** **** **** 5678",
-    cardHolderName: "AHMET YILMAZ",
+    cardHolderName: "Bayram Dikmen",
     expiryDate: "08/26",
     cardType: "mastercard",
     isDefault: false,

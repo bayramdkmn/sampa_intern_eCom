@@ -50,30 +50,6 @@ const FEATURES = [
   { icon: "📱", title: "Bluetooth 5.0", description: "Hızlı bağlantı" },
 ];
 
-const REVIEWS = [
-  {
-    id: "1",
-    user: "Ahmet Y.",
-    rating: 5,
-    comment: "Harika bir ürün! Ses kalitesi mükemmel.",
-    date: "2 gün önce",
-  },
-  {
-    id: "2",
-    user: "Elif K.",
-    rating: 4,
-    comment: "Fiyat/performans açısından çok iyi.",
-    date: "1 hafta önce",
-  },
-  {
-    id: "3",
-    user: "Mehmet S.",
-    rating: 5,
-    comment: "Gürültü önleme özelliği gerçekten çalışıyor!",
-    date: "2 hafta önce",
-  },
-];
-
 const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { theme } = useTheme();
   const [quantity, setQuantity] = useState(1);
@@ -102,11 +78,10 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
-      {/* Header */}
       <View
         style={[
           tw`pt-12 pb-4 px-4 flex-row items-center justify-between`,
-          { backgroundColor: theme.colors.primary },
+          { backgroundColor: theme.colors.card },
         ]}
       >
         <TouchableOpacity
@@ -116,21 +91,22 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             { backgroundColor: theme.colors.card, opacity: 0.2 },
           ]}
         >
-          <Text style={[tw`text-xl`, { color: theme.colors.onPrimary }]}>
-            ←
-          </Text>
+          <Text style={[tw`text-2xl`, { color: theme.colors.text }]}>←</Text>
         </TouchableOpacity>
         <Text
           style={[
             tw`text-lg font-bold flex-1 text-center`,
-            { color: theme.colors.onPrimary },
+            { color: theme.colors.text },
           ]}
         >
           Ürün Detayı
         </Text>
         <TouchableOpacity
           onPress={handleToggleFavorite}
-          style={tw`w-10 h-10 bg-white/20 rounded-full items-center justify-center`}
+          style={[
+            tw`w-8 h-8 bg-white/20 rounded-full items-center justify-center`,
+            { backgroundColor: theme.colors.card },
+          ]}
         >
           <Text style={tw`text-2xl`}>{isProductFavorite ? "❤️" : "🤍"}</Text>
         </TouchableOpacity>
@@ -155,7 +131,12 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Title and Price */}
           <View style={tw`mb-4`}>
             <View style={tw`flex-row justify-between items-start mb-2`}>
-              <Text style={tw`text-gray-800 text-2xl font-bold flex-1 mr-4`}>
+              <Text
+                style={[
+                  tw`text-gray-800 text-2xl font-bold flex-1 mr-4`,
+                  { color: theme.colors.text },
+                ]}
+              >
                 {PRODUCT.name}
               </Text>
               <View style={tw`bg-green-100 px-3 py-1 rounded-full`}>
@@ -248,12 +229,11 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Add to Cart Button */}
         <TouchableOpacity
           onPress={handleAddToCart}
           style={[
             tw`flex-1 ml-3 py-4 rounded-xl`,
-            { backgroundColor: theme.colors.primary },
+            { backgroundColor: theme.colors.secondary },
           ]}
         >
           <Text

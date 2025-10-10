@@ -22,21 +22,20 @@ import {
   useAuthStore,
 } from "../store";
 import { useTheme } from "../context/ThemeContext";
-import { ThemeToggle } from "../components/ThemeToggle";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const USER: User = {
   id: "1",
-  name: "Ahmet Yılmaz",
-  email: "ahmet.yilmaz@example.com",
+  name: "Bayram Dikmen",
+  email: "bayramdikmenn@gmail.com",
   phone: "+90 555 123 45 67",
   avatar: "https://via.placeholder.com/150",
 };
 
 const SETTINGS_ITEMS = [
   { id: "1", icon: "🔔", title: "Bildirimler" },
-  { id: "2", icon: "🌙", title: "Tema Değiştir", isThemeToggle: true },
+  { id: "2", icon: "🌙", title: "Tema Değiştir" },
   { id: "3", icon: "🌍", title: "Dil Seçimi" },
   { id: "4", icon: "🔒", title: "Gizlilik ve Güvenlik" },
   { id: "5", icon: "❓", title: "Yardım ve Destek" },
@@ -49,7 +48,7 @@ const ProfileScreen: React.FC = () => {
   const { addresses } = useAddressStore();
   const { paymentMethods } = usePaymentStore();
   const { user, isAuthenticated, updateUser } = useAuthStore();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   // Fallback to mock user if not authenticated
   const currentUser = user || USER;
@@ -96,16 +95,12 @@ const ProfileScreen: React.FC = () => {
 
   const handleMenuPress = (itemId: string) => {
     if (itemId === "1") {
-      // Siparişlerim
       navigation.navigate("Orders");
     } else if (itemId === "2") {
-      // Favorilerim
       navigation.navigate("Favorites");
     } else if (itemId === "3") {
-      // Adreslerim
       navigation.navigate("Addresses");
     } else if (itemId === "4") {
-      // Ödeme Yöntemlerim
       navigation.navigate("PaymentMethods");
     } else {
       alert(`${itemId} menüsüne tıklandı`);
@@ -114,7 +109,8 @@ const ProfileScreen: React.FC = () => {
 
   const handleSettingsPress = (itemId: string) => {
     if (itemId === "2") {
-      // Tema değiştirme butonu - burada hiçbir şey yapma, component kendisi halledecek
+      // Tema değiştirme butonu
+      toggleTheme();
       return;
     }
 
@@ -227,7 +223,6 @@ const ProfileScreen: React.FC = () => {
                 />
               </View>
 
-              {/* Action Buttons */}
               <View style={tw`flex-row gap-3`}>
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}
@@ -263,80 +258,71 @@ const ProfileScreen: React.FC = () => {
         <View
           style={[
             tw`pt-12 pb-8 px-4`,
-            { backgroundColor: theme.colors.primary },
+            { backgroundColor: theme.mode === "dark" ? "#333333" : "#F5F5F5" },
           ]}
         >
           <Text
-            style={[
-              tw`text-2xl font-bold mb-6`,
-              { color: theme.colors.onPrimary },
-            ]}
+            style={[tw`text-2xl font-bold mb-6`, { color: theme.colors.text }]}
           >
             Profilim
           </Text>
 
           {isAuthenticated ? (
-            // Authenticated User Info Card
             <View
               style={[
                 tw`rounded-2xl p-4 flex-row items-center`,
-                { backgroundColor: theme.colors.card, opacity: 0.1 },
+                { backgroundColor: theme.colors.card, opacity: 0.94 },
               ]}
             >
               <Image
                 source={{ uri: currentUser.avatar }}
                 style={[
                   tw`w-20 h-20 rounded-full mr-4`,
-                  { backgroundColor: theme.colors.card, opacity: 0.2 },
+                  { backgroundColor: theme.colors.card },
                 ]}
               />
               <View style={tw`flex-1`}>
                 <Text
                   style={[
                     tw`text-xl font-bold mb-1`,
-                    { color: theme.colors.onPrimary },
+                    { color: theme.colors.headerText },
                   ]}
                 >
                   {currentUser.name}
                 </Text>
                 <Text
-                  style={[
-                    tw`text-sm mb-1`,
-                    { color: theme.colors.onPrimary, opacity: 0.8 },
-                  ]}
+                  style={[tw`text-sm mb-1`, { color: theme.colors.headerText }]}
                 >
                   {currentUser.email}
                 </Text>
                 {currentUser.phone && (
                   <Text
-                    style={[
-                      tw`text-sm`,
-                      { color: theme.colors.onPrimary, opacity: 0.8 },
-                    ]}
+                    style={[tw`text-sm`, { color: theme.colors.headerText }]}
                   >
                     {currentUser.phone}
                   </Text>
                 )}
               </View>
               <TouchableOpacity onPress={handleEditPress}>
-                <Text style={[tw`text-2xl`, { color: theme.colors.onPrimary }]}>
+                <Text
+                  style={[tw`text-2xl`, { color: theme.colors.buttonText }]}
+                >
                   ✏️
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
-            // Guest User - Login/Register Card
             <View
               style={[
                 tw`rounded-2xl p-6`,
-                { backgroundColor: theme.colors.card, opacity: 0.1 },
+                { backgroundColor: theme.colors.card, opacity: 0.85 },
               ]}
             >
               <View style={tw`items-center mb-4`}>
                 <Text
                   style={[
                     tw`text-lg font-bold mb-2`,
-                    { color: theme.colors.onPrimary },
+                    { color: theme.colors.text },
                   ]}
                 >
                   Hesabınıza Giriş Yapın
@@ -344,7 +330,7 @@ const ProfileScreen: React.FC = () => {
                 <Text
                   style={[
                     tw`text-center text-sm`,
-                    { color: theme.colors.onPrimary, opacity: 0.8 },
+                    { color: theme.colors.text, opacity: 0.8 },
                   ]}
                 >
                   Siparişlerinizi takip edin ve özel fırsatlardan yararlanın
@@ -355,13 +341,15 @@ const ProfileScreen: React.FC = () => {
                   onPress={() => navigation.navigate("Login")}
                   style={[
                     tw`flex-1 py-3 rounded-xl`,
-                    { backgroundColor: theme.colors.card },
+                    theme.mode === "light"
+                      ? { backgroundColor: "#F5F5F5" }
+                      : { backgroundColor: "#262626" },
                   ]}
                 >
                   <Text
                     style={[
                       tw`font-bold text-center`,
-                      { color: theme.colors.primary },
+                      { color: theme.colors.text },
                     ]}
                   >
                     Giriş Yap
@@ -371,13 +359,15 @@ const ProfileScreen: React.FC = () => {
                   onPress={() => navigation.navigate("Register")}
                   style={[
                     tw`flex-1 py-3 rounded-xl`,
-                    { backgroundColor: theme.colors.card, opacity: 0.2 },
+                    theme.mode === "light"
+                      ? { backgroundColor: "#F5F5F5" }
+                      : { backgroundColor: "#262626" },
                   ]}
                 >
                   <Text
                     style={[
                       tw`font-bold text-center`,
-                      { color: theme.colors.onPrimary },
+                      { color: theme.colors.text },
                     ]}
                   >
                     Kayıt Ol
@@ -483,12 +473,24 @@ const ProfileScreen: React.FC = () => {
                 ]}
               >
                 <View
-                  style={tw`w-12 h-12 bg-blue-50 rounded-xl items-center justify-center mr-3`}
+                  style={[
+                    tw`w-12 h-12 rounded-xl items-center justify-center mr-3`,
+                    {
+                      backgroundColor:
+                        theme.mode === "light" ? "#F5F5F5" : "#262626",
+                      color: theme.colors.text,
+                    },
+                  ]}
                 >
                   <Text style={tw`text-2xl`}>{item.icon}</Text>
                 </View>
                 <View style={tw`flex-1`}>
-                  <Text style={tw`text-gray-800 font-semibold text-base`}>
+                  <Text
+                    style={[
+                      tw`text-gray-800 font-semibold text-base`,
+                      { color: theme.colors.text },
+                    ]}
+                  >
                     {item.title}
                   </Text>
                   <Text style={tw`text-gray-500 text-sm`}>
@@ -546,26 +548,24 @@ const ProfileScreen: React.FC = () => {
                     {item.title}
                   </Text>
                 </View>
-                {item.isThemeToggle ? (
-                  <ThemeToggle />
-                ) : (
-                  <Text
-                    style={[tw`text-xl`, { color: theme.colors.textTertiary }]}
-                  >
-                    ›
-                  </Text>
-                )}
+                <Text
+                  style={[tw`text-xl`, { color: theme.colors.textTertiary }]}
+                >
+                  ›
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Logout Button - Only for authenticated users */}
         {isAuthenticated && (
           <View style={tw`px-4 pb-8`}>
             <TouchableOpacity
               onPress={handleLogout}
-              style={tw`bg-white border-2 border-red-500 py-4 rounded-xl flex-row items-center justify-center`}
+              style={[
+                tw`bg-white border-2 border-red-500 py-4 rounded-xl flex-row items-center justify-center`,
+                { backgroundColor: theme.colors.card },
+              ]}
             >
               <Text style={tw`text-2xl mr-2`}>🚪</Text>
               <Text style={tw`text-red-500 font-bold text-base`}>
@@ -575,7 +575,6 @@ const ProfileScreen: React.FC = () => {
           </View>
         )}
 
-        {/* App Version */}
         <View style={tw`items-center pb-6`}>
           <Text style={tw`text-gray-400 text-sm`}>Sampa Shop v1.0.0</Text>
         </View>

@@ -99,7 +99,6 @@ const CartScreen: React.FC = () => {
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
-      {/* Header */}
       <View
         style={[tw`pt-12 pb-4 px-4`, { backgroundColor: theme.colors.primary }]}
       >
@@ -142,7 +141,6 @@ const CartScreen: React.FC = () => {
               ]}
             >
               <View style={tw`flex-row p-3`}>
-                {/* Product Image */}
                 <Image
                   source={{ uri: item.product.image }}
                   style={[
@@ -151,7 +149,6 @@ const CartScreen: React.FC = () => {
                   ]}
                 />
 
-                {/* Product Info */}
                 <View style={tw`flex-1 ml-3 justify-between`}>
                   <View>
                     <Text
@@ -173,10 +170,12 @@ const CartScreen: React.FC = () => {
                     </Text>
                   </View>
 
-                  {/* Quantity Controls */}
                   <View style={tw`flex-row items-center justify-between`}>
                     <View
-                      style={tw`flex-row items-center bg-gray-100 rounded-lg`}
+                      style={[
+                        tw`flex-row items-center rounded-lg`,
+                        { backgroundColor: theme.colors.surfaceVariant },
+                      ]}
                     >
                       <TouchableOpacity
                         onPress={() =>
@@ -187,11 +186,21 @@ const CartScreen: React.FC = () => {
                         }
                         style={tw`w-8 h-8 items-center justify-center`}
                       >
-                        <Text style={tw`text-gray-600 text-lg font-bold`}>
+                        <Text
+                          style={[
+                            tw`text-lg font-bold`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
                           −
                         </Text>
                       </TouchableOpacity>
-                      <Text style={tw`text-gray-800 font-bold px-3`}>
+                      <Text
+                        style={[
+                          tw`font-bold px-3`,
+                          { color: theme.colors.text },
+                        ]}
+                      >
                         {item.quantity}
                       </Text>
                       <TouchableOpacity
@@ -200,7 +209,12 @@ const CartScreen: React.FC = () => {
                         }
                         style={tw`w-8 h-8 items-center justify-center`}
                       >
-                        <Text style={tw`text-gray-600 text-lg font-bold`}>
+                        <Text
+                          style={[
+                            tw`text-lg font-bold`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
                           +
                         </Text>
                       </TouchableOpacity>
@@ -217,52 +231,91 @@ const CartScreen: React.FC = () => {
             </View>
           ))}
         </View>
-
-        {/* Order Summary */}
         <View style={tw`px-4 pb-6`}>
-          <View style={tw`bg-white rounded-2xl p-4 shadow-sm`}>
-            <Text style={tw`text-gray-800 font-bold text-lg mb-4`}>
+          <View
+            style={[
+              tw`bg-white rounded-2xl p-4 shadow-sm`,
+              { backgroundColor: theme.colors.card },
+            ]}
+          >
+            <Text
+              style={[
+                tw`text-gray-800 font-bold text-lg mb-4`,
+                { color: theme.colors.text },
+              ]}
+            >
               Sipariş Özeti
             </Text>
 
             <View style={tw`gap-3 mb-4`}>
               <View style={tw`flex-row justify-between`}>
-                <Text style={tw`text-gray-600`}>Ara Toplam</Text>
-                <Text style={tw`text-gray-800 font-semibold`}>
+                <Text style={[tw`font-semibold`, { color: theme.colors.text }]}>
+                  Ara Toplam
+                </Text>
+                <Text style={[tw`font-semibold`, { color: theme.colors.text }]}>
                   ₺{total.toLocaleString("tr-TR")}
                 </Text>
               </View>
 
               <View style={tw`flex-row justify-between`}>
-                <Text style={tw`text-gray-600`}>Kargo</Text>
+                <Text style={[tw``, { color: theme.colors.textSecondary }]}>
+                  Kargo
+                </Text>
                 {calculateShipping() === 0 ? (
                   <View style={tw`flex-row items-center`}>
-                    <Text style={tw`text-green-600 font-semibold mr-1`}>
+                    <Text
+                      style={[
+                        tw`font-semibold mr-1`,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
                       ÜCRETSİZ
                     </Text>
                     <Text style={tw`text-xs`}>🎉</Text>
                   </View>
                 ) : (
-                  <Text style={tw`text-gray-800 font-semibold`}>
+                  <Text
+                    style={[tw`font-semibold`, { color: theme.colors.text }]}
+                  >
                     ₺{calculateShipping().toFixed(2)}
                   </Text>
                 )}
               </View>
 
               {calculateShipping() > 0 && (
-                <View style={tw`bg-blue-50 rounded-lg p-3`}>
-                  <Text style={tw`text-blue-700 text-xs`}>
+                <View
+                  style={[
+                    tw`rounded-lg p-3`,
+                    { backgroundColor: theme.colors.surfaceVariant },
+                  ]}
+                >
+                  <Text style={[tw`text-xs`, { color: theme.colors.primary }]}>
                     ℹ️ ₺500 üzeri alışverişlerde kargo ücretsiz!
                   </Text>
                 </View>
               )}
 
-              <View style={tw`border-t border-gray-200 pt-3 mt-1`}>
+              <View
+                style={[
+                  tw`border-t pt-3 mt-1`,
+                  { borderTopColor: theme.colors.divider },
+                ]}
+              >
                 <View style={tw`flex-row justify-between items-center`}>
-                  <Text style={tw`text-gray-800 font-bold text-lg`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-lg`,
+                      { color: theme.colors.text },
+                    ]}
+                  >
                     Toplam
                   </Text>
-                  <Text style={tw`text-blue-600 font-bold text-2xl`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-2xl`,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
                     ₺{calculateFinalTotal().toLocaleString("tr-TR")}
                   </Text>
                 </View>
@@ -270,10 +323,18 @@ const CartScreen: React.FC = () => {
             </View>
 
             <TouchableOpacity
-              style={tw`bg-blue-600 py-4 rounded-xl`}
+              style={[
+                tw`py-4 rounded-xl`,
+                { backgroundColor: theme.colors.primary },
+              ]}
               onPress={handleCheckout}
             >
-              <Text style={tw`text-white text-center font-bold text-base`}>
+              <Text
+                style={[
+                  tw`text-center font-bold text-base`,
+                  { color: theme.colors.onPrimary },
+                ]}
+              >
                 Sipariş Ver
               </Text>
             </TouchableOpacity>

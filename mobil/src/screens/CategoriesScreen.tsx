@@ -195,14 +195,16 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
-      {/* Header */}
       <View
-        style={[tw`pt-12 pb-4 px-4`, { backgroundColor: theme.colors.primary }]}
+        style={[
+          tw`pt-12 pb-4 px-4`,
+          { backgroundColor: theme.colors.barColor },
+        ]}
       >
         <Text
           style={[
             tw`text-2xl font-bold mb-4`,
-            { color: theme.colors.onPrimary },
+            { color: theme.colors.buttonText },
           ]}
         >
           Ürünler
@@ -218,7 +220,7 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={tw`text-xl mr-2`}>🔍</Text>
           <TextInput
             placeholder="Ürün ara..."
-            placeholderTextColor={theme.colors.textTertiary}
+            placeholderTextColor={theme.colors.buttonText}
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={[tw`flex-1`, { color: theme.colors.text }]}
@@ -246,7 +248,7 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                 style={[
                   tw`px-4 py-2 rounded-full flex-row items-center`,
                   selectedCategories.includes(category.id)
-                    ? { backgroundColor: theme.colors.primary }
+                    ? { backgroundColor: theme.colors.barColor }
                     : { backgroundColor: theme.colors.surfaceVariant },
                 ]}
               >

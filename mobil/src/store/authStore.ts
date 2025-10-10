@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
           // Şimdilik mock data
           const mockUser: User = {
             id: "1",
-            name: "Ahmet Yılmaz",
+            name: "Bayram Dikmen",
             email: email,
             avatar: "https://via.placeholder.com/150",
             phone: "+90 555 123 45 67",

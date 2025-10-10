@@ -2,56 +2,47 @@
 export type ThemeMode = 'light' | 'dark';
 
 export interface ThemeColors {
-  // Background colors
   background: string;
   surface: string;
   surfaceVariant: string;
+  homePageCatalogCard: string;
   
-  // Text colors
   text: string;
   textSecondary: string;
   textTertiary: string;
   
-  // Primary colors
   primary: string;
   primaryVariant: string;
   onPrimary: string;
+  barColor: string;
   
-  // Secondary colors
   secondary: string;
   secondaryVariant: string;
   onSecondary: string;
   
-  // Status colors
   success: string;
   warning: string;
   error: string;
   info: string;
   
-  // Border and divider colors
   border: string;
   divider: string;
   
-  // Card and shadow colors
   card: string;
   shadow: string;
   
-  // Input colors
   inputBackground: string;
   inputBorder: string;
   inputFocus: string;
   
-  // Button colors
   buttonPrimary: string;
   buttonSecondary: string;
   buttonText: string;
   
-  // Tab bar colors
   tabBarBackground: string;
   tabBarActive: string;
   tabBarInactive: string;
   
-  // Header colors
   headerBackground: string;
   headerText: string;
 }
@@ -67,6 +58,7 @@ export const lightTheme: ThemeColors = {
   background: '#FFFFFF',
   surface: '#F8F9FA',
   surfaceVariant: '#F1F3F4',
+  homePageCatalogCard: '#4CAF50',
   
   // Text colors
   text: '#1A1A1A',
@@ -82,6 +74,7 @@ export const lightTheme: ThemeColors = {
   secondary: '#10B981',
   secondaryVariant: '#059669',
   onSecondary: '#FFFFFF',
+  barColor: '#2563EB',
   
   // Status colors
   success: '#10B981',
@@ -98,7 +91,7 @@ export const lightTheme: ThemeColors = {
   shadow: 'rgba(0, 0, 0, 0.1)',
   
   // Input colors
-  inputBackground: '#FFFFFF',
+  inputBackground: '#F8F9FA',
   inputBorder: '#D1D5DB',
   inputFocus: '#3B82F6',
   
@@ -123,7 +116,8 @@ export const darkTheme: ThemeColors = {
   background: '#0F0F0F',
   surface: '#1A1A1A',
   surfaceVariant: '#262626',
-  
+  homePageCatalogCard: '#262626',
+
   // Text colors
   text: '#FFFFFF',
   textSecondary: '#A3A3A3',
@@ -133,6 +127,7 @@ export const darkTheme: ThemeColors = {
   primary: '#60A5FA',
   primaryVariant: '#3B82F6',
   onPrimary: '#000000',
+  barColor: '#333333',
   
   // Secondary colors
   secondary: '#34D399',

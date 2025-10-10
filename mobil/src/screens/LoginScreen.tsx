@@ -135,9 +135,17 @@ const LoginScreen: React.FC = () => {
             <Text style={tw`text-gray-700 font-semibold mb-2`}>Şifre</Text>
             <View style={tw`relative`}>
               <TextInput
-                style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 ${
-                  errors.password ? "border-2 border-red-500" : ""
-                }`}
+                style={[
+                  tw`rounded-xl px-4 py-3 text-base`,
+                  {
+                    backgroundColor: theme.colors.inputBackground,
+                    color: theme.colors.text,
+                    borderWidth: errors.password ? 2 : 0,
+                    borderColor: errors.password
+                      ? theme.colors.error
+                      : theme.colors.inputBorder,
+                  },
+                ]}
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
