@@ -6,8 +6,11 @@ from products.models import Product
 import re
 import random
 import string
+from rest_framework import exceptions
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -147,3 +150,50 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         attrs['user'] = user
         attrs['reset_obj'] = prc
         return attrs
+
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # Accept email instead of username
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    # Make inherited username field optional to avoid required error
+    username = serializers.CharField(required=False, allow_blank=True, write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove username entirely so it's not shown as required anywhere
+        if 'username' in self.fields:
+            self.fields.pop('username')
+
+    @classmethod
+    def get_token(cls, user):
+        return super().get_token(user)
+
+    def validate(self, attrs):
+        email = (attrs.get('email') or '').strip()
+        password = attrs.get('password')
+        if not email or not password:
+            raise exceptions.AuthenticationFailed('E-posta ve şifre zorunludur')
+
+        # Support non-unique emails by picking the user whose password matches
+        candidates = User.objects.filter(email__iexact=email, is_active=True).order_by('-last_login', '-date_joined')
+        user = None
+        for u in candidates:
+            if u.check_password(password):
+                user = u
+                break
+        if user is None:
+            raise exceptions.AuthenticationFailed('Geçersiz e-posta veya şifre')
+
+        # Bridge to parent by providing username of the matched user
+        data = super().validate({'username': user.get_username(), 'password': password})
+
+        # Optionally include basic user info
+        data['user'] = {
+            'id': user.id,
+            'email': user.email,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        }
+        return data

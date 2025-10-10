@@ -6,13 +6,14 @@ from .views import (
     FavoriteListCreateView, FavoriteDetailView,
     MessageListCreateView, MessageDetailView,
     NotificationListView, NotificationDetailView,
-    PasswordResetRequestView, PasswordResetConfirmView
+    PasswordResetRequestView, PasswordResetConfirmView,
+    EmailTokenObtainPairView
 )
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenBlacklistView
+from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('addresses/', AddressListCreateView.as_view(), name='address-list-create'),

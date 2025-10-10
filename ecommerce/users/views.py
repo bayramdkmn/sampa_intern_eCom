@@ -6,11 +6,13 @@ from django.utils import timezone
 from .models import Address, PaymentCard, Favorite, Message, Notification, PasswordResetCode
 from .serializers import (
     RegisterSerializer, AddressSerializer, PaymentCardSerializer, FavoriteSerializer,
-    MessageSerializer, NotificationSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+    MessageSerializer, NotificationSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
+    EmailTokenObtainPairSerializer
 )
 from rest_framework.response import Response
 import os
 import requests
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -158,3 +160,8 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         reset_obj.save(update_fields=['used'])
 
         return Response({'detail': 'Şifre güncellendi'}, status=status.HTTP_200_OK)
+
+
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
+    permission_classes = [AllowAny]
