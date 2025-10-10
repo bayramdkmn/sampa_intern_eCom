@@ -7,7 +7,7 @@ from .models import Address, PaymentCard, Favorite, Message, Notification, Passw
 from .serializers import (
     RegisterSerializer, AddressSerializer, PaymentCardSerializer, FavoriteSerializer,
     MessageSerializer, NotificationSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
-    EmailTokenObtainPairSerializer
+    EmailTokenObtainPairSerializer, ChangePasswordSerializer
 )
 from rest_framework.response import Response
 import os
@@ -179,6 +179,20 @@ class MeUpdateView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
+
+
+class PasswordChangeView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        new_password = serializer.validated_data['new_password']
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        return Response({'detail': 'Şifre güncellendi'}, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user, data=request.data)

@@ -235,3 +235,23 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             profile.phone_number = phone_number
             profile.save(update_fields=['phone_number'])
         return instance
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(min_length=8)
+    new_password = serializers.CharField(min_length=8)
+    new_password_confirm = serializers.CharField(min_length=8)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        old_password = attrs.get('old_password')
+        new_password = attrs.get('new_password')
+        new_password_confirm = attrs.get('new_password_confirm')
+
+        if not user.check_password(old_password):
+            raise serializers.ValidationError({'old_password': 'Eski şifre hatalı'})
+        if new_password != new_password_confirm:
+            raise serializers.ValidationError({'new_password_confirm': 'Şifreler eşleşmiyor'})
+        if old_password == new_password:
+            raise serializers.ValidationError({'new_password': 'Yeni şifre eski şifreyle aynı olamaz'})
+        return attrs
