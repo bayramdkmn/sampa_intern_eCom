@@ -185,7 +185,7 @@ class PasswordChangeView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ChangePasswordSerializer
 
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = request.user
@@ -193,6 +193,9 @@ class PasswordChangeView(generics.GenericAPIView):
         user.set_password(new_password)
         user.save(update_fields=['password'])
         return Response({'detail': 'Şifre güncellendi'}, status=status.HTTP_200_OK)
+
+    def patch(self, request, *args, **kwargs):
+        return self.put(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user, data=request.data)

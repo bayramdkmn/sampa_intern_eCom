@@ -20,7 +20,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             'username': {'required': False, 'allow_blank': True},
             'first_name': {'required': False, 'allow_blank': True},
             'last_name': {'required': False, 'allow_blank': True},
-            # "email" stays optional as in default Django User; keep as-is
+            'email': {'required': True},
         }
 
     @staticmethod
@@ -78,6 +78,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             **extra_fields
         )
         return user
+
+    def validate_email(self, value):
+        email = (value or '').strip()
+        if not email:
+            raise serializers.ValidationError('E-posta gereklidir')
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError('Bu e-posta ile zaten bir hesap var')
+        return email
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
