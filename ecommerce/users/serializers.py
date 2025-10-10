@@ -3,19 +3,76 @@ from django.utils import timezone
 from rest_framework import serializers
 from .models import Address, PaymentCard, Favorite, Message, Notification, PasswordResetCode
 from products.models import Product
+import re
+import random
+import string
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
+        fields = ('username', 'email', 'password', 'first_name', 'last_name')
+        extra_kwargs = {
+            'username': {'required': False, 'allow_blank': True},
+            'first_name': {'required': False, 'allow_blank': True},
+            'last_name': {'required': False, 'allow_blank': True},
+            # "email" stays optional as in default Django User; keep as-is
+        }
+
+    @staticmethod
+    def _sanitize_username(candidate: str) -> str:
+        # Keep alphanumerics and underscore; replace others with underscore
+        sanitized = re.sub(r'[^a-zA-Z0-9_]+', '_', candidate).strip('_')
+        return sanitized or 'user'
+
+    @staticmethod
+    def _generate_random_suffix(length: int = 6) -> str:
+        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+    def _generate_unique_username(self, base: str) -> str:
+        base = self._sanitize_username(base).lower()
+        # Ensure not empty
+        if not base:
+            base = 'user'
+        username = base
+        counter = 0
+        while User.objects.filter(username=username).exists():
+            counter += 1
+            # Try base + number up to some attempts, then add random suffix
+            if counter < 50:
+                username = f"{base}{counter}"
+            else:
+                username = f"{base}_{self._generate_random_suffix()}"
+        return username
 
     def create(self, validated_data):
+        provided_username = (validated_data.get('username') or '').strip()
+        email = (validated_data.get('email') or '').strip()
+        first_name = (validated_data.get('first_name') or '').strip()
+        last_name = (validated_data.get('last_name') or '').strip()
+
+        if provided_username:
+            username = self._generate_unique_username(provided_username)
+        elif email:
+            # Use local-part of email as base
+            local_part = email.split('@', 1)[0]
+            username = self._generate_unique_username(local_part)
+        else:
+            # Fall back to generic user prefix
+            username = self._generate_unique_username('user')
+
+        extra_fields = {}
+        if first_name:
+            extra_fields['first_name'] = first_name
+        if last_name:
+            extra_fields['last_name'] = last_name
+
         user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data.get('email'),
-            password=validated_data['password']
+            username=username,
+            email=email or None,
+            password=validated_data['password'],
+            **extra_fields
         )
         return user
 
