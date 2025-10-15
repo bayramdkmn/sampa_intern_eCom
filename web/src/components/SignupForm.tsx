@@ -3,7 +3,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { authService, RegisterData } from "@/services/authService";
+import { authService } from "@/services/authService";
+import { RegisterData, AuthResponse, User } from "@/services";
+import { showToast, toastMessages } from "@/utils/toast";
 
 export default function SignupForm() {
   const router = useRouter();
@@ -13,7 +15,7 @@ export default function SignupForm() {
     last_name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    password_confirm: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,12 +25,11 @@ export default function SignupForm() {
     setError(null);
 
     // Şifre kontrolü
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.password_confirm) {
       setError("Şifreler eşleşmiyor!");
       return;
     }
 
-    // Şifre uzunluk kontrolü
     if (formData.password.length < 6) {
       setError("Şifre en az 6 karakter olmalıdır!");
       return;
@@ -42,40 +43,41 @@ export default function SignupForm() {
         last_name: formData.last_name,
         email: formData.email,
         password: formData.password,
+        password_confirm: formData.password_confirm,
       };
 
-      const response = await authService.register(registerData);
+      const response: AuthResponse = await authService.register(registerData);
 
       console.log("🔍 Register Response:", response);
 
       // Token'ları kaydet; yoksa otomatik login dene
-      const accessTokenDirect =
-        (response as any).access_token || (response as any).access;
+      // API response'unda token'lar 'access' ve 'refresh' olarak geliyor
+      const accessTokenDirect = response.access_token || response.access;
       const refreshTokenDirect =
-        (response as any).refresh_token || (response as any).refresh || "";
+        response.refresh_token || response.refresh || "";
+
       if (accessTokenDirect) {
         authService.saveTokens(accessTokenDirect, refreshTokenDirect);
       } else {
         try {
-          const loginResp = await authService.login({
+          const loginResp: AuthResponse = await authService.login({
             email: registerData.email,
             password: registerData.password,
           });
-          const accessFromLogin =
-            (loginResp as any).access_token || (loginResp as any).access;
+          const accessFromLogin = loginResp.access_token || loginResp.access;
           const refreshFromLogin =
-            (loginResp as any).refresh_token ||
-            (loginResp as any).refresh ||
-            "";
+            loginResp.refresh_token || loginResp.refresh || "";
+
           if (accessFromLogin) {
             authService.saveTokens(accessFromLogin, refreshFromLogin);
           }
         } catch (e) {
           // otomatik login başarısız olabilir; kullanıcı daha sonra giriş yapabilir
+          console.log("Otomatik login başarısız:", e);
         }
       }
 
-      // User bilgilerini AuthContext'e kaydet - response yapısını kontrol et
+      // User bilgilerini AuthContext'e kaydet - type-safe
       let userData;
       if (response.user) {
         userData = {
@@ -86,22 +88,12 @@ export default function SignupForm() {
           phoneNumber: response.user.phone_number,
           profileImage: response.user.profile_image,
         };
-      } else if (response.username || response.email) {
-        // Eğer user objesi yoksa, response'un kendisi user bilgilerini içeriyor olabilir
-        userData = {
-          id: response.id || response.pk || "temp-id",
-          firstName: response.first_name || response.name || "User",
-          lastName: response.last_name || "",
-          email: response.email || registerData.email,
-          phoneNumber: response.phone_number,
-          profileImage: response.profile_image,
-        };
       } else {
-        // Fallback - en azından email ile user oluştur
+        // Fallback - registerData'dan user oluştur
         userData = {
           id: "temp-id",
           firstName: registerData.first_name || "User",
-          lastName: "",
+          lastName: registerData.last_name || "",
           email: registerData.email,
           phoneNumber: undefined,
           profileImage: undefined,
@@ -111,27 +103,42 @@ export default function SignupForm() {
       console.log("👤 User Data:", userData);
       login(userData);
 
+      // Show success toast
+      showToast.success(toastMessages.registerSuccess);
+
       router.push("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Kayıt hatası:", error);
 
       let errorMessage = "Kayıt sırasında bir hata oluştu";
 
-      if (error.errors && Object.keys(error.errors).length > 0) {
-        // Django'dan gelen field hatalarını göster
-        const firstError = Object.values(error.errors)[0];
-        if (Array.isArray(firstError) && firstError.length > 0) {
-          errorMessage = firstError[0];
-        } else if (typeof firstError === "string") {
-          errorMessage = firstError;
+      // Type-safe error handling
+      if (error && typeof error === "object") {
+        const apiError = error as {
+          errors?: Record<string, string[]>;
+          message?: string;
+          detail?: string;
+        };
+
+        if (apiError.errors && Object.keys(apiError.errors).length > 0) {
+          // Django'dan gelen field hatalarını göster
+          const firstError = Object.values(apiError.errors)[0];
+          if (Array.isArray(firstError) && firstError.length > 0) {
+            errorMessage = firstError[0];
+          } else if (typeof firstError === "string") {
+            errorMessage = firstError;
+          }
+        } else if (apiError.message) {
+          errorMessage = apiError.message;
+        } else if (apiError.detail) {
+          errorMessage = apiError.detail;
         }
-      } else if (error.message) {
-        errorMessage = error.message;
-      } else if (error.detail) {
-        errorMessage = error.detail;
+      } else if (typeof error === "string") {
+        errorMessage = error;
       }
 
       setError(errorMessage);
+      showToast.error(toastMessages.registerError);
     } finally {
       setIsLoading(false);
     }
@@ -251,17 +258,17 @@ export default function SignupForm() {
 
           <div>
             <label
-              htmlFor="confirmPassword"
+              htmlFor="password_confirm"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Şifre Tekrar
             </label>
             <input
-              id="confirmPassword"
-              name="confirmPassword"
+              id="password_confirm"
+              name="password_confirm"
               type="password"
               required
-              value={formData.confirmPassword}
+              value={formData.password_confirm}
               onChange={handleChange}
               className="w-full px-4 py-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               placeholder="••••••••"

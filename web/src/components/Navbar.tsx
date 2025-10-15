@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react";
 
 export default function Navbar() {
   const { getTotalItems } = useCart();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -113,7 +113,14 @@ export default function Navbar() {
           )}
         </Link>
 
-        {isAuthenticated ? (
+        {isLoading ? (
+          <div className="flex items-center gap-2 rounded-full border border-black/10 px-2 md:px-3 py-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <span className="hidden md:inline text-sm text-gray-500">
+              Loading...
+            </span>
+          </div>
+        ) : isAuthenticated ? (
           <div className="relative">
             <button
               onClick={() => setIsModalOpen(!isModalOpen)}

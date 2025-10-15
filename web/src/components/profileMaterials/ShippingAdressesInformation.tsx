@@ -41,29 +41,34 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
     async function load() {
       setLoading(true);
       setError(null);
-      try {
-        const token = authService.getAccessToken();
-        if (!token) {
-          if (mounted) {
-            setError("Adresleri görmek için lütfen giriş yapın.");
-            setLoading(false);
-          }
-          return;
+
+      // User kontrolü - eğer user yoksa zaten ProfileComponent'te render edilmez
+      if (!user) {
+        if (mounted) {
+          setError("Adresleri görmek için lütfen giriş yapın.");
+          setLoading(false);
         }
+        return;
+      }
+
+      try {
         const res = await authService.getAddresses();
         if (!mounted) return;
+
         const normalized: Address[] = (res || []).map((a: any) => ({
           id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
           title: a.title || "",
-          street: a.street || a.address_line || a.line1 || "",
+          street: a.street || a.address_line_1 || a.line1 || "",
           city: a.city || "",
           district: a.district || "",
           country: a.country || "",
           zipCode: a.zipCode || a.postal_code || a.zip || "",
           isPrimary: Boolean(a.is_primary || a.isPrimary),
         }));
+
         setAddresses(normalized);
       } catch (e: any) {
+        console.error("Address loading error:", e);
         const msg =
           e?.status === 401
             ? "Adresleri görmek için giriş yapmalısınız."
@@ -77,7 +82,7 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user]); // user dependency eklendi
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ShippingFormData {
   email: string;
@@ -32,7 +33,36 @@ interface OrderItem {
 
 export default function CheckOutComponent() {
   const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+
+  useEffect(() => {
+    // Sadece loading bittikten sonra ve hala authenticate değilse yönlendir
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  // Loading state - AuthContext yüklenene kadar bekle
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-gray-600">Checkout yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // AuthContext yüklendi ama user yoksa (login değilse)
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center">
+        <div className="text-gray-600">Giriş yapmanız gerekiyor...</div>
+      </div>
+    );
+  }
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethod>("standard");

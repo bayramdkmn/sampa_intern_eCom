@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { IconButton } from "@mui/material";
@@ -63,7 +62,7 @@ const ProductsSliderComponent = () => {
             <h2 className="text-2xl font-bold text-gray-900">
               Your Recently Viewed Items
             </h2>
-            {/* Navigation Arrows */}
+
             <div className="hidden md:flex gap-2">
               <IconButton
                 onClick={() => scroll("left")}

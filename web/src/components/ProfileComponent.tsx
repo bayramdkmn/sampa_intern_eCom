@@ -9,16 +9,33 @@ import PaymentMethodsInformation from "./profileMaterials/PaymentMethodsInformat
 import PasswordInformation from "./profileMaterials/PasswordInformation";
 
 const ProfileComponent = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (!user) {
-  //     router.push("/login");
-  //   }
-  // }, [user, router]);
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
 
-  if (!user) return null;
+  if (isLoading) {
+    return (
+      <div className="w-full container mx-auto px-4 py-8 flex justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-gray-600">Profil bilgileri yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="w-full container mx-auto px-4 py-8 flex justify-center items-center">
+        <div className="text-gray-600">Giriş yapmanız gerekiyor...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full container mx-auto px-4 py-8 flex flex-col gap-10">

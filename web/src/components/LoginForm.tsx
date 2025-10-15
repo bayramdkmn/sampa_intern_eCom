@@ -3,7 +3,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { authService, LoginData } from "@/services/authService";
+import { authService } from "@/services/authService";
+import { LoginData, AuthResponse } from "@/services";
+import { showToast, toastMessages } from "@/utils/toast";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -27,16 +29,24 @@ export default function LoginForm() {
 
       console.log("🔍 Login payload:", loginData);
 
-      const response = await authService.login(loginData);
+      const response: AuthResponse = await authService.login(loginData);
 
       console.log("🔍 Login Response:", response);
 
-      const accessToken =
-        (response as any).access_token || (response as any).access;
-      const refreshToken =
-        (response as any).refresh_token || (response as any).refresh || "";
+      // API response'unda token'lar 'access' ve 'refresh' olarak geliyor
+      const accessToken = response.access_token || response.access;
+      const refreshToken = response.refresh_token || response.refresh || "";
+
+      console.log(
+        "🔑 Tokens - Access:",
+        accessToken ? "exists" : "null",
+        "Refresh:",
+        refreshToken ? "exists" : "null"
+      );
+
       if (accessToken) {
         authService.saveTokens(accessToken, refreshToken);
+        console.log("✅ Tokens saved to localStorage");
       }
 
       let userData;
@@ -49,49 +59,59 @@ export default function LoginForm() {
           phoneNumber: response.user.phone_number,
           profileImage: response.user.profile_image,
         };
-      } else if (response.username || response.email) {
-        userData = {
-          id: response.id || response.pk || "temp-id",
-          firstName: response.first_name || response.name || "User",
-          lastName: response.last_name || "",
-          email: response.email || email,
-          phoneNumber: response.phone_number,
-          profileImage: response.profile_image,
-        };
+        console.log("👤 User data from response.user:", userData);
       } else {
+        // Fallback - email ile user oluştur
         userData = {
           id: "temp-id",
-          firstName: email,
+          firstName: email.split("@")[0] || "User",
           lastName: "",
           email: email,
           phoneNumber: undefined,
           profileImage: undefined,
         };
+        console.log("👤 Fallback user data created:", userData);
       }
 
-      console.log("👤 User Data:", userData);
+      console.log("🚀 Calling login() with userData:", userData);
       login(userData);
 
+      // Show success toast
+      showToast.success(toastMessages.loginSuccess);
+
+      console.log("🏠 Redirecting to home page");
       router.push("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Giriş hatası:", error);
 
       let errorMessage = "Giriş sırasında bir hata oluştu";
 
-      if (error.errors && Object.keys(error.errors).length > 0) {
-        const firstError = Object.values(error.errors)[0];
-        if (Array.isArray(firstError) && firstError.length > 0) {
-          errorMessage = firstError[0];
-        } else if (typeof firstError === "string") {
-          errorMessage = firstError;
+      // Type-safe error handling
+      if (error && typeof error === "object") {
+        const apiError = error as {
+          errors?: Record<string, string[]>;
+          message?: string;
+          detail?: string;
+        };
+
+        if (apiError.errors && Object.keys(apiError.errors).length > 0) {
+          const firstError = Object.values(apiError.errors)[0];
+          if (Array.isArray(firstError) && firstError.length > 0) {
+            errorMessage = firstError[0];
+          } else if (typeof firstError === "string") {
+            errorMessage = firstError;
+          }
+        } else if (apiError.message) {
+          errorMessage = apiError.message;
+        } else if (apiError.detail) {
+          errorMessage = apiError.detail;
         }
-      } else if (error.message) {
-        errorMessage = error.message;
-      } else if (error.detail) {
-        errorMessage = error.detail;
+      } else if (typeof error === "string") {
+        errorMessage = error;
       }
 
       setError(errorMessage);
+      showToast.error(toastMessages.loginError);
     } finally {
       setIsLoading(false);
     }

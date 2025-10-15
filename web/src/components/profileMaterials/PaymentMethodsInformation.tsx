@@ -18,6 +18,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { authService } from "@/services/authService";
 import Link from "next/link";
+import { showToast, toastMessages } from "@/utils/toast";
 
 interface PaymentMethod {
   id: string;
@@ -38,15 +39,17 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
     async function load() {
       setLoading(true);
       setError(null);
-      try {
-        const token = authService.getAccessToken();
-        if (!token) {
-          if (mounted) {
-            setError("Kartları görmek için lütfen giriş yapın.");
-            setLoading(false);
-          }
-          return;
+
+      // User kontrolü - eğer user yoksa zaten ProfileComponent'te render edilmez
+      if (!user) {
+        if (mounted) {
+          setError("Kartları görmek için lütfen giriş yapın.");
+          setLoading(false);
         }
+        return;
+      }
+
+      try {
         const res = await authService.getCards();
         if (!mounted) return;
         const normalized: PaymentMethod[] = (res || []).map((c: any) => ({
@@ -76,7 +79,7 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user]); // user dependency eklendi
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -136,11 +139,11 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
     const numericCardNumber = formData.cardNumber.replace(/\s/g, "");
     try {
       const payload = {
-        card_holder: formData.cardHolder,
+        card_holder_name: formData.cardHolder,
         card_number: numericCardNumber,
         expiry_month: Number(formData.expiryMonth || 0),
         expiry_year: Number(formData.expiryYear || 0),
-        cvc: formData.cvv,
+        cvv: formData.cvv,
       };
       await authService.createCard(payload);
       const res = await authService.getCards();
@@ -159,33 +162,30 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
       setPaymentMethods(normalized);
       setIsAddModalOpen(false);
     } catch (e) {
-      // no-op: kullanıcıya toast eklenebilir
+      showToast.error(
+        "Kart eklenirken bir hata oluştu. Lütfen tekrar deneyin."
+      );
     }
   };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    // Kart numarası: sadece rakam, max 16 karakter, 4'lü gruplar halinde
     if (field === "cardNumber") {
-      const numericValue = value.replace(/\s/g, ""); // Boşlukları kaldır
+      const numericValue = value.replace(/\s/g, "");
       if (!/^\d*$/.test(numericValue) || numericValue.length > 16) return;
 
-      // 4'lü gruplara ayır
       const formatted =
         numericValue.match(/.{1,4}/g)?.join(" ") || numericValue;
       setFormData({ ...formData, [field]: formatted });
       return;
     }
-    // CVV: sadece rakam, max 3 karakter
     if (field === "cvv") {
       if (!/^\d*$/.test(value) || value.length > 3) return;
     }
-    // Ay: sadece rakam, max 2 karakter
     if (field === "expiryMonth") {
       if (!/^\d*$/.test(value) || value.length > 2) return;
       const month = parseInt(value);
       if (value.length === 2 && (month < 1 || month > 12)) return;
     }
-    // Yıl: sadece rakam, max 4 karakter
     if (field === "expiryYear") {
       if (!/^\d*$/.test(value) || value.length > 4) return;
     }
