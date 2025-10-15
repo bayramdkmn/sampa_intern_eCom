@@ -3,27 +3,98 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { authService, LoginData } from "@/services/authService";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    // Demo amaçlı - Gerçek uygulamada API'den gelecek
-    const demoUser = {
-      id: "1",
-      firstName: "Bayram",
-      lastName: "Dikmen",
-      email: email,
-      // profileImage: "/profile.jpg" // Profil resmi varsa
-    };
+    setIsLoading(true);
 
-    login(demoUser);
-    router.push("/");
+    try {
+      const loginData: LoginData = {
+        email: email,
+        password: password,
+      };
+
+      console.log("🔍 Login payload:", loginData);
+
+      const response = await authService.login(loginData);
+
+      console.log("🔍 Login Response:", response);
+
+      const accessToken =
+        (response as any).access_token || (response as any).access;
+      const refreshToken =
+        (response as any).refresh_token || (response as any).refresh || "";
+      if (accessToken) {
+        authService.saveTokens(accessToken, refreshToken);
+      }
+
+      let userData;
+      if (response.user) {
+        userData = {
+          id: response.user.id || response.user.pk || "temp-id",
+          firstName: response.user.first_name || response.user.name || "User",
+          lastName: response.user.last_name || "",
+          email: response.user.email || email,
+          phoneNumber: response.user.phone_number,
+          profileImage: response.user.profile_image,
+        };
+      } else if (response.username || response.email) {
+        userData = {
+          id: response.id || response.pk || "temp-id",
+          firstName: response.first_name || response.name || "User",
+          lastName: response.last_name || "",
+          email: response.email || email,
+          phoneNumber: response.phone_number,
+          profileImage: response.profile_image,
+        };
+      } else {
+        userData = {
+          id: "temp-id",
+          firstName: email,
+          lastName: "",
+          email: email,
+          phoneNumber: undefined,
+          profileImage: undefined,
+        };
+      }
+
+      console.log("👤 User Data:", userData);
+      login(userData);
+
+      router.push("/");
+    } catch (error: any) {
+      console.error("Giriş hatası:", error);
+
+      let errorMessage = "Giriş sırasında bir hata oluştu";
+
+      if (error.errors && Object.keys(error.errors).length > 0) {
+        const firstError = Object.values(error.errors)[0];
+        if (Array.isArray(firstError) && firstError.length > 0) {
+          errorMessage = firstError[0];
+        } else if (typeof firstError === "string") {
+          errorMessage = firstError;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (error.detail) {
+        errorMessage = error.detail;
+      }
+
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -40,20 +111,26 @@ export default function LoginForm() {
       <div className="w-full max-w-md p-6 sm:p-8 lg:p-10 bg-white rounded-2xl shadow-2xl">
         <div className="text-center mb-6 lg:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Welcome Back
+            Tekrar Hoş Geldiniz
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Sign in to your account
+            Hesabınıza giriş yapın
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Email Address
+              E-posta
             </label>
             <input
               id="email"
@@ -71,7 +148,7 @@ export default function LoginForm() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Password
+              Şifre
             </label>
             <input
               id="password"
@@ -90,32 +167,40 @@ export default function LoginForm() {
                 type="checkbox"
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              <span className="ml-2 text-sm text-gray-600">Beni hatırla</span>
             </label>
             <Link
               href="/forgotPassword"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
-              Forgot password?
+              Şifremi unuttum?
             </Link>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Giriş Yapılıyor...
+              </div>
+            ) : (
+              "Giriş Yap"
+            )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            Hesabınız yok mu?{" "}
             <Link
               href="/signup"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              Sign up
+              Kayıt Ol
             </Link>
           </p>
         </div>
@@ -139,7 +224,7 @@ export default function LoginForm() {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Back to Home
+            Ana Sayfaya Dön
           </Link>
         </div>
       </div>
