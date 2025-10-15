@@ -1,8 +1,7 @@
-from django.contrib.auth.models import User
+from .models import User
 from django.utils import timezone
 from rest_framework import serializers
 from .models import Address, PaymentCard, Favorite, Message, Notification, PasswordResetCode, UserProfile
-from products.models import Product
 import re
 import random
 import string
@@ -10,74 +9,17 @@ from rest_framework import exceptions
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
+    password_confirm = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'first_name', 'last_name')
+        fields = ('email', 'password', 'password_confirm', 'first_name', 'last_name')
         extra_kwargs = {
-            'username': {'required': False, 'allow_blank': True},
-            'first_name': {'required': False, 'allow_blank': True},
-            'last_name': {'required': False, 'allow_blank': True},
+            'first_name': {'required': True},
+            'last_name': {'required': True},
             'email': {'required': True},
         }
-
-    @staticmethod
-    def _sanitize_username(candidate: str) -> str:
-        # Keep alphanumerics and underscore; replace others with underscore
-        sanitized = re.sub(r'[^a-zA-Z0-9_]+', '_', candidate).strip('_')
-        return sanitized or 'user'
-
-    @staticmethod
-    def _generate_random_suffix(length: int = 6) -> str:
-        return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
-
-    def _generate_unique_username(self, base: str) -> str:
-        base = self._sanitize_username(base).lower()
-        # Ensure not empty
-        if not base:
-            base = 'user'
-        username = base
-        counter = 0
-        while User.objects.filter(username=username).exists():
-            counter += 1
-            # Try base + number up to some attempts, then add random suffix
-            if counter < 50:
-                username = f"{base}{counter}"
-            else:
-                username = f"{base}_{self._generate_random_suffix()}"
-        return username
-
-    def create(self, validated_data):
-        provided_username = (validated_data.get('username') or '').strip()
-        email = (validated_data.get('email') or '').strip()
-        first_name = (validated_data.get('first_name') or '').strip()
-        last_name = (validated_data.get('last_name') or '').strip()
-
-        if provided_username:
-            username = self._generate_unique_username(provided_username)
-        elif email:
-            # Use local-part of email as base
-            local_part = email.split('@', 1)[0]
-            username = self._generate_unique_username(local_part)
-        else:
-            # Fall back to generic user prefix
-            username = self._generate_unique_username('user')
-
-        extra_fields = {}
-        if first_name:
-            extra_fields['first_name'] = first_name
-        if last_name:
-            extra_fields['last_name'] = last_name
-
-        user = User.objects.create_user(
-            username=username,
-            email=email or None,
-            password=validated_data['password'],
-            **extra_fields
-        )
-        return user
 
     def validate_email(self, value):
         email = (value or '').strip()
@@ -86,6 +28,33 @@ class RegisterSerializer(serializers.ModelSerializer):
         if User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError('Bu e-posta ile zaten bir hesap var')
         return email
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        password_confirm = attrs.get('password_confirm')
+        
+        if password != password_confirm:
+            raise serializers.ValidationError({'password_confirm': 'Şifreler eşleşmiyor'})
+        
+        return attrs
+
+    def create(self, validated_data):
+        email = validated_data['email']
+        password = validated_data['password']
+        first_name = validated_data['first_name']
+        last_name = validated_data['last_name']
+        
+        # Email'i username olarak kullan
+        username = email
+        
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+        return user
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -114,7 +83,6 @@ class PaymentCardSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'created_at')
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
     class Meta:
         model = Favorite
         fields = '__all__'
@@ -197,14 +165,12 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not email or not password:
             raise exceptions.AuthenticationFailed('E-posta ve şifre zorunludur')
 
-        # Support non-unique emails by picking the user whose password matches
-        candidates = User.objects.filter(email__iexact=email, is_active=True).order_by('-last_login', '-date_joined')
-        user = None
-        for u in candidates:
-            if u.check_password(password):
-                user = u
-                break
-        if user is None:
+        # Email unique olduğu için direkt bulabiliriz
+        try:
+            user = User.objects.get(email__iexact=email, is_active=True)
+            if not user.check_password(password):
+                raise exceptions.AuthenticationFailed('Geçersiz e-posta veya şifre')
+        except User.DoesNotExist:
             raise exceptions.AuthenticationFailed('Geçersiz e-posta veya şifre')
 
         # Bridge to parent by providing username of the matched user

@@ -85,7 +85,7 @@ class Variations(models.Model):
         return f"{self.product.name} - {self.name}"
 
 
-from django.contrib.auth.models import User
+# User model will be imported as string reference
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count
 from django.db.models.signals import post_save, post_delete
@@ -93,7 +93,7 @@ from django.dispatch import receiver
 
 class ProductRating(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='product_ratings')
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='product_ratings')
     stars = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -104,7 +104,7 @@ class ProductRating(models.Model):
         verbose_name = 'Product Rating'
 
     def __str__(self):
-        return f"{self.product.name} - {self.user.username}: {self.stars}"
+        return f"{self.product.name} - {self.user.email}: {self.stars}"
 
 
 def _recalculate_product_rating(product: Product) -> None:

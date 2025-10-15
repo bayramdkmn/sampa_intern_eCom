@@ -1,14 +1,23 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-from products.models import Product
 import random
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import Q
 
-# Create your models here.
+# ---------------------------
+# User Model
+# ---------------------------
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
 
+    def __str__(self):
+        return self.email
+
+# ---------------------------
+# Address Model
+# ---------------------------
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
     title = models.CharField(max_length=100)  # Ev, iş, vs.
@@ -21,7 +30,7 @@ class Address(models.Model):
     is_primary = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.username} - {self.title}"
+        return f"{self.user.email} - {self.title}"
 
     class Meta:
         constraints = [
@@ -32,86 +41,123 @@ class Address(models.Model):
             )
         ]
 
+# ---------------------------
+# PaymentCard Model
+# ---------------------------
 class PaymentCard(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cards')
-    card_holder = models.CharField(max_length=100)
-    card_number = models.CharField(max_length=20)
+    card_number = models.CharField(max_length=16)
+    card_holder_name = models.CharField(max_length=100)
     expiry_month = models.IntegerField()
     expiry_year = models.IntegerField()
-    cvc = models.CharField(max_length=4)
+    cvv = models.CharField(max_length=4)
+    is_primary = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.card_holder}"
+        return f"{self.user.email} - {self.card_holder_name}"
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=Q(is_primary=True),
+                name='unique_primary_card_per_user'
+            )
+        ]
+
+# ---------------------------
+# Favorite Model
+# ---------------------------
 class Favorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, related_name='favorited_by')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'product')
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name}"
+        return f"{self.user.email} - {self.product.name}"
 
+# ---------------------------
+# Message Model
+# ---------------------------
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    subject = models.CharField(max_length=200, null=True, blank=True)
+    content = models.TextField(blank=True, null=True)
     is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.sender.username} -> {self.receiver.username}: {self.content[:20]}"
+        return f"{self.sender.email} -> {self.receiver.email}: {self.subject}"
 
+# ---------------------------
+# Notification Model
+# ---------------------------
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    content = models.CharField(max_length=255)
-    notification_type = models.CharField(max_length=50)  # ör: 'order', 'message', 'system'
+    title = models.CharField(max_length=200, blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.notification_type}: {self.content[:20]}"
+        return f"{self.user.email}: {self.title}"
 
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.user.username} Profile"
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance: User, created: bool, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-
+# ---------------------------
+# PasswordResetCode Model
+# ---------------------------
 class PasswordResetCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_codes')
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(blank=True, null=True)
     used = models.BooleanField(default=False)
 
-    class Meta:
-        indexes = [
-            models.Index(fields=['user', 'code', 'used']),
-            models.Index(fields=['expires_at']),
-        ]
+    @classmethod
+    def create_for_user(cls, user):
+        # Eski kodları temizle
+        cls.objects.filter(user=user, used=False).update(used=True)
+        
+        # Yeni kod oluştur
+        code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        expires_at = timezone.now() + timezone.timedelta(minutes=10)
+        
+        return cls.objects.create(
+            user=user,
+            code=code,
+            expires_at=expires_at
+        )
 
     def __str__(self):
-        return f"{self.user.username} - {self.code}"
+        return f"{self.user.email}: {self.code}"
 
-    @staticmethod
-    def generate_six_digit_code() -> str:
-        return f"{random.randint(0, 999999):06d}"
+# ---------------------------
+# UserProfile Model
+# ---------------------------
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    birth_date = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=[('M', 'Erkek'), ('F', 'Kadın'), ('O', 'Diğer')], blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    @classmethod
-    def create_for_user(cls, user: User, ttl_minutes: int = 15) -> 'PasswordResetCode':
-        now = timezone.now()
-        expires = now + timezone.timedelta(minutes=ttl_minutes)
-        code = cls.generate_six_digit_code()
-        return cls.objects.create(user=user, code=code, expires_at=expires)
+    def __str__(self):
+        return f"{self.user.email} Profile"
+
+# ---------------------------
+# Signals
+# ---------------------------
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, 'profile'):
+        instance.profile.save()

@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.permissions import AllowAny
-from django.contrib.auth.models import User
+from .models import User
 from django.db import models
 from django.utils import timezone
 from .models import Address, PaymentCard, Favorite, Message, Notification, PasswordResetCode

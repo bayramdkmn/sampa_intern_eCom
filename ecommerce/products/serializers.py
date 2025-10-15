@@ -24,3 +24,15 @@ class ProductRatingSerializer(serializers.ModelSerializer):
         model = ProductRating
         fields = ['id', 'product', 'user', 'user_username', 'stars', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categories
+        fields = ['id', 'name', 'slug', 'seo_title', 'seo_description', 'isActive']
+
+
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brands
+        fields = ['id', 'name', 'description', 'slug', 'seo_title', 'seo_description', 'isActive', 'image']
