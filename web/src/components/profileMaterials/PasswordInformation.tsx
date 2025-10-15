@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { TextField, Button, Snackbar, Alert } from "@mui/material";
+import { authService } from "@/services/authService";
 
 const PasswordInformation = () => {
   const [formData, setFormData] = useState({
@@ -11,13 +12,14 @@ const PasswordInformation = () => {
   });
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData({ ...formData, [field]: value });
     setErrorMessage("");
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (
       !formData.currentPassword ||
       !formData.newPassword ||
@@ -27,8 +29,8 @@ const PasswordInformation = () => {
       return;
     }
 
-    if (formData.newPassword.length < 6) {
-      setErrorMessage("Yeni şifre en az 6 karakter olmalıdır");
+    if (formData.newPassword.length < 8) {
+      setErrorMessage("Yeni şifre en az 8 karakter olmalıdır");
       return;
     }
 
@@ -37,19 +39,47 @@ const PasswordInformation = () => {
       return;
     }
 
-    // API'ye gönder
-    console.log("Changing password:", {
-      currentPassword: formData.currentPassword,
-      newPassword: formData.newPassword,
-    });
+    setIsLoading(true);
+    setErrorMessage("");
 
-    setShowSuccessMessage(true);
+    try {
+      await authService.changePassword({
+        old_password: formData.currentPassword,
+        new_password: formData.newPassword,
+        new_password_confirm: formData.confirmPassword,
+      });
 
-    setFormData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+      setShowSuccessMessage(true);
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error: any) {
+      console.error("Şifre değiştirme hatası:", error);
+      if (error?.data?.detail) {
+        setErrorMessage(error.data.detail);
+      } else if (
+        error?.data?.old_password &&
+        Array.isArray(error.data.old_password)
+      ) {
+        setErrorMessage(error.data.old_password[0]);
+      } else if (
+        error?.data?.new_password &&
+        Array.isArray(error.data.new_password)
+      ) {
+        setErrorMessage(error.data.new_password[0]);
+      } else if (
+        error?.data?.new_password_confirm &&
+        Array.isArray(error.data.new_password_confirm)
+      ) {
+        setErrorMessage(error.data.new_password_confirm[0]);
+      } else {
+        setErrorMessage("Şifre değiştirme sırasında bir hata oluştu");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseSnackbar = () => {
@@ -116,6 +146,7 @@ const PasswordInformation = () => {
             <Button
               variant="contained"
               onClick={handleChangePassword}
+              disabled={isLoading}
               sx={{
                 textTransform: "none",
                 backgroundColor: "#2563eb",
@@ -125,7 +156,7 @@ const PasswordInformation = () => {
                 fontSize: "1rem",
               }}
             >
-              Change Password
+              {isLoading ? "Değiştiriliyor..." : "Change Password"}
             </Button>
           </div>
         </div>

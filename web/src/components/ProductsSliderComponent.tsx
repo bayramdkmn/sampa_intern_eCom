@@ -1,26 +1,22 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { IconButton } from "@mui/material";
-
-interface Product {
-  id: string;
-  name: string;
-  shortDescription?: string;
-  code: string;
-  image: string;
-  brand: string;
-  price: number;
-  stock?: number;
-  stockStatus?: "in_stock" | "on_request";
-}
+import { useProducts } from "@/contexts/ProductContext";
+import { getRecentlyViewedIds } from "@/lib/recentlyViewed";
 
 const ProductsSliderComponent = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { products, loading, error } = useProducts();
+  const [recentIds, setRecentIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecentIds(getRecentlyViewedIds());
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -37,60 +33,27 @@ const ProductsSliderComponent = () => {
     }
   };
 
-  const recentlyViewedProducts: Product[] = [
-    {
-      id: "1",
-      name: "Air Spring, Comp. Type w/ Plastic Piston",
-      shortDescription: "Short Type",
-      code: "SP 559373-KP01",
-      image: "/sampa-logo.png",
-      brand: "HENDRICKSON | WATSON & CHALIN",
-      price: 40.91,
-      stock: 1,
-      stockStatus: "on_request",
-    },
-    {
-      id: "2",
-      name: "U Bolt, Spring Suspension",
-      shortDescription: "With Nut",
-      code: "010.144/1",
-      image: "/sampa-logo.png",
-      brand: "MERCEDES",
-      price: 3.45,
-      stock: 0,
-      stockStatus: "on_request",
-    },
-    {
-      id: "3",
-      name: "S - Brake Cam Shaft",
-      code: "010.1538",
-      image: "/sampa-logo.png",
-      brand: "MERCEDES | MAN",
-      price: 14.54,
-      stock: 0,
-      stockStatus: "on_request",
-    },
-    {
-      id: "4",
-      name: "Cap, Stud",
-      code: "050.085",
-      image: "/sampa-logo.png",
-      brand: "DAF",
-      price: 0.1,
-      stock: 2020,
-      stockStatus: "on_request",
-    },
-    {
-      id: "5",
-      name: "Hose, Oil Cooler",
-      code: "040.389",
-      image: "/sampa-logo.png",
-      brand: "SCANIA",
-      price: 2.54,
-      stock: 9,
-      stockStatus: "in_stock",
-    },
-  ];
+  const normalizedProducts = useMemo(() => {
+    const all = (products || []).map((p) => ({
+      id: String(p.id),
+      name: p.name,
+      image: p.image ?? "/sampa-logo.png",
+      brand: p.brand ?? "",
+      priceNumber: Number.parseFloat(p.discount_price ?? p.price ?? "0") || 0,
+      slug: p.slug,
+      description: p.description ?? "",
+    }));
+
+    if (!recentIds.length) return all;
+
+    const setIds = new Set(recentIds);
+    const filtered = all.filter((p) => setIds.has(p.id));
+    const order: Record<string, number> = Object.fromEntries(
+      recentIds.map((id, idx) => [id, idx])
+    );
+    filtered.sort((a, b) => (order[a.id] ?? 0) - (order[b.id] ?? 0));
+    return filtered;
+  }, [products, recentIds]);
 
   return (
     <div className="w-full py-8 px-4 md:px-6">
@@ -134,7 +97,15 @@ const ProductsSliderComponent = () => {
           </Link>
         </div>
 
-        {/* Products Container */}
+        {loading && (
+          <div className="text-sm text-gray-600 py-8">
+            Ürünler yükleniyor...
+          </div>
+        )}
+        {error && !loading && (
+          <div className="text-sm text-red-600 py-8">{error}</div>
+        )}
+
         <div
           ref={scrollContainerRef}
           className="flex gap-5 overflow-x-auto scroll-smooth pb-4 scrollbar-hide"
@@ -143,55 +114,46 @@ const ProductsSliderComponent = () => {
             msOverflowStyle: "none",
           }}
         >
-          {recentlyViewedProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-lg transition-shadow min-w-[280px] max-w-[280px] flex-shrink-0"
-              style={{ height: "450px" }}
-            >
-              <Link href={`/products/${product.id}`} className="block mb-3">
-                <div className="w-full h-40 bg-gray-50 rounded flex items-center justify-center overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="max-w-full max-h-full object-contain p-2"
-                  />
-                </div>
-              </Link>
-
-              <div className="flex-1 flex flex-col">
-                <Link
-                  href={`/products/${product.id}`}
-                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 mb-2 mt-auto line-clamp-2"
-                  style={{ minHeight: "2.5rem", maxHeight: "2.5rem" }}
-                >
-                  {product.name}{" "}
-                  {product.shortDescription && (
-                    <span className="font-normal italic text-gray-600">
-                      {product.shortDescription}
-                    </span>
-                  )}
+          {!loading &&
+            !error &&
+            normalizedProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-lg transition-shadow min-w-[280px] max-w-[280px] flex-shrink-0"
+              >
+                <Link href={`/products/${product.id}`} className="block mb-3">
+                  <div className="w-full h-full max-h-60 bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="max-w-full max-h-full object-cover p-2 rounded-2xl"
+                    />
+                  </div>
                 </Link>
 
-                <div className="text-xs text-blue-600 font-medium mb-2">
-                  {product.code}
-                </div>
+                <div className="flex-1 flex flex-col">
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="text-sm font-semibold text-gray-900 hover:text-blue-600 mb-2 mt-auto "
+                  >
+                    {product.name}
+                  </Link>
 
-                <div className="text-xs text-gray-600 mb-3 border-b border-gray-200 pb-2">
-                  {product.brand}
-                </div>
-
-                <div className="mt-auto">
-                  <div className="text-xs text-gray-600 mb-1">
-                    Single Net Price
+                  <div className="text-xs text-gray-600 mb-3 border-b border-gray-200 pb-2">
+                    {product.brand}
                   </div>
-                  <div className="text-lg font-bold text-blue-600">
-                    €{product.price.toFixed(2)}
+
+                  <div className="mt-auto">
+                    <div className="text-xs text-gray-600 mb-1">
+                      Single Net Price
+                    </div>
+                    <div className="text-lg font-bold text-blue-600">
+                      €{product.priceNumber.toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 

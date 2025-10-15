@@ -1,7 +1,7 @@
 "use client";
 
 import { User } from "@/app/types/User";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   IconButton,
   Dialog,
@@ -16,6 +16,8 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { authService } from "@/services/authService";
+import Link from "next/link";
 
 interface PaymentMethod {
   id: string;
@@ -27,16 +29,54 @@ interface PaymentMethod {
 }
 
 const PaymentMethodsInformation = ({ user }: { user: User }) => {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-    {
-      id: "1",
-      cardType: "Visa",
-      lastFourDigits: "1234",
-      expiryMonth: "12",
-      expiryYear: "2025",
-      isPrimary: true,
-    },
-  ]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const token = authService.getAccessToken();
+        if (!token) {
+          if (mounted) {
+            setError("Kartları görmek için lütfen giriş yapın.");
+            setLoading(false);
+          }
+          return;
+        }
+        const res = await authService.getCards();
+        if (!mounted) return;
+        const normalized: PaymentMethod[] = (res || []).map((c: any) => ({
+          id: String(c.id ?? c.pk ?? crypto.randomUUID?.() ?? Date.now()),
+          cardType: (c.card_type ||
+            c.brand ||
+            "Visa") as PaymentMethod["cardType"],
+          lastFourDigits: String(
+            c.last4 || c.last_four || c.lastFourDigits || "****"
+          ).slice(-4),
+          expiryMonth: String(c.exp_month || c.expiry_month || ""),
+          expiryYear: String(c.exp_year || c.expiry_year || ""),
+          isPrimary: Boolean(c.is_primary || c.isPrimary),
+        }));
+        setPaymentMethods(normalized);
+      } catch (e: any) {
+        const msg =
+          e?.status === 401
+            ? "Kartları görmek için giriş yapmalısınız."
+            : e?.message || "Kartlar alınamadı";
+        setError(msg);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -55,13 +95,28 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedCard) {
-      setPaymentMethods(
-        paymentMethods.filter((method) => method.id !== selectedCard.id)
-      );
+  const handleConfirmDelete = async () => {
+    if (!selectedCard) return;
+    try {
+      await authService.deleteCard(selectedCard.id);
+      const res = await authService.getCards();
+      const normalized: PaymentMethod[] = (res || []).map((c: any) => ({
+        id: String(c.id ?? c.pk ?? crypto.randomUUID?.() ?? Date.now()),
+        cardType: (c.card_type ||
+          c.brand ||
+          "Visa") as PaymentMethod["cardType"],
+        lastFourDigits: String(
+          c.last4 || c.last_four || c.lastFourDigits || "****"
+        ).slice(-4),
+        expiryMonth: String(c.exp_month || c.expiry_month || ""),
+        expiryYear: String(c.exp_year || c.expiry_year || ""),
+        isPrimary: Boolean(c.is_primary || c.isPrimary),
+      }));
+      setPaymentMethods(normalized);
       setIsDeleteDialogOpen(false);
       setSelectedCard(null);
+    } catch (e: any) {
+      // Kart silme hatası
     }
   };
 
@@ -77,18 +132,35 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
     setIsAddModalOpen(true);
   };
 
-  const handleSaveCard = () => {
-    const numericCardNumber = formData.cardNumber.replace(/\s/g, ""); // Boşlukları kaldır
-    const lastFourDigits = numericCardNumber.slice(-4);
-    const newCard: PaymentMethod = {
-      id: Date.now().toString(),
-      cardType: formData.cardType,
-      lastFourDigits,
-      expiryMonth: formData.expiryMonth,
-      expiryYear: formData.expiryYear,
-    };
-    setPaymentMethods([...paymentMethods, newCard]);
-    setIsAddModalOpen(false);
+  const handleSaveCard = async () => {
+    const numericCardNumber = formData.cardNumber.replace(/\s/g, "");
+    try {
+      const payload = {
+        card_holder: formData.cardHolder,
+        card_number: numericCardNumber,
+        expiry_month: Number(formData.expiryMonth || 0),
+        expiry_year: Number(formData.expiryYear || 0),
+        cvc: formData.cvv,
+      };
+      await authService.createCard(payload);
+      const res = await authService.getCards();
+      const normalized: PaymentMethod[] = (res || []).map((c: any) => ({
+        id: String(c.id ?? c.pk ?? crypto.randomUUID?.() ?? Date.now()),
+        cardType: (c.card_type ||
+          c.brand ||
+          "Visa") as PaymentMethod["cardType"],
+        lastFourDigits: String(
+          c.last4 || c.last_four || c.lastFourDigits || "****"
+        ).slice(-4),
+        expiryMonth: String(c.exp_month || c.expiry_month || ""),
+        expiryYear: String(c.exp_year || c.expiry_year || ""),
+        isPrimary: Boolean(c.is_primary || c.isPrimary),
+      }));
+      setPaymentMethods(normalized);
+      setIsAddModalOpen(false);
+    } catch (e) {
+      // no-op: kullanıcıya toast eklenebilir
+    }
   };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
@@ -128,32 +200,52 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
       </div>
 
       <div className="border-t border-gray-200 pt-6">
+        {loading && (
+          <div className="text-sm text-gray-600 py-4">
+            Kartlar yükleniyor...
+          </div>
+        )}
+        {error && !loading && (
+          <div className="text-sm text-red-600 py-4">
+            {error}{" "}
+            {error.includes("giriş") && (
+              <>
+                {" "}
+                <Link href="/login" className="text-blue-600 underline">
+                  Giriş Yap
+                </Link>
+              </>
+            )}
+          </div>
+        )}
         <div className="space-y-4">
-          {paymentMethods.map((method) => (
-            <div
-              key={method.id}
-              className="border border-gray-300 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <CreditCardIcon sx={{ fontSize: 40, color: "#6b7280" }} />
-                <div>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {method.cardType} ending in {method.lastFourDigits}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Expires {method.expiryMonth}/{method.expiryYear}
-                  </p>
-                </div>
-              </div>
-              <IconButton
-                size="small"
-                onClick={() => handleDelete(method)}
-                sx={{ color: "#6b7280" }}
+          {!loading &&
+            !error &&
+            paymentMethods.map((method) => (
+              <div
+                key={method.id}
+                className="border border-gray-300 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
               >
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          ))}
+                <div className="flex items-center gap-4">
+                  <CreditCardIcon sx={{ fontSize: 40, color: "#6b7280" }} />
+                  <div>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {method.cardType} ending in {method.lastFourDigits}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Expires {method.expiryMonth}/{method.expiryYear}
+                    </p>
+                  </div>
+                </div>
+                <IconButton
+                  size="small"
+                  onClick={() => handleDelete(method)}
+                  sx={{ color: "#6b7280" }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </div>
+            ))}
         </div>
 
         <div className="mt-6 flex justify-end">

@@ -75,7 +75,7 @@ export default function BasketComponent() {
                         <div className="col-span-5 flex items-center gap-4">
                           <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                              <span className="text-2xl text-gray-400">👕</span>
+                              <img src={item.image} />
                             </div>
                           </div>
                           <div>
@@ -143,13 +143,12 @@ export default function BasketComponent() {
                         </div>
                       </div>
 
-                      {/* Mobile Layout - Card Style */}
                       <div className="md:hidden p-4 space-y-3">
                         <div className="flex gap-3">
                           {/* Product Image */}
                           <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                              <span className="text-2xl text-gray-400">👕</span>
+                              <img src={item.image} />
                             </div>
                           </div>
 

@@ -16,7 +16,6 @@ export default function ShopHomePage() {
         </div>
       </section>
 
-      {/* Recently Viewed Products Slider */}
       <ProductsSliderComponent />
     </div>
   );

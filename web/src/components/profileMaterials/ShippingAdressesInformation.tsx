@@ -1,7 +1,7 @@
 "use client";
 
 import { User } from "@/app/types/User";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   IconButton,
   Dialog,
@@ -17,35 +17,67 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { authService } from "@/services/authService";
+import Link from "next/link";
 
 interface Address {
   id: string;
+  title?: string;
   street: string;
   city: string;
+  district?: string;
   country: string;
   zipCode: string;
   isPrimary: boolean;
 }
 
 const ShippingAdressesInformation = ({ user }: { user: User }) => {
-  const [addresses, setAddresses] = useState<Address[]>([
-    {
-      id: "1",
-      street: "123 Main St",
-      city: "Anytown",
-      country: "USA",
-      zipCode: "12345",
-      isPrimary: true,
-    },
-    {
-      id: "2",
-      street: "456 Oak Ave",
-      city: "Somecity",
-      country: "USA",
-      zipCode: "67890",
-      isPrimary: false,
-    },
-  ]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const token = authService.getAccessToken();
+        if (!token) {
+          if (mounted) {
+            setError("Adresleri görmek için lütfen giriş yapın.");
+            setLoading(false);
+          }
+          return;
+        }
+        const res = await authService.getAddresses();
+        if (!mounted) return;
+        const normalized: Address[] = (res || []).map((a: any) => ({
+          id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
+          title: a.title || "",
+          street: a.street || a.address_line || a.line1 || "",
+          city: a.city || "",
+          district: a.district || "",
+          country: a.country || "",
+          zipCode: a.zipCode || a.postal_code || a.zip || "",
+          isPrimary: Boolean(a.is_primary || a.isPrimary),
+        }));
+        setAddresses(normalized);
+      } catch (e: any) {
+        const msg =
+          e?.status === 401
+            ? "Adresleri görmek için giriş yapmalısınız."
+            : e?.message || "Adresler alınamadı";
+        setError(msg);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -53,8 +85,10 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
   const [isPrimaryWarningOpen, setIsPrimaryWarningOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState({
+    title: "",
     street: "",
     city: "",
+    district: "",
     country: "",
     zipCode: "",
     isPrimary: false,
@@ -64,8 +98,10 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
   const handleEdit = (address: Address) => {
     setSelectedAddress(address);
     setFormData({
+      title: address.title || "",
       street: address.street,
       city: address.city,
+      district: address.district || "",
       country: address.country,
       zipCode: address.zipCode,
       isPrimary: address.isPrimary,
@@ -78,16 +114,32 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedAddress) {
-      setAddresses(addresses.filter((addr) => addr.id !== selectedAddress.id));
+  const handleConfirmDelete = async () => {
+    if (!selectedAddress) return;
+    try {
+      await authService.deleteAddress(selectedAddress.id);
+      const res = await authService.getAddresses();
+      const normalized: Address[] = (res || []).map((a: any) => ({
+        id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
+        title: a.title || "",
+        street: a.street || a.address_line || a.line1 || "",
+        city: a.city || "",
+        district: a.district || "",
+        country: a.country || "",
+        zipCode: a.zipCode || a.postal_code || a.zip || "",
+        isPrimary: Boolean(a.is_primary || a.isPrimary),
+      }));
+      setAddresses(normalized);
       setIsDeleteDialogOpen(false);
       setSelectedAddress(null);
+    } catch (e: any) {
+      setError(e?.message || "Adres silinemedi");
     }
   };
 
   const handleAddNew = () => {
     setFormData({
+      title: "",
       street: "",
       city: "",
       country: "",
@@ -97,7 +149,7 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
     setIsAddModalOpen(true);
   };
 
-  const handleSaveNew = () => {
+  const handleSaveNew = async () => {
     if (formData.isPrimary) {
       const existingPrimary = addresses.find((addr) => addr.isPrimary);
       if (existingPrimary) {
@@ -107,12 +159,39 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
       }
     }
 
-    const newAddress: Address = {
-      id: Date.now().toString(),
-      ...formData,
-    };
-    setAddresses([...addresses, newAddress]);
-    setIsAddModalOpen(false);
+    if (!formData.district) {
+      setError("District alanı zorunludur.");
+      return;
+    }
+
+    try {
+      // Backend beklenen payload formatı
+      const payload = {
+        title: formData.title,
+        address_line: formData.street,
+        city: formData.city,
+        district: formData.district,
+        postal_code: formData.zipCode,
+        country: formData.country,
+      };
+      await authService.createAddress(payload);
+      // Başarı sonrası listeyi yeniden çek
+      const res = await authService.getAddresses();
+      const normalized: Address[] = (res || []).map((a: any) => ({
+        id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
+        title: a.title || "",
+        street: a.street || a.address_line || a.line1 || "",
+        city: a.city || "",
+        district: a.district || "",
+        country: a.country || "",
+        zipCode: a.zipCode || a.postal_code || a.zip || "",
+        isPrimary: Boolean(a.is_primary || a.isPrimary),
+      }));
+      setAddresses(normalized);
+      setIsAddModalOpen(false);
+    } catch (e: any) {
+      setError(e?.message || "Adres kaydedilemedi");
+    }
   };
 
   const handleSaveEdit = () => {
@@ -184,41 +263,63 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
       </div>
 
       <div className="border-t border-gray-200 pt-6">
+        {loading && (
+          <div className="text-sm text-gray-600 py-4">
+            Adresler yükleniyor...
+          </div>
+        )}
+        {error && !loading && (
+          <div className="text-sm text-red-600 py-4">
+            {error}{" "}
+            {error.includes("giriş") && (
+              <>
+                {" "}
+                <Link href="/login" className="text-blue-600 underline">
+                  Giriş Yap
+                </Link>
+              </>
+            )}
+          </div>
+        )}
         <div className="space-y-4">
-          {addresses.map((address) => (
-            <div
-              key={address.id}
-              className="border border-gray-300 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
-            >
-              <div>
-                <p className="text-lg font-semibold text-gray-900">
-                  {address.street}, {address.city}, {address.country}{" "}
-                  {address.zipCode}
-                </p>
-                {address.isPrimary && (
-                  <span className="text-sm text-gray-600 mt-1 inline-block">
-                    Primary Address
-                  </span>
-                )}
+          {!loading &&
+            !error &&
+            addresses.map((address) => (
+              <div
+                key={address.id}
+                className="border border-gray-300 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
+              >
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {address.title ? address.title + " – " : ""}
+                    {address.street}, {address.city}
+                    {address.district ? `, ${address.district}` : ""},{" "}
+                    {address.country} {address.zipCode}
+                  </p>
+                  {address.isPrimary && (
+                    <span className="text-sm text-gray-600 mt-1 inline-block">
+                      Primary Address
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleEdit(address)}
+                    sx={{ color: "#6b7280" }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDelete(address)}
+                    sx={{ color: "#6b7280" }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <IconButton
-                  size="small"
-                  onClick={() => handleEdit(address)}
-                  sx={{ color: "#6b7280" }}
-                >
-                  <EditIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => handleDelete(address)}
-                  sx={{ color: "#6b7280" }}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
 
         <div className="mt-6 flex justify-end">
@@ -246,6 +347,13 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
         <DialogContent>
           <div className="flex flex-col gap-4 mt-2">
             <TextField
+              label="Title"
+              fullWidth
+              value={formData.title}
+              onChange={(e) => handleInputChange("title", e.target.value)}
+              required
+            />
+            <TextField
               label="Street Address"
               fullWidth
               value={formData.street}
@@ -268,6 +376,12 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
                 required
               />
             </div>
+            <TextField
+              label="District"
+              fullWidth
+              value={formData.district}
+              onChange={(e) => handleInputChange("district", e.target.value)}
+            />
             <TextField
               label="Country"
               fullWidth

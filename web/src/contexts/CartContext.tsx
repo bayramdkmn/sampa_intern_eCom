@@ -58,7 +58,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       );
 
       if (existingItem) {
-        // Ürün zaten sepette varsa miktarını artır
         return prevItems.map((i) =>
           i.id === item.id && i.color === item.color
             ? { ...i, quantity: i.quantity + (item.quantity || 1) }

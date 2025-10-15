@@ -8,6 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 import { User } from "@/app/types/User";
+import { authService } from "@/services/authService";
 
 interface AuthContextType {
   user: User | null;
@@ -44,9 +45,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error("❌ Django logout hatası:", error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+    }
   };
 
   return (

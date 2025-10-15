@@ -1,11 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { useCart } from "@/contexts/CartContext";
+import { addRecentlyViewedId } from "@/lib/recentlyViewed";
+import { useProducts } from "@/contexts/ProductContext";
 
 interface ProductProps {
   id: string;
@@ -14,6 +16,7 @@ interface ProductProps {
 export default function ProductsComponent({ id }: ProductProps) {
   const router = useRouter();
   const { addToCart } = useCart();
+  const { fetchProduct } = useProducts();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -22,7 +25,7 @@ export default function ProductsComponent({ id }: ProductProps) {
   );
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  const product = {
+  const [product, setProduct] = useState({
     name: "The Serenity Sofa",
     subtitle: "Plush comfort meets modern design.",
     price: 1299.0,
@@ -33,7 +36,7 @@ export default function ProductsComponent({ id }: ProductProps) {
       { name: "Navy Blue", value: "#1E3A8A" },
       { name: "Burgundy", value: "#7C2D12" },
     ],
-    images: ["/sampa-logo.png", "/sampa-logo.png", "/sampa-logo.png"],
+    images: ["/sampa-logo.png"],
     description:
       "The Serenity Sofa is the perfect centerpiece for any modern living space. Its clean lines, plush cushions, and durable fabric upholstery provide both style and unparalleled comfort. Crafted with a solid wood frame, this sofa is built to last. Available in a variety of colors to perfectly match your decor.",
     specifications: {
@@ -43,7 +46,33 @@ export default function ProductsComponent({ id }: ProductProps) {
       assembly: "Partial assembly required (legs)",
       care: "Spot clean with a damp cloth",
     },
-  };
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    async function load() {
+      if (!id) return;
+      addRecentlyViewedId(id);
+      try {
+        const p = await fetchProduct(id);
+        if (p && isMounted) {
+          const priceNumber =
+            Number.parseFloat(p.discount_price ?? p.price ?? "0") || 0;
+          setProduct((prev) => ({
+            ...prev,
+            name: p.name ?? prev.name,
+            price: priceNumber || prev.price,
+            images: [p.image ?? "/sampa-logo.png", ...prev.images.slice(1)],
+            description: p.description ?? prev.description,
+          }));
+        }
+      } catch (e) {}
+    }
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [id, fetchProduct]);
 
   const handleAddToCart = () => {
     addToCart({
@@ -135,28 +164,6 @@ export default function ProductsComponent({ id }: ProductProps) {
             ${product.price.toFixed(2)}
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3">
-              Color
-            </h3>
-            <div className="flex gap-3">
-              {product.colors.map((color, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedColor(index)}
-                  className={`w-10 h-10 rounded-full border-2 transition-all ${
-                    selectedColor === index
-                      ? "border-gray-900 scale-110"
-                      : "border-gray-300 hover:border-gray-400"
-                  }`}
-                  style={{ backgroundColor: color.value }}
-                  title={color.name}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Quantity Selector */}
           <div>
             <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3">
               Quantity

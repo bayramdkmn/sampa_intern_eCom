@@ -1,23 +1,140 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { authService, RegisterData } from "@/services/authService";
 
 export default function SignupForm() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Backend signup işlemi burada yapılacak
+    setError(null);
+
+    // Şifre kontrolü
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+      setError("Şifreler eşleşmiyor!");
       return;
     }
-    console.log("Signup:", formData);
+
+    // Şifre uzunluk kontrolü
+    if (formData.password.length < 6) {
+      setError("Şifre en az 6 karakter olmalıdır!");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const registerData: RegisterData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        password: formData.password,
+      };
+
+      const response = await authService.register(registerData);
+
+      console.log("🔍 Register Response:", response);
+
+      // Token'ları kaydet; yoksa otomatik login dene
+      const accessTokenDirect =
+        (response as any).access_token || (response as any).access;
+      const refreshTokenDirect =
+        (response as any).refresh_token || (response as any).refresh || "";
+      if (accessTokenDirect) {
+        authService.saveTokens(accessTokenDirect, refreshTokenDirect);
+      } else {
+        try {
+          const loginResp = await authService.login({
+            email: registerData.email,
+            password: registerData.password,
+          });
+          const accessFromLogin =
+            (loginResp as any).access_token || (loginResp as any).access;
+          const refreshFromLogin =
+            (loginResp as any).refresh_token ||
+            (loginResp as any).refresh ||
+            "";
+          if (accessFromLogin) {
+            authService.saveTokens(accessFromLogin, refreshFromLogin);
+          }
+        } catch (e) {
+          // otomatik login başarısız olabilir; kullanıcı daha sonra giriş yapabilir
+        }
+      }
+
+      // User bilgilerini AuthContext'e kaydet - response yapısını kontrol et
+      let userData;
+      if (response.user) {
+        userData = {
+          id: response.user.id || response.user.pk || "temp-id",
+          firstName: response.user.first_name || response.user.name || "User",
+          lastName: response.user.last_name || "",
+          email: response.user.email || registerData.email,
+          phoneNumber: response.user.phone_number,
+          profileImage: response.user.profile_image,
+        };
+      } else if (response.username || response.email) {
+        // Eğer user objesi yoksa, response'un kendisi user bilgilerini içeriyor olabilir
+        userData = {
+          id: response.id || response.pk || "temp-id",
+          firstName: response.first_name || response.name || "User",
+          lastName: response.last_name || "",
+          email: response.email || registerData.email,
+          phoneNumber: response.phone_number,
+          profileImage: response.profile_image,
+        };
+      } else {
+        // Fallback - en azından email ile user oluştur
+        userData = {
+          id: "temp-id",
+          firstName: registerData.first_name || "User",
+          lastName: "",
+          email: registerData.email,
+          phoneNumber: undefined,
+          profileImage: undefined,
+        };
+      }
+
+      console.log("👤 User Data:", userData);
+      login(userData);
+
+      router.push("/");
+    } catch (error: any) {
+      console.error("Kayıt hatası:", error);
+
+      let errorMessage = "Kayıt sırasında bir hata oluştu";
+
+      if (error.errors && Object.keys(error.errors).length > 0) {
+        // Django'dan gelen field hatalarını göster
+        const firstError = Object.values(error.errors)[0];
+        if (Array.isArray(firstError) && firstError.length > 0) {
+          errorMessage = firstError[0];
+        } else if (typeof firstError === "string") {
+          errorMessage = firstError;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (error.detail) {
+        errorMessage = error.detail;
+      }
+
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,31 +158,57 @@ export default function SignupForm() {
       <div className="w-full max-w-md p-6 sm:p-8 lg:p-10 bg-white rounded-2xl shadow-2xl">
         <div className="text-center mb-6 lg:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            Create Account
+            Hesap Oluştur
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Sign up to get started
+            Başlamak için kayıt olun
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Full Name
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="John Doe"
-            />
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="first_name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Ad
+              </label>
+              <input
+                id="first_name"
+                name="first_name"
+                type="text"
+                required
+                value={formData.first_name}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Ahmet"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="last_name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Soyad
+              </label>
+              <input
+                id="last_name"
+                name="last_name"
+                type="text"
+                required
+                value={formData.last_name}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Yılmaz"
+              />
+            </div>
           </div>
 
           <div>
@@ -73,7 +216,7 @@ export default function SignupForm() {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Email Address
+              E-posta Adresi
             </label>
             <input
               id="email"
@@ -92,7 +235,7 @@ export default function SignupForm() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Password
+              Şifre
             </label>
             <input
               id="password"
@@ -111,7 +254,7 @@ export default function SignupForm() {
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Confirm Password
+              Şifre Tekrar
             </label>
             <input
               id="confirmPassword"
@@ -148,20 +291,28 @@ export default function SignupForm() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Account
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Kayıt Olunuyor...
+              </div>
+            ) : (
+              "Hesap Oluştur"
+            )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{" "}
+            Zaten hesabınız var mı?{" "}
             <Link
               href="/login"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              Sign in
+              Giriş Yap
             </Link>
           </p>
         </div>
@@ -185,7 +336,7 @@ export default function SignupForm() {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Back to Home
+            Ana Sayfaya Dön
           </Link>
         </div>
       </div>
