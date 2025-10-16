@@ -119,13 +119,13 @@ export default function ProductDetailComponent({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-4">
-          <div className="bg-gray-100 rounded-lg overflow-hidden aspect-[4/3]">
+      <div className="flex flex-col lg:flex-row gap-12">
+        <div className="space-y-4 flex-1">
+          <div className="bg-gray-100 rounded-lg overflow-hidden lg:aspect-[4/3]">
             <img
               src={defaultImages[selectedImage]}
               alt={product.name}
-              className="w-full h-full object-contain p-8"
+              className="w-full h-full object-contain p-2 sm:p-4 lg:p-8"
             />
           </div>
 
@@ -134,7 +134,7 @@ export default function ProductDetailComponent({
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
-                className={`bg-gray-100 rounded-lg overflow-hidden aspect-[4/3] border-2 transition-all ${
+                className={`bg-gray-100 rounded-lg overflow-hidden aspect-square border-2 transition-all ${
                   selectedImage === index
                     ? "border-blue-600"
                     : "border-transparent hover:border-gray-300"
@@ -143,14 +143,14 @@ export default function ProductDetailComponent({
                 <img
                   src={image}
                   alt={`${product.name} ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-2"
                 />
               </button>
             ))}
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">{product.name}</h1>
             <p className="text-lg text-gray-600 mt-2">

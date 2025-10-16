@@ -15,7 +15,9 @@ export default function ProductsListComponent({
   loading = false,
   error = null,
 }: ProductsListComponentProps) {
-  const [priceRange, setPriceRange] = useState<[number, number]>([10, 100]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([10, 10000]);
+  const [minInput, setMinInput] = useState<string>("10");
+  const [maxInput, setMaxInput] = useState<string>("10000");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,7 +49,6 @@ export default function ProductsListComponent({
     );
   }
 
-  // Kategorileri ve markaları ürünlerden çıkar
   const categories = [...new Set(products.map((p) => p.category || "Diğer"))];
   const brands = [...new Set(products.map((p) => p.brand || "Diğer"))];
 
@@ -65,7 +66,6 @@ export default function ProductsListComponent({
     );
   };
 
-  // Filter Logic
   const filteredProducts = products.filter((product) => {
     const price =
       typeof product.price === "string"
@@ -87,7 +87,6 @@ export default function ProductsListComponent({
     return matchesPrice && matchesCategory && matchesBrand && matchesSearch;
   });
 
-  // Pagination
   const itemsPerPage = 6;
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice(
@@ -96,7 +95,7 @@ export default function ProductsListComponent({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 select-none">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <aside className="lg:col-span-1">
           <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
@@ -105,16 +104,78 @@ export default function ProductsListComponent({
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-3">Price Range</h3>
               <div className="space-y-4">
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  value={priceRange[1]}
-                  onChange={(e) =>
-                    setPriceRange([priceRange[0], Number(e.target.value)])
-                  }
-                  className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      Min
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={minInput}
+                      onChange={(e) => {
+                        const digitsOnly = e.target.value.replace(/\D/g, "");
+                        setMinInput(digitsOnly);
+                        if (digitsOnly === "") return;
+                        const num = Number(digitsOnly);
+                        const clamped = Math.max(
+                          10,
+                          Math.min(num, priceRange[1])
+                        );
+                        setPriceRange([clamped, priceRange[1]]);
+                      }}
+                      onBlur={() => {
+                        const raw = Number(minInput);
+                        if (Number.isNaN(raw)) {
+                          setMinInput(String(priceRange[0]));
+                          return;
+                        }
+                        const clamped = Math.max(
+                          10,
+                          Math.min(raw, priceRange[1])
+                        );
+                        setPriceRange([clamped, priceRange[1]]);
+                        setMinInput(String(clamped));
+                      }}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 select-text"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      Max
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={maxInput}
+                      onChange={(e) => {
+                        const digitsOnly = e.target.value.replace(/\D/g, "");
+                        setMaxInput(digitsOnly);
+                        if (digitsOnly === "") return;
+                        const num = Number(digitsOnly);
+                        const clamped = Math.max(
+                          priceRange[0],
+                          Math.min(num, 10000)
+                        );
+                        setPriceRange([priceRange[0], clamped]);
+                      }}
+                      onBlur={() => {
+                        const raw = Number(maxInput);
+                        if (Number.isNaN(raw)) {
+                          setMaxInput(String(priceRange[1]));
+                          return;
+                        }
+                        const clamped = Math.max(
+                          priceRange[0],
+                          Math.min(raw, 10000)
+                        );
+                        setPriceRange([priceRange[0], clamped]);
+                        setMaxInput(String(clamped));
+                      }}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 select-text"
+                    />
+                  </div>
+                </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>${priceRange[0]}</span>
                   <span>${priceRange[1]}</span>
@@ -143,7 +204,6 @@ export default function ProductsListComponent({
               </div>
             </div>
 
-            {/* Brand Filter */}
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">Brand</h3>
               <div className="space-y-2">
@@ -184,8 +244,11 @@ export default function ProductsListComponent({
                 type="text"
                 placeholder="Search for products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent outline-none text-sm placeholder:text-black/50"
+                onChange={(e) => {
+                  e.target.style.color = "black";
+                  setSearchQuery(e.target.value);
+                }}
+                className="w-full bg-transparent outline-none text-sm placeholder:text-black/50 select-text"
               />
             </div>
           </div>
@@ -194,7 +257,7 @@ export default function ProductsListComponent({
             Featured Products ({filteredProducts.length} ürün)
           </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-8">
             {paginatedProducts.map((product) => {
               const price =
                 typeof product.price === "string"
@@ -206,7 +269,7 @@ export default function ProductsListComponent({
                   href={`/products/${product.id}`}
                   className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
                 >
-                  <div className="bg-gray-100 aspect-square overflow-hidden">
+                  <div className="bg-gray-100 aspect-square overflow-hidden flex items-center justify-center">
                     <img
                       src={product.image || "/sampa-logo.png"}
                       alt={product.name}
@@ -214,10 +277,22 @@ export default function ProductsListComponent({
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-lg text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                    <h3
+                      className="font-semibold text-lg text-gray-900 mb-1 group-hover:text-blue-600 transition-colors truncate"
+                      title={product.name}
+                    >
                       {product.name}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <h2
+                      className="text-sm text-gray-600 mb-1 group-hover:text-blue-600 transition-colors truncate"
+                      title={product.brand}
+                    >
+                      {product.brand}
+                    </h2>
+                    <p
+                      className="text-sm text-gray-600 mb-3 line-clamp-2"
+                      title={product.description || "Ürün açıklaması"}
+                    >
                       {product.description || "Ürün açıklaması"}
                     </p>
                     <div className="flex items-center justify-between">
@@ -272,6 +347,14 @@ export default function ProductsListComponent({
           )}
         </main>
       </div>
+      <style jsx>{`
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </div>
   );
 }

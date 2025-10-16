@@ -1,4 +1,3 @@
-import { CookieKeys } from "../utils/cookie-keys";
 import {
   User,
   UserProfile,
@@ -9,9 +8,7 @@ import {
   CreateCardData,
   UpdateCardData,
   Product,
-  ProductListResponse,
   Order,
-  OrderListResponse,
   CreateOrderData,
   AuthResponse,
   RegisterData,
@@ -37,7 +34,7 @@ export class ClientApi {
       'Content-Type': 'application/json',
     };
 
-    // Get token from localStorage for client-side requests
+
     const token = localStorage.getItem('access_token');
     if (token && !skipAuth) {
       defaultHeaders.Authorization = `Bearer ${token}`;
@@ -59,30 +56,51 @@ export class ClientApi {
         body: config.body
       });
 
-      const response = await fetch(`${this.baseURL}${endpoint}`, config);
-      
-      const methodUpper = String(config.method || 'GET').toUpperCase();
-      const isNoContent = response.status === 204 || methodUpper === 'DELETE';
+      const doFetch = async (): Promise<{ response: Response; data: any }> => {
+        const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
-      let data: any = undefined;
-      if (!isNoContent) {
-        const contentType = response.headers.get('content-type') || '';
-        const hasJson = contentType.includes('application/json');
-        if (hasJson) {
-          try {
-            data = await response.json();
-            console.log('📡 Client API Response Data:', data);
-          } catch (e) {
+        const methodUpper = String(config.method || 'GET').toUpperCase();
+        const isNoContent = response.status === 204 || methodUpper === 'DELETE';
+
+        let data: any = undefined;
+        if (!isNoContent) {
+          const contentType = response.headers.get('content-type') || '';
+          const hasJson = contentType.includes('application/json');
+          if (hasJson) {
+            try {
+              data = await response.json();
+              console.log('📡 Client API Response Data:', data);
+            } catch (e) {
+              const text = await response.text();
+              console.log('📡 Client API Response Text:', text);
+              data = text ? { detail: text } : undefined;
+            }
+          } else {
             const text = await response.text();
-            console.log('📡 Client API Response Text:', text);
-            data = text ? { detail: text } : undefined;
+            if (text) {
+              console.log('📡 Client API Response Text:', text);
+              data = { detail: text };
+            }
           }
-        } else {
-          const text = await response.text();
-          if (text) {
-            console.log('📡 Client API Response Text:', text);
-            data = { detail: text };
+        }
+        return { response, data };
+      };
+
+      let { response, data } = await doFetch();
+
+      if (response.status === 401 && !skipAuth) {
+        try {
+          await this.refreshToken();
+          const newToken = localStorage.getItem('access_token');
+          if (newToken) {
+            (config.headers as HeadersInit) = {
+              ...(config.headers as HeadersInit),
+              Authorization: `Bearer ${newToken}`,
+            };
           }
+          ({ response, data } = await doFetch());
+        } catch (refreshErr) {
+          console.error('🔐 Refresh token failed:', refreshErr);
         }
       }
 
@@ -91,7 +109,6 @@ export class ClientApi {
           status: response.status,
           data: data
         });
-        
         throw {
           message: (data && (data.message || data.detail || data.error)) || 'Bir hata oluştu',
           errors: (data && (data.errors || data.field_errors)) || {},
@@ -107,11 +124,10 @@ export class ClientApi {
           message: 'Sunucuya bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin.',
         } as ApiError;
       }
-      throw error;
+      throw error as any;
     }
   }
 
-  // Auth Methods
   async login(data: LoginData): Promise<AuthResponse> {
     const payload = {
       email: data.email,
@@ -123,9 +139,8 @@ export class ClientApi {
     const response = await this.makeRequest<AuthResponse>("/users/login/", {
       method: 'POST',
       body: JSON.stringify(payload),
-    }, true); // skipAuth = true for login
+    }, true); 
 
-    // Save tokens to localStorage
     if (response.access_token) {
       localStorage.setItem('access_token', response.access_token);
       if (response.refresh_token) {
@@ -150,7 +165,7 @@ export class ClientApi {
     const response = await this.makeRequest<AuthResponse>("/users/register/", {
       method: 'POST',
       body: JSON.stringify(payload),
-    }, true); // skipAuth = true for register
+    }, true); 
 
     return response;
   }
@@ -192,7 +207,6 @@ export class ClientApi {
     return response;
   }
 
-  // User Methods
   async getUserProfile(): Promise<UserProfile> {
     const candidateEndpoints = [
       "/users/me/",
@@ -221,7 +235,6 @@ export class ClientApi {
     });
   }
 
-  // Address Methods
   async getAddresses(): Promise<Address[]> {
     return await this.makeRequest<Address[]>("/users/addresses/");
   }
@@ -250,7 +263,6 @@ export class ClientApi {
     });
   }
 
-  // Payment Card Methods
   async getCards(): Promise<PaymentCard[]> {
     return await this.makeRequest<PaymentCard[]>("/users/cards/");
   }
@@ -279,7 +291,6 @@ export class ClientApi {
     });
   }
 
-  // Password Methods
   async changePassword(data: ChangePasswordData): Promise<{ message: string }> {
     try {
       return await this.makeRequest<{ message: string }>("/users/password/change/", {
@@ -303,13 +314,13 @@ export class ClientApi {
     }
   }
 
-  // Product Methods
   async getProducts(): Promise<Product[]> {
-    return await this.makeRequest<Product[]>("/products/products/");
+    return await this.makeRequest<Product[]>("/products/products/", {}, true);
   }
 
   async getProduct(id: string): Promise<Product> {
-    return await this.makeRequest<Product>(`/products/products/${id}/`);
+    // Public endpoint olarak çağır (skipAuth=true)
+    return await this.makeRequest<Product>(`/products/products/${id}/`, {}, true);
   }
 
   // Order Methods
