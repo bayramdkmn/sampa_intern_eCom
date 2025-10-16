@@ -33,7 +33,6 @@ export default function LoginForm() {
 
       console.log("🔍 Login Response:", response);
 
-      // API response'unda token'lar 'access' ve 'refresh' olarak geliyor
       const accessToken = response.access_token || response.access;
       const refreshToken = response.refresh_token || response.refresh || "";
 
@@ -47,6 +46,20 @@ export default function LoginForm() {
       if (accessToken) {
         authService.saveTokens(accessToken, refreshToken);
         console.log("✅ Tokens saved to localStorage");
+
+        try {
+          await fetch("/api/auth/set-cookie", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            }),
+          });
+          console.log("✅ HttpOnly cookies set via API route");
+        } catch (e) {
+          console.error("Cookie set error:", e);
+        }
       }
 
       let userData;
@@ -61,7 +74,6 @@ export default function LoginForm() {
         };
         console.log("👤 User data from response.user:", userData);
       } else {
-        // Fallback - email ile user oluştur
         userData = {
           id: "temp-id",
           firstName: email.split("@")[0] || "User",
@@ -76,7 +88,6 @@ export default function LoginForm() {
       console.log("🚀 Calling login() with userData:", userData);
       login(userData);
 
-      // Show success toast
       showToast.success(toastMessages.loginSuccess);
 
       console.log("🏠 Redirecting to home page");
@@ -86,7 +97,6 @@ export default function LoginForm() {
 
       let errorMessage = "Giriş sırasında bir hata oluştu";
 
-      // Type-safe error handling
       if (error && typeof error === "object") {
         const apiError = error as {
           errors?: Record<string, string[]>;
@@ -119,7 +129,6 @@ export default function LoginForm() {
 
   return (
     <div className="flex flex-col lg:flex-row justify-between items-center px-4 sm:px-6 lg:px-12 xl:px-30 3xl:px-60 gap-8 lg:gap-20">
-      {/* Logo - Responsive sizing */}
       <div className="w-full lg:w-3/5 flex justify-center lg:justify-start">
         <img
           src="/sampaConnect-logo.png"

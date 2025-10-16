@@ -194,11 +194,28 @@ export class ClientApi {
 
   // User Methods
   async getUserProfile(): Promise<UserProfile> {
-    return await this.makeRequest<UserProfile>("/user/profile/");
+    const candidateEndpoints = [
+      "/users/me/",
+      "/users/profile/",
+      "/user/profile/",
+    ];
+
+    let lastError: any = null;
+    for (const endpoint of candidateEndpoints) {
+      try {
+        return await this.makeRequest<UserProfile>(endpoint);
+      } catch (e: any) {
+        lastError = e;
+        if (e && typeof e === 'object' && 'status' in e && e.status !== 404) {
+          throw e;
+        }
+      }
+    }
+    throw lastError || new Error('Profil endpointi bulunamadı');
   }
 
   async updateUserProfile(data: Partial<User>): Promise<User> {
-    return await this.makeRequest<User>("/user/update/", {
+    return await this.makeRequest<User>("/users/update/", {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
@@ -297,7 +314,22 @@ export class ClientApi {
 
   // Order Methods
   async getOrders(): Promise<Order[]> {
-    return await this.makeRequest<Order[]>("/orders/");
+    const candidateEndpoints = [
+      "/orders/",
+      "/users/orders/",
+    ];
+    let lastError: any = null;
+    for (const endpoint of candidateEndpoints) {
+      try {
+        return await this.makeRequest<Order[]>(endpoint);
+      } catch (e: any) {
+        lastError = e;
+        if (e && typeof e === 'object' && 'status' in e && e.status !== 404) {
+          throw e;
+        }
+      }
+    }
+    throw lastError || new Error('Sipariş endpointi bulunamadı');
   }
 
   async createOrder(data: CreateOrderData): Promise<Order> {

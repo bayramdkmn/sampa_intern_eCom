@@ -24,7 +24,6 @@ export default function SignupForm() {
     e.preventDefault();
     setError(null);
 
-    // Şifre kontrolü
     if (formData.password !== formData.password_confirm) {
       setError("Şifreler eşleşmiyor!");
       return;
@@ -50,8 +49,6 @@ export default function SignupForm() {
 
       console.log("🔍 Register Response:", response);
 
-      // Token'ları kaydet; yoksa otomatik login dene
-      // API response'unda token'lar 'access' ve 'refresh' olarak geliyor
       const accessTokenDirect = response.access_token || response.access;
       const refreshTokenDirect =
         response.refresh_token || response.refresh || "";
@@ -72,12 +69,10 @@ export default function SignupForm() {
             authService.saveTokens(accessFromLogin, refreshFromLogin);
           }
         } catch (e) {
-          // otomatik login başarısız olabilir; kullanıcı daha sonra giriş yapabilir
           console.log("Otomatik login başarısız:", e);
         }
       }
 
-      // User bilgilerini AuthContext'e kaydet - type-safe
       let userData;
       if (response.user) {
         userData = {
@@ -89,7 +84,6 @@ export default function SignupForm() {
           profileImage: response.user.profile_image,
         };
       } else {
-        // Fallback - registerData'dan user oluştur
         userData = {
           id: "temp-id",
           firstName: registerData.first_name || "User",
@@ -103,7 +97,6 @@ export default function SignupForm() {
       console.log("👤 User Data:", userData);
       login(userData);
 
-      // Show success toast
       showToast.success(toastMessages.registerSuccess);
 
       router.push("/");
@@ -112,7 +105,6 @@ export default function SignupForm() {
 
       let errorMessage = "Kayıt sırasında bir hata oluştu";
 
-      // Type-safe error handling
       if (error && typeof error === "object") {
         const apiError = error as {
           errors?: Record<string, string[]>;
@@ -121,7 +113,6 @@ export default function SignupForm() {
         };
 
         if (apiError.errors && Object.keys(apiError.errors).length > 0) {
-          // Django'dan gelen field hatalarını göster
           const firstError = Object.values(apiError.errors)[0];
           if (Array.isArray(firstError) && firstError.length > 0) {
             errorMessage = firstError[0];
@@ -153,7 +144,6 @@ export default function SignupForm() {
 
   return (
     <div className="flex flex-col lg:flex-row justify-between items-center px-4 sm:px-6 lg:px-12 xl:px-30 3xl:px-60 gap-8 lg:gap-20">
-      {/* Logo - Responsive sizing */}
       <div className="w-full lg:w-3/5 flex justify-center lg:justify-start">
         <img
           src="/sampaConnect-logo.png"

@@ -83,6 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       console.log("✅ All auth data cleared");
+      try {
+        await fetch("/api/auth/clear-cookie", { method: "POST" });
+        console.log("✅ HttpOnly cookies cleared via API route");
+      } catch (e) {
+        console.error("Cookie clear error:", e);
+      }
     }
   };
 

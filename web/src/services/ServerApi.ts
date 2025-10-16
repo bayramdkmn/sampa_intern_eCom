@@ -47,7 +47,6 @@ export class ServerApi {
           ...headers,
           ...(options?.headers || {}),
         },
-        cache: "no-store",
         next: { revalidate: 300 },
         ...init,
       };
@@ -212,8 +211,25 @@ export class ServerApi {
   async getUserProfile(): Promise<UserProfile> {
     try {
       const fetchReq = await this.fetchInstance();
-      const response = await fetchReq("/user/profile/");
-      return response;
+      const candidateEndpoints = [
+        "/users/me/",
+        "/users/profile/",
+        "/user/profile/",
+      ];
+
+      let lastError: unknown = null;
+      for (const endpoint of candidateEndpoints) {
+        try {
+          const response = await fetchReq(endpoint);
+          return response;
+        } catch (e: any) {
+          lastError = e;
+          if (e && typeof e === 'object' && 'status' in e && e.status !== 404) {
+            throw e;
+          }
+        }
+      }
+      throw lastError || new Error('Profil endpointi bulunamadı');
     } catch (err) {
       console.error("Error fetching user profile:", err);
       throw err;
@@ -223,7 +239,7 @@ export class ServerApi {
   async updateUserProfile(data: Partial<User>): Promise<User> {
     try {
       const fetchReq = await this.fetchInstance();
-      const response = await fetchReq("/user/update/", {
+      const response = await fetchReq("/users/update/", {
         method: "PATCH",
         body: JSON.stringify(data),
       });
@@ -242,6 +258,32 @@ export class ServerApi {
       return response;
     } catch (err) {
       console.error("Error fetching addresses:", err);
+      throw err;
+    }
+  }
+
+  async getPaymentCards(): Promise<PaymentCard[]> {
+    try {
+      const fetchReq = await this.fetchInstance();
+      const candidateEndpoints = [
+        "/users/payment-cards/",
+        "/users/cards/",
+      ];
+      let lastError: unknown = null;
+      for (const endpoint of candidateEndpoints) {
+        try {
+          const response = await fetchReq(endpoint);
+          return response;
+        } catch (e: any) {
+          lastError = e;
+          if (e && typeof e === 'object' && 'status' in e && e.status !== 404) {
+            throw e;
+          }
+        }
+      }
+      throw lastError || new Error('Kart endpointi bulunamadı');
+    } catch (err) {
+      console.error("Error fetching payment cards:", err);
       throw err;
     }
   }
@@ -415,8 +457,23 @@ export class ServerApi {
   async getOrders(): Promise<Order[]> {
     try {
       const fetchReq = await this.fetchInstance();
-      const response = await fetchReq("/orders/");
-      return response;
+      const candidateEndpoints = [
+        "/orders/",
+        "/users/orders/",
+      ];
+      let lastError: unknown = null;
+      for (const endpoint of candidateEndpoints) {
+        try {
+          const response = await fetchReq(endpoint);
+          return response;
+        } catch (e: any) {
+          lastError = e;
+          if (e && typeof e === 'object' && 'status' in e && e.status !== 404) {
+            throw e;
+          }
+        }
+      }
+      throw lastError || new Error('Sipariş endpointi bulunamadı');
     } catch (err) {
       console.error("Error fetching orders:", err);
       throw err;

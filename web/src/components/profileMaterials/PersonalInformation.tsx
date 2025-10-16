@@ -40,10 +40,10 @@ const PersonalInformation = ({ user }: { user: User }) => {
   const initialPhone = parsePhoneNumber(user.phoneNumber);
   const [countryCode, setCountryCode] = useState(initialPhone.code);
   const [formData, setFormData] = useState({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    phoneNumber: initialPhone.number,
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    email: user.email || "",
+    phoneNumber: initialPhone.number || "",
   });
 
   const handleEdit = () => {
@@ -139,8 +139,8 @@ const PersonalInformation = ({ user }: { user: User }) => {
           />
         ) : (
           <div className="h-20 w-20 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold">
-            {user.firstName.charAt(0)}
-            {user.lastName.charAt(0)}
+            {(user.firstName?.charAt(0) || "").toUpperCase()}
+            {(user.lastName?.charAt(0) || "").toUpperCase()}
           </div>
         )}
         <div className="text-black flex flex-row justify-between items-center w-full">

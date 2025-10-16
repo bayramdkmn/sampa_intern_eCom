@@ -5,12 +5,21 @@ import Link from "next/link";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { IconButton } from "@mui/material";
-import { useProducts } from "@/contexts/ProductContext";
+import { Product } from "@/types/api";
 import { getRecentlyViewedIds } from "@/lib/recentlyViewed";
 
-const ProductsSliderComponent = () => {
+interface ProductsSliderComponentProps {
+  products: Product[];
+  loading?: boolean;
+  error?: string | null;
+}
+
+const ProductsSliderComponent = ({
+  products,
+  loading = false,
+  error = null,
+}: ProductsSliderComponentProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { products, loading, error } = useProducts();
   const [recentIds, setRecentIds] = useState<string[]>([]);
 
   useEffect(() => {

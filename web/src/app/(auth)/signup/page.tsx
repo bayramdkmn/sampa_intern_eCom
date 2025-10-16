@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "Create a new account to start shopping",
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function SignupPage() {
   return <SignupForm />;
 }

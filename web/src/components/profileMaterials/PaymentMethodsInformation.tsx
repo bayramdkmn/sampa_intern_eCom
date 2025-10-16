@@ -18,7 +18,13 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { authService } from "@/services/authService";
 import Link from "next/link";
-import { showToast, toastMessages } from "@/utils/toast";
+import { showToast } from "@/utils/toast";
+import { PaymentCard } from "@/types/api";
+
+interface PaymentMethodsInformationProps {
+  user: User;
+  initialCards?: PaymentCard[];
+}
 
 interface PaymentMethod {
   id: string;
@@ -29,12 +35,20 @@ interface PaymentMethod {
   isPrimary?: boolean;
 }
 
-const PaymentMethodsInformation = ({ user }: { user: User }) => {
+const PaymentMethodsInformation = ({
+  user,
+  initialCards = [],
+}: PaymentMethodsInformationProps) => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Eğer initialCards varsa API çağrısı yapma
+    if (initialCards.length > 0) {
+      return;
+    }
+
     let mounted = true;
     async function load() {
       setLoading(true);
@@ -52,6 +66,7 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
       try {
         const res = await authService.getCards();
         if (!mounted) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const normalized: PaymentMethod[] = (res || []).map((c: any) => ({
           id: String(c.id ?? c.pk ?? crypto.randomUUID?.() ?? Date.now()),
           cardType: (c.card_type ||
@@ -65,6 +80,8 @@ const PaymentMethodsInformation = ({ user }: { user: User }) => {
           isPrimary: Boolean(c.is_primary || c.isPrimary),
         }));
         setPaymentMethods(normalized);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         const msg =
           e?.status === 401

@@ -19,24 +19,29 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { authService } from "@/services/authService";
 import Link from "next/link";
+import { Address } from "@/types/api";
 
-interface Address {
-  id: string;
-  title?: string;
-  street: string;
-  city: string;
-  district?: string;
-  country: string;
-  zipCode: string;
-  isPrimary: boolean;
+interface ShippingAdressesInformationProps {
+  user: User;
+  initialAddresses?: Address[];
+  onAddressesUpdate?: (addresses: Address[]) => void;
 }
 
-const ShippingAdressesInformation = ({ user }: { user: User }) => {
-  const [addresses, setAddresses] = useState<Address[]>([]);
+const ShippingAdressesInformation = ({
+  user,
+  initialAddresses = [],
+  onAddressesUpdate,
+}: ShippingAdressesInformationProps) => {
+  const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Eğer initialAddresses varsa API çağrısı yapma
+    if (initialAddresses.length > 0) {
+      return;
+    }
+
     let mounted = true;
     async function load() {
       setLoading(true);
@@ -103,13 +108,19 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
   const handleEdit = (address: Address) => {
     setSelectedAddress(address);
     setFormData({
-      title: address.title || "",
-      street: address.street,
-      city: address.city,
-      district: address.district || "",
-      country: address.country,
-      zipCode: address.zipCode,
-      isPrimary: address.isPrimary,
+      title: (address as any).title || "",
+      street:
+        (address as any).street ||
+        (address as any).address_line_1 ||
+        (address as any).address_line ||
+        "",
+      city: (address as any).city || "",
+      district: (address as any).district || "",
+      country: (address as any).country || "",
+      zipCode: (address as any).zipCode || (address as any).postal_code || "",
+      isPrimary: Boolean(
+        (address as any).isPrimary || (address as any).is_primary
+      ),
     });
     setIsEditModalOpen(true);
   };

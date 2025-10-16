@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "Reset your password",
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function ForgotPasswordPage() {
   return <ForgotPasswordForm />;
 }

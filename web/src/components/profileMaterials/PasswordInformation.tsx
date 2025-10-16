@@ -55,6 +55,7 @@ const PasswordInformation = () => {
         newPassword: "",
         confirmPassword: "",
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Şifre değiştirme hatası:", error);
       if (error?.data?.detail) {

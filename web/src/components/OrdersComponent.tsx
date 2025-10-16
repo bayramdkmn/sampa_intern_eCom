@@ -8,10 +8,27 @@ import OrderDetailModal from "./orders/OrderDetailModal";
 import CancelOrderDialog from "./orders/CancelOrderDialog";
 import { Order } from "./orders/types";
 import { mockOrders } from "./orders/mockData";
+import { Order as ApiOrder } from "@/types/api";
 
-const OrdersComponent = () => {
+interface OrdersComponentProps {
+  initialOrders: ApiOrder[];
+  loading?: boolean;
+  error?: string | null;
+}
+
+const OrdersComponent = ({
+  initialOrders,
+  loading = false,
+  error = null,
+}: OrdersComponentProps) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+
+  // Tüm hook'ları component'in başında tanımla
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
   useEffect(() => {
     // Sadece loading bittikten sonra ve hala authenticate değilse yönlendir
@@ -21,12 +38,28 @@ const OrdersComponent = () => {
   }, [isLoading, isAuthenticated, router]);
 
   // Loading state - AuthContext yüklenene kadar bekle
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center items-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <div className="text-gray-600">Siparişler yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">❌ Hata: {error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Tekrar Dene
+          </button>
         </div>
       </div>
     );
@@ -40,12 +73,25 @@ const OrdersComponent = () => {
       </div>
     );
   }
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-  const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
-  const orders = mockOrders;
+  // API'den gelen siparişleri mock data formatına çevir
+  const orders =
+    initialOrders.length > 0
+      ? initialOrders.map(
+          (apiOrder): Order => ({
+            id: apiOrder.id.toString(),
+            orderNumber: `ORD-${apiOrder.id}`,
+            date: new Date(apiOrder.created_at).toLocaleDateString(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            status: apiOrder.status as any,
+            total:
+              typeof apiOrder.total_amount === "string"
+                ? parseFloat(apiOrder.total_amount)
+                : apiOrder.total_amount || 0,
+            items: [],
+          })
+        )
+      : mockOrders;
 
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
