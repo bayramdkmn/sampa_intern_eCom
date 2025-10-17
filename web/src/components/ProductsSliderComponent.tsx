@@ -69,9 +69,7 @@ const ProductsSliderComponent = ({
       <div className="w-full mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Your Recently Viewed Items
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900">Popular Items</h2>
 
             <div className="hidden md:flex gap-2">
               <IconButton

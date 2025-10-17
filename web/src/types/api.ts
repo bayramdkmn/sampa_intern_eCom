@@ -164,7 +164,6 @@ export interface AuthResponse {
   user?: User;
   access_token?: string;
   refresh_token?: string;
-  // API'den gelen token field'ları (Django JWT format)
   access?: string;
   refresh?: string;
 }
