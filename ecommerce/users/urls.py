@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from .views import (
     RegisterView,
     AddressListCreateView, AddressDetailView,
@@ -32,4 +34,4 @@ urlpatterns = [
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('me/', MeUpdateView.as_view(), name='me-update'),
     path('password/change/', PasswordChangeView.as_view(), name='password-change'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

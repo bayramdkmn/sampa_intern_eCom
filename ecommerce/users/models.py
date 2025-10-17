@@ -141,6 +141,7 @@ class PasswordResetCode(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=20, blank=True, null=True)
+    pro_photo = models.ImageField(upload_to='profile/', blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     gender = models.CharField(max_length=10, choices=[('M', 'Erkek'), ('F', 'Kadın'), ('O', 'Diğer')], blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

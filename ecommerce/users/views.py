@@ -180,6 +180,12 @@ class MeUpdateView(generics.GenericAPIView):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
 
 class PasswordChangeView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]

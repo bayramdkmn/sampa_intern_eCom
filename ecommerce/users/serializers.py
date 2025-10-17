@@ -189,26 +189,44 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(required=False, allow_blank=True)
+    pro_photo = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'phone_number')
+        fields = ('first_name', 'last_name', 'phone_number', 'pro_photo')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['phone_number'] = getattr(instance.profile, 'phone_number', '')
+        profile = getattr(instance, 'profile', None)
+        data['phone_number'] = getattr(profile, 'phone_number', '')
+        data['pro_photo'] = (
+            profile.pro_photo.url if getattr(profile, 'pro_photo', None) else None
+        )
         return data
 
     def update(self, instance, validated_data):
         phone_number = validated_data.pop('phone_number', None)
+        pro_photo = validated_data.pop('pro_photo', None)
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save(update_fields=['first_name', 'last_name'])
+
+        profile, _ = UserProfile.objects.get_or_create(user=instance)
+        updated_fields = []
+
         if phone_number is not None:
-            profile, _ = UserProfile.objects.get_or_create(user=instance)
             profile.phone_number = phone_number
-            profile.save(update_fields=['phone_number'])
+            updated_fields.append('phone_number')
+        if pro_photo is not None:
+            profile.pro_photo = pro_photo
+            updated_fields.append('pro_photo')
+
+        if updated_fields:
+            profile.save(update_fields=updated_fields)
+
         return instance
+
 
 
 class ChangePasswordSerializer(serializers.Serializer):
