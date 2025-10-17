@@ -2,16 +2,24 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { IconButton } from "@mui/material";
-import { useProducts } from "@/contexts/ProductContext";
+import { Product } from "@/types/api";
 import { getRecentlyViewedIds } from "@/lib/recentlyViewed";
 
-const ProductsSliderComponent = () => {
+interface ProductsSliderComponentProps {
+  products: Product[];
+  loading?: boolean;
+  error?: string | null;
+}
+
+const ProductsSliderComponent = ({
+  products,
+  loading = false,
+  error = null,
+}: ProductsSliderComponentProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { products, loading, error } = useProducts();
   const [recentIds, setRecentIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -52,18 +60,19 @@ const ProductsSliderComponent = () => {
       recentIds.map((id, idx) => [id, idx])
     );
     filtered.sort((a, b) => (order[a.id] ?? 0) - (order[b.id] ?? 0));
-    return filtered;
+    // Eğer son görüntülenenlerle eşleşme yoksa veya çok azsa, tüm listeyi göster
+    return filtered.length > 1 ? filtered : all;
   }, [products, recentIds]);
 
   return (
     <div className="w-full py-8 px-4 md:px-6">
-      <div className="max-w-[1400px] mx-auto">
+      <div className="w-full mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-gray-900">
               Your Recently Viewed Items
             </h2>
-            {/* Navigation Arrows */}
+
             <div className="hidden md:flex gap-2">
               <IconButton
                 onClick={() => scroll("left")}
@@ -122,11 +131,11 @@ const ProductsSliderComponent = () => {
                 className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-lg transition-shadow min-w-[280px] max-w-[280px] flex-shrink-0"
               >
                 <Link href={`/products/${product.id}`} className="block mb-3">
-                  <div className="w-full h-full max-h-60 bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden">
+                  <div className="w-full aspect-square bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="max-w-full max-h-full object-cover p-2 rounded-2xl"
+                      className="w-full h-full object-contain p-3"
                     />
                   </div>
                 </Link>
@@ -134,14 +143,27 @@ const ProductsSliderComponent = () => {
                 <div className="flex-1 flex flex-col">
                   <Link
                     href={`/products/${product.id}`}
-                    className="text-sm font-semibold text-gray-900 hover:text-blue-600 mb-2 mt-auto "
+                    className="text-sm font-semibold text-gray-900 hover:text-blue-600 mb-2 mt-auto truncate"
+                    title={product.name}
                   >
                     {product.name}
                   </Link>
 
-                  <div className="text-xs text-gray-600 mb-3 border-b border-gray-200 pb-2">
+                  <div
+                    className="text-xs text-gray-600 mb-3 border-b border-gray-200 pb-2 truncate"
+                    title={product.brand}
+                  >
                     {product.brand}
                   </div>
+
+                  {product.description && (
+                    <p
+                      className="text-xs text-gray-700 mb-3 line-clamp-2"
+                      title={product.description}
+                    >
+                      {product.description}
+                    </p>
+                  )}
 
                   <div className="mt-auto">
                     <div className="text-xs text-gray-600 mb-1">
@@ -160,6 +182,12 @@ const ProductsSliderComponent = () => {
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
     </div>

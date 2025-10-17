@@ -19,51 +19,61 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { authService } from "@/services/authService";
 import Link from "next/link";
+import { Address } from "@/types/api";
 
-interface Address {
-  id: string;
-  title?: string;
-  street: string;
-  city: string;
-  district?: string;
-  country: string;
-  zipCode: string;
-  isPrimary: boolean;
+interface ShippingAdressesInformationProps {
+  user: User;
+  initialAddresses?: Address[];
+  onAddressesUpdate?: (addresses: Address[]) => void;
 }
 
-const ShippingAdressesInformation = ({ user }: { user: User }) => {
-  const [addresses, setAddresses] = useState<Address[]>([]);
+const ShippingAdressesInformation = ({
+  user,
+  initialAddresses = [],
+  onAddressesUpdate,
+}: ShippingAdressesInformationProps) => {
+  const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Eğer initialAddresses varsa API çağrısı yapma
+    if (initialAddresses.length > 0) {
+      return;
+    }
+
     let mounted = true;
     async function load() {
       setLoading(true);
       setError(null);
-      try {
-        const token = authService.getAccessToken();
-        if (!token) {
-          if (mounted) {
-            setError("Adresleri görmek için lütfen giriş yapın.");
-            setLoading(false);
-          }
-          return;
+
+      // User kontrolü - eğer user yoksa zaten ProfileComponent'te render edilmez
+      if (!user) {
+        if (mounted) {
+          setError("Adresleri görmek için lütfen giriş yapın.");
+          setLoading(false);
         }
+        return;
+      }
+
+      try {
         const res = await authService.getAddresses();
         if (!mounted) return;
+
         const normalized: Address[] = (res || []).map((a: any) => ({
           id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
           title: a.title || "",
-          street: a.street || a.address_line || a.line1 || "",
+          street: a.street || a.address_line_1 || a.line1 || "",
           city: a.city || "",
           district: a.district || "",
           country: a.country || "",
           zipCode: a.zipCode || a.postal_code || a.zip || "",
           isPrimary: Boolean(a.is_primary || a.isPrimary),
         }));
+
         setAddresses(normalized);
       } catch (e: any) {
+        console.error("Address loading error:", e);
         const msg =
           e?.status === 401
             ? "Adresleri görmek için giriş yapmalısınız."
@@ -77,7 +87,7 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user]); // user dependency eklendi
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -98,13 +108,19 @@ const ShippingAdressesInformation = ({ user }: { user: User }) => {
   const handleEdit = (address: Address) => {
     setSelectedAddress(address);
     setFormData({
-      title: address.title || "",
-      street: address.street,
-      city: address.city,
-      district: address.district || "",
-      country: address.country,
-      zipCode: address.zipCode,
-      isPrimary: address.isPrimary,
+      title: (address as any).title || "",
+      street:
+        (address as any).street ||
+        (address as any).address_line_1 ||
+        (address as any).address_line ||
+        "",
+      city: (address as any).city || "",
+      district: (address as any).district || "",
+      country: (address as any).country || "",
+      zipCode: (address as any).zipCode || (address as any).postal_code || "",
+      isPrimary: Boolean(
+        (address as any).isPrimary || (address as any).is_primary
+      ),
     });
     setIsEditModalOpen(true);
   };

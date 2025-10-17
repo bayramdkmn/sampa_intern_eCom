@@ -10,7 +10,7 @@ interface OrderDetailModalProps {
   open: boolean;
   order: Order | null;
   onClose: () => void;
-  onCancelOrder: (orderNumber: string) => void;
+  onCancelOrder: (orderId: string) => void;
 }
 
 const getStatusColor = (status: Order["status"]) => {
@@ -167,7 +167,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               color="error"
               startIcon={<CancelIcon />}
               onClick={() => {
-                onCancelOrder(order.orderNumber);
+                onCancelOrder(order.id);
                 onClose();
               }}
               sx={{ textTransform: "none" }}

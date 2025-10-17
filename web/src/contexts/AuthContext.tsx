@@ -9,52 +9,86 @@ import React, {
 } from "react";
 import { User } from "@/app/types/User";
 import { authService } from "@/services/authService";
+import { showToast, toastMessages } from "@/utils/toast";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   login: (user: User) => void;
   logout: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoaded(true);
+    // Sayfa yüklendiğinde authentication state'ini kontrol et
+    const initAuth = () => {
+      try {
+        const savedUser = localStorage.getItem("user");
+        const accessToken = localStorage.getItem("access_token");
+
+        console.log("🔍 Auth Init - User:", savedUser ? "exists" : "null");
+        console.log("🔍 Auth Init - Token:", accessToken ? "exists" : "null");
+
+        if (savedUser && accessToken) {
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
+          console.log(
+            "✅ User loaded from localStorage:",
+            parsedUser.firstName
+          );
+        } else {
+          setUser(null);
+          console.log("❌ No valid auth data found");
+        }
+      } catch (error) {
+        console.error("❌ Auth init error:", error);
+        setUser(null);
+        // Hatalı verileri temizle
+        localStorage.removeItem("user");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
 
-  useEffect(() => {
-    if (isLoaded) {
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
-      } else {
-        localStorage.removeItem("user");
-      }
-    }
-  }, [user, isLoaded]);
-
   const login = (userData: User) => {
+    console.log("🚀 Login called with user:", userData.firstName);
     setUser(userData);
+    // User bilgisini localStorage'a kaydet
+    localStorage.setItem("user", JSON.stringify(userData));
+    console.log("✅ User saved to localStorage");
   };
 
   const logout = async () => {
+    console.log("🚪 Logout called");
     try {
       await authService.logout();
+      showToast.success(toastMessages.logoutSuccess);
     } catch (error) {
-      console.error("❌ Django logout hatası:", error);
+      console.error("❌ Logout API error:", error);
+      showToast.error("Çıkış yapılırken bir hata oluştu");
     } finally {
       setUser(null);
       localStorage.removeItem("user");
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+      console.log("✅ All auth data cleared");
+      try {
+        await fetch("/api/auth/clear-cookie", { method: "POST" });
+        console.log("✅ HttpOnly cookies cleared via API route");
+      } catch (e) {
+        console.error("Cookie clear error:", e);
+      }
     }
   };
 
@@ -65,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         logout,
+        isLoading,
       }}
     >
       {children}

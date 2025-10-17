@@ -4,12 +4,21 @@ import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { clientApi } from "@/services/ClientApi";
+import type { Product } from "@/types/api";
 
 export default function Navbar() {
   const { getTotalItems } = useCart();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const [searchText, setSearchText] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -30,6 +39,53 @@ export default function Navbar() {
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    function handleClickOutsideSearch(event: MouseEvent) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchOpen(false);
+      }
+    }
+
+    if (isSearchOpen) {
+      document.addEventListener("mousedown", handleClickOutsideSearch);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideSearch);
+    };
+  }, [isSearchOpen]);
+
+  useEffect(() => {
+    const q = searchText.trim();
+    if (q.length < 2) {
+      setSearchResults([]);
+      setIsSearchOpen(false);
+      return;
+    }
+    setIsSearching(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const all = await clientApi.getProducts();
+        const lower = q.toLowerCase();
+        const filtered = all.filter((p) => {
+          const name = (p.name || "").toLowerCase();
+          return name.includes(lower);
+        });
+        setSearchResults(filtered.slice(0, 6));
+        setIsSearchOpen(true);
+      } catch (e) {
+        setSearchResults([]);
+        setIsSearchOpen(false);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchText]);
+
   const getInitials = () => {
     if (!user) return "";
     return `${user.firstName.charAt(0)}${user.lastName.charAt(
@@ -44,49 +100,126 @@ export default function Navbar() {
 
   return (
     <div className="bg-white text-black flex flex-row justify-between items-center px-4 py-4 border-b border-black/10">
-      <Link href="/" className="flex flex-row cursor-pointer">
-        <img src="/sampa-logo.png" alt="logo" width={50} height={50} />
-      </Link>
+      <div className="flex flex-row gap-18 items-center">
+        <Link href="/" className="flex flex-row cursor-pointer">
+          <img src="/sampa-logo.png" alt="logo" width={50} height={50} />
+        </Link>
 
-      <div className="hidden lg:flex flex-row gap-10 items-center">
-        <Link
-          href="/"
-          className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
-        >
-          Home
-        </Link>
-        <Link
-          href="/products"
-          className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
-        >
-          Shop
-        </Link>
-        <Link
-          href="/new-arrivals"
-          className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
-        >
-          New Arrivals
-        </Link>
+        <div className="hidden lg:flex flex-row gap-10 items-center">
+          <Link
+            href="/"
+            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+          >
+            Home
+          </Link>
+          <Link
+            href="/products"
+            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+          >
+            Shop
+          </Link>
+          <Link
+            href="/products?new=1m"
+            className="cursor-pointer hover:text-blue-500 hover:scale-105 transition-all duration-300"
+          >
+            New Arrivals
+          </Link>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        <div className="hidden md:flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 bg-white focus-within:ring-2 focus-within:ring-blue-500/40">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="h-4 w-4 text-black/60"
+        <div className="relative" ref={searchRef}>
+          <form
+            className="hidden md:flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 bg-white focus-within:ring-2 focus-within:ring-blue-500/40"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const q = searchText.trim();
+              setIsSearchOpen(false);
+              router.push(
+                q ? `/products?q=${encodeURIComponent(q)}` : "/products"
+              );
+            }}
           >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-3.5-3.5" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search for products..."
-            className="w-52 text-sm outline-none placeholder:text-black/40"
-          />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-4 w-4 text-black/60"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-3.5-3.5" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search for products..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-52 text-sm outline-none placeholder:text-black/40"
+            />
+          </form>
+
+          {isSearchOpen && (
+            <div className="absolute left-0 mt-2 w-[22rem] max-w-[85vw] bg-white border border-black/10 rounded-lg shadow-lg overflow-hidden z-50">
+              <div className="max-h-96 overflow-auto">
+                {isSearching && (
+                  <div className="px-4 py-3 text-sm text-gray-500">
+                    Aranıyor...
+                  </div>
+                )}
+                {!isSearching && searchResults.length === 0 && (
+                  <div className="px-4 py-3 text-sm text-gray-500">
+                    Sonuç bulunamadı
+                  </div>
+                )}
+                {!isSearching &&
+                  searchResults.map((product) => (
+                    <Link
+                      key={product.id}
+                      href={`/products/${product.id}`}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-black/5 transition-colors"
+                      onClick={() => setIsSearchOpen(false)}
+                    >
+                      <img
+                        src={product.image || "/sampa-logo.png"}
+                        alt={product.name}
+                        className="h-10 w-10 object-contain flex-shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-gray-900 truncate">
+                          {product.name}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {product.brand || ""}
+                        </div>
+                      </div>
+                      <div className="ml-auto text-sm font-semibold text-gray-900">
+                        {(() => {
+                          const num =
+                            typeof product.price === "string"
+                              ? parseFloat(product.price)
+                              : (product.price as unknown as number);
+                          return isNaN(num) ? "" : `₺${num.toFixed(2)}`;
+                        })()}
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+              <button
+                onClick={() => {
+                  const q = searchText.trim();
+                  setIsSearchOpen(false);
+                  router.push(
+                    q ? `/products?q=${encodeURIComponent(q)}` : "/products"
+                  );
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 border-t border-black/10"
+              >
+                Tümünü gör
+              </button>
+            </div>
+          )}
         </div>
 
         <Link
@@ -113,7 +246,14 @@ export default function Navbar() {
           )}
         </Link>
 
-        {isAuthenticated ? (
+        {isLoading ? (
+          <div className="flex items-center gap-2 rounded-full border border-black/10 px-2 md:px-3 py-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <span className="hidden md:inline text-sm text-gray-500">
+              Loading...
+            </span>
+          </div>
+        ) : isAuthenticated ? (
           <div className="relative">
             <button
               onClick={() => setIsModalOpen(!isModalOpen)}

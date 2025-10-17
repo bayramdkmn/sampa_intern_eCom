@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ShippingFormData {
   email: string;
@@ -30,8 +31,21 @@ interface OrderItem {
   price: number;
 }
 
-export default function CheckOutComponent() {
+interface CheckOutComponentProps {
+  initialOrderItems?: OrderItem[];
+  userAddresses?: any[];
+  userCards?: any[];
+}
+
+export default function CheckOutComponent({
+  initialOrderItems = [],
+  userAddresses = [],
+  userCards = [],
+}: CheckOutComponentProps) {
   const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  // Tüm hook'ları component'in başında tanımla
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [shippingMethod, setShippingMethod] =
@@ -55,12 +69,47 @@ export default function CheckOutComponent() {
     nameOnCard: "",
   });
 
-  // Örnek sipariş ürünleri
-  const [orderItems] = useState<OrderItem[]>([
-    { id: 1, name: "Eco-Friendly Water Bottle", quantity: 2, price: 30.0 },
-    { id: 2, name: "Organic Cotton T-Shirt", quantity: 1, price: 25.0 },
-    { id: 3, name: "Reusable Shopping Bag", quantity: 3, price: 15.0 },
-  ]);
+  // Props'tan gelen veya varsayılan sipariş ürünleri
+  const [orderItems] = useState<OrderItem[]>(
+    initialOrderItems.length > 0
+      ? initialOrderItems
+      : [
+          {
+            id: 1,
+            name: "Eco-Friendly Water Bottle",
+            quantity: 2,
+            price: 30.0,
+          },
+          { id: 2, name: "Organic Cotton T-Shirt", quantity: 1, price: 25.0 },
+          { id: 3, name: "Reusable Shopping Bag", quantity: 3, price: 15.0 },
+        ]
+  );
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-gray-600">Checkout yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // AuthContext yüklendi ama user yoksa (login değilse)
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center">
+        <div className="text-gray-600">Giriş yapmanız gerekiyor...</div>
+      </div>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

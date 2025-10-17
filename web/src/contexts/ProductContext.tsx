@@ -6,7 +6,8 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { productService, Product } from "@/services/productService";
+import { productService } from "@/services/productService";
+import { Product } from "@/types/api";
 
 interface ProductContextType {
   products: Product[];
