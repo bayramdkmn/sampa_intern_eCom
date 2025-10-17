@@ -101,6 +101,8 @@ export interface Product {
   main_window_display: boolean;
   created_at: string;
   updated_at: string;
+  // Backend ileride sağlayacak: ürün stok güncelleme tarihi
+  stock_updated_at?: string;
 }
 
 export interface ProductListResponse {

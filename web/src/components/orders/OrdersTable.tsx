@@ -10,7 +10,7 @@ import { Order } from "./types";
 interface OrdersTableProps {
   orders: Order[];
   onViewOrder: (order: Order) => void;
-  onCancelOrder: (orderNumber: string) => void;
+  onCancelOrder: (orderId: string) => void;
 }
 
 const getStatusColor = (status: Order["status"]) => {
@@ -69,7 +69,6 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      {/* Table Header */}
       <div className="hidden md:grid md:grid-cols-5 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200">
         <div className="text-sm font-semibold text-gray-600 uppercase tracking-wider">
           Order
@@ -83,19 +82,15 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
         <div className="text-sm font-semibold text-gray-600 uppercase tracking-wider">
           Status
         </div>
-        <div className="text-sm font-semibold text-gray-600 uppercase tracking-wider">
-          {/* Actions column */}
-        </div>
+        <div className="text-sm font-semibold text-gray-600 uppercase tracking-wider"></div>
       </div>
 
-      {/* Table Body */}
       <div className="divide-y divide-gray-200">
         {orders.map((order) => (
           <div
             key={order.id}
             className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
           >
-            {/* Order Number */}
             <div className="flex items-center">
               <span className="md:hidden text-sm font-semibold text-gray-600 mr-2">
                 Order:
@@ -105,7 +100,6 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
               </span>
             </div>
 
-            {/* Date */}
             <div className="flex items-center">
               <span className="md:hidden text-sm font-semibold text-gray-600 mr-2">
                 Date:
@@ -113,7 +107,6 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
               <span className="text-gray-700">{order.date}</span>
             </div>
 
-            {/* Total */}
             <div className="flex items-center">
               <span className="md:hidden text-sm font-semibold text-gray-600 mr-2">
                 Total:
@@ -123,7 +116,6 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
               </span>
             </div>
 
-            {/* Status */}
             <div className="flex items-center">
               <span className="md:hidden text-sm font-semibold text-gray-600 mr-2">
                 Status:
@@ -137,7 +129,6 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
               </span>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0">
               <Button
                 variant="contained"
@@ -158,7 +149,7 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
                   size="small"
                   color="error"
                   startIcon={<CancelIcon />}
-                  onClick={() => onCancelOrder(order.orderNumber)}
+                  onClick={() => onCancelOrder(order.id)}
                   sx={{ textTransform: "none" }}
                 >
                   İptal

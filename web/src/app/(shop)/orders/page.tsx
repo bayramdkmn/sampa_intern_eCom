@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Order } from "@/types/api";
 
-// SEO Metadata - Server-side rendered
 export const metadata: Metadata = {
   title: "Sampa Connect - Siparişlerim",
   description:
@@ -28,7 +27,6 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function OrdersPage() {
-  // Cookie'den auth token kontrolü
   const cookieStore = await cookies();
   const authToken = cookieStore.get("auth_token");
 
@@ -36,7 +34,6 @@ export default async function OrdersPage() {
     redirect("/login");
   }
 
-  // Server-side'da sipariş verilerini çek
   let orders: Order[] = [];
   let error = null;
 
@@ -53,7 +50,6 @@ export default async function OrdersPage() {
     error =
       err instanceof Error ? err.message : "Siparişler yüklenirken hata oluştu";
 
-    // Auth hatası varsa login'e yönlendir
     if (
       err instanceof Error &&
       (err.message.includes("401") || err.message.includes("unauthorized"))

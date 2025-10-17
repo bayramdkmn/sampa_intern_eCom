@@ -88,12 +88,14 @@ export default async function ProfilePage() {
   }
 
   return (
-    <ProfileComponent
-      initialUser={user}
-      initialAddresses={userAddresses}
-      initialCards={userCards}
-      loading={false}
-      error={error}
-    />
+    <div className="select-none">
+      <ProfileComponent
+        initialUser={user}
+        initialAddresses={userAddresses}
+        initialCards={userCards}
+        loading={false}
+        error={error}
+      />
+    </div>
   );
 }

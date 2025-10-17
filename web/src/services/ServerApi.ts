@@ -453,27 +453,13 @@ export class ServerApi {
     }
   }
 
-  // Order Methods
   async getOrders(): Promise<Order[]> {
     try {
       const fetchReq = await this.fetchInstance();
-      const candidateEndpoints = [
-        "/orders/",
-        "/users/orders/",
-      ];
-      let lastError: unknown = null;
-      for (const endpoint of candidateEndpoints) {
-        try {
-          const response = await fetchReq(endpoint);
-          return response;
-        } catch (e: any) {
-          lastError = e;
-          if (e && typeof e === 'object' && 'status' in e && e.status !== 404) {
-            throw e;
-          }
-        }
-      }
-      throw lastError || new Error('Sipariş endpointi bulunamadı');
+      const response2 = await fetch("http://127.0.0.1:8000/orders/my-orders/");
+      console.log("response2", response2);
+      const response = await fetchReq("/orders/my-orders/");
+      return response;
     } catch (err) {
       console.error("Error fetching orders:", err);
       throw err;

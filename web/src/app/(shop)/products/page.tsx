@@ -26,7 +26,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function ProductsListPage() {
+export default async function ProductsListPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; new?: string };
+}) {
   let products: Product[] = [];
   let error = null;
 
@@ -44,7 +48,17 @@ export default async function ProductsListPage() {
       err instanceof Error ? err.message : "Ürünler yüklenirken hata oluştu";
   }
 
+  const initialSearchQuery =
+    typeof searchParams?.q === "string" ? searchParams.q : "";
+  const showNewArrivals = typeof searchParams?.new === "string";
+
   return (
-    <ProductsListComponent products={products} loading={false} error={error} />
+    <ProductsListComponent
+      products={products}
+      loading={false}
+      error={error}
+      initialSearchQuery={initialSearchQuery}
+      showNewArrivals={showNewArrivals}
+    />
   );
 }

@@ -1,27 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Product } from "@/types/api";
 
 interface ProductsListComponentProps {
   products: Product[];
   loading?: boolean;
   error?: string | null;
+  initialSearchQuery?: string;
+  showNewArrivals?: boolean;
 }
 
 export default function ProductsListComponent({
   products,
   loading = false,
   error = null,
+  initialSearchQuery = "",
+  showNewArrivals = false,
 }: ProductsListComponentProps) {
   const [priceRange, setPriceRange] = useState<[number, number]>([10, 10000]);
   const [minInput, setMinInput] = useState<string>("10");
   const [maxInput, setMaxInput] = useState<string>("10000");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setSearchQuery(initialSearchQuery);
+    setCurrentPage(1);
+  }, [initialSearchQuery]);
 
   if (loading) {
     return (
@@ -80,11 +89,27 @@ export default function ProductsListComponent({
       selectedBrands.includes(product.brand || "Diğer");
     const matchesSearch =
       searchQuery === "" ||
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description &&
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesPrice && matchesCategory && matchesBrand && matchesSearch;
+    const matchesNewArrivals = (() => {
+      if (!showNewArrivals) return true;
+      // Öncelik: stock_updated_at, yoksa created_at; ISO beklenir
+      const refDate = product.stock_updated_at || product.created_at;
+      if (!refDate) return false;
+      const created = new Date(refDate).getTime();
+      if (Number.isNaN(created)) return false;
+      const now = Date.now();
+      const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+      return now - created <= THIRTY_DAYS;
+    })();
+
+    return (
+      matchesPrice &&
+      matchesCategory &&
+      matchesBrand &&
+      matchesSearch &&
+      matchesNewArrivals
+    );
   });
 
   const itemsPerPage = 6;
@@ -95,9 +120,9 @@ export default function ProductsListComponent({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 select-none">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <aside className="lg:col-span-1">
+    <div className="w-3/4 mx-auto px-4 py-8 select-none">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <aside className="w-full lg:w-1/4">
           <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Filters</h2>
 
@@ -183,7 +208,6 @@ export default function ProductsListComponent({
               </div>
             </div>
 
-            {/* Category Filter */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-3">Category</h3>
               <div className="space-y-2">
@@ -226,7 +250,7 @@ export default function ProductsListComponent({
           </div>
         </aside>
 
-        <main className="lg:col-span-3">
+        <main className="w-full lg:w-3/4">
           <div className="mb-6">
             <div className="flex items-center gap-2 rounded-full border border-black/10 px-4 py-2.5 focus-within:ring-2 focus-within:ring-blue-500/40">
               <svg
@@ -248,16 +272,17 @@ export default function ProductsListComponent({
                   e.target.style.color = "black";
                   setSearchQuery(e.target.value);
                 }}
-                className="w-full bg-transparent outline-none text-sm placeholder:text-black/50 select-text"
+                className="w-full text-black bg-transparent outline-none text-sm placeholder:text-black/50 select-text"
               />
             </div>
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            Featured Products ({filteredProducts.length} ürün)
+            {showNewArrivals ? "New Arrivals" : "Featured Products"} (
+            {filteredProducts.length} ürün)
           </h1>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6 mb-8">
             {paginatedProducts.map((product) => {
               const price =
                 typeof product.price === "string"

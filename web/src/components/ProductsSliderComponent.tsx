@@ -66,7 +66,7 @@ const ProductsSliderComponent = ({
 
   return (
     <div className="w-full py-8 px-4 md:px-6">
-      <div className="max-w-[1400px] mx-auto">
+      <div className="w-full mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-gray-900">

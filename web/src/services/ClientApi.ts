@@ -319,11 +319,9 @@ export class ClientApi {
   }
 
   async getProduct(id: string): Promise<Product> {
-    // Public endpoint olarak çağır (skipAuth=true)
     return await this.makeRequest<Product>(`/products/products/${id}/`, {}, true);
   }
 
-  // Order Methods
   async getOrders(): Promise<Order[]> {
     const candidateEndpoints = [
       "/orders/",
@@ -354,7 +352,13 @@ export class ClientApi {
     return await this.makeRequest<Order>(`/orders/${id}/`);
   }
 
-  // Token Management
+  async cancelOrder(id: string): Promise<Order> {
+    return await this.makeRequest<Order>(`/orders/${id}/cancel/`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: 'cancelled' }),
+    });
+  }
+
   saveTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
