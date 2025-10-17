@@ -37,6 +37,32 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
 
+class AddressUpdateView(generics.UpdateAPIView):
+    """
+    PATCH /api/addresses/<int:pk>/  -> Adres güncelleme
+    """
+    serializer_class = AddressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Kullanıcı kendi adreslerini güncelleyebilir
+        return Address.objects.filter(user=self.request.user)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+
+class AddressDeleteView(generics.DestroyAPIView):
+    """
+    DELETE /api/addresses/<int:pk>/  -> Adres silme
+    """
+    serializer_class = AddressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Kullanıcı sadece kendi adresini silebilir
+        return Address.objects.filter(user=self.request.user)
+
 class PaymentCardListCreateView(generics.ListCreateAPIView):
     serializer_class = PaymentCardSerializer
     permission_classes = [permissions.IsAuthenticated]

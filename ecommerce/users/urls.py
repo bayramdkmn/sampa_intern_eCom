@@ -11,7 +11,9 @@ from .views import (
     PasswordResetRequestView, PasswordResetConfirmView,
     EmailTokenObtainPairView,
     MeUpdateView,
-    PasswordChangeView
+    PasswordChangeView,
+    AddressUpdateView,
+    AddressDeleteView
 )
 from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 
@@ -34,4 +36,6 @@ urlpatterns = [
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('me/', MeUpdateView.as_view(), name='me-update'),
     path('password/change/', PasswordChangeView.as_view(), name='password-change'),
+    path('addresses/delete/<int:pk>/', AddressDetailView.as_view(), name='address-delete'),
+    path('addresses/update/<int:pk>/', AddressDetailView.as_view(), name='address-update'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
