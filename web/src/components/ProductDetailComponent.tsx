@@ -31,7 +31,6 @@ export default function ProductDetailComponent({
     "specifications"
   );
 
-  // Product ID'yi URL'den al
   useEffect(() => {
     if (product?.id) {
       addRecentlyViewedId(product.id.toString());
@@ -64,7 +63,6 @@ export default function ProductDetailComponent({
     );
   }
 
-  // API'den gelen ürün verilerini component state'ine dönüştür
   const productPrice =
     typeof product.price === "string"
       ? parseFloat(product.price)
@@ -77,14 +75,12 @@ export default function ProductDetailComponent({
 
   const displayPrice = discountPrice || productPrice;
 
-  // Varsayılan renk seçenekleri (API'de yoksa)
   const defaultColors = [
     { name: "Siyah", value: "#000000" },
     { name: "Beyaz", value: "#FFFFFF" },
     { name: "Gri", value: "#6B7280" },
   ];
 
-  // Varsayılan resimler
   const defaultImages = [product.image || "/sampa-logo.png"];
 
   const handleAddToCart = () => {
@@ -156,22 +152,6 @@ export default function ProductDetailComponent({
             <p className="text-lg text-gray-600 mt-2">
               {product.description || "Kaliteli ve güvenilir ürün"}
             </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex">
-              {[...Array(5)].map((_, index) =>
-                index < 4 ? (
-                  <StarIcon key={index} className="text-yellow-400 text-xl" />
-                ) : (
-                  <StarBorderIcon
-                    key={index}
-                    className="text-yellow-400 text-xl"
-                  />
-                )
-              )}
-            </div>
-            <span className="text-gray-600">(4.0 değerlendirme)</span>
           </div>
 
           <div className="flex items-center gap-4">

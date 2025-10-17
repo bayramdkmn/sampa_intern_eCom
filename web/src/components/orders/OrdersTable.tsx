@@ -129,7 +129,7 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start md:justify-end gap-2 mt-2 md:mt-0">
               <Button
                 variant="contained"
                 size="small"
@@ -139,6 +139,9 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
                   textTransform: "none",
                   backgroundColor: "#2563eb",
                   "&:hover": { backgroundColor: "#1d4ed8" },
+                  minWidth: { xs: "100%", sm: "auto" },
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  padding: { xs: "6px 12px", sm: "8px 16px" },
                 }}
               >
                 Göster
@@ -150,7 +153,12 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
                   color="error"
                   startIcon={<CancelIcon />}
                   onClick={() => onCancelOrder(order.id)}
-                  sx={{ textTransform: "none" }}
+                  sx={{
+                    textTransform: "none",
+                    minWidth: { xs: "100%", sm: "auto" },
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    padding: { xs: "6px 12px", sm: "8px 16px" },
+                  }}
                 >
                   İptal
                 </Button>

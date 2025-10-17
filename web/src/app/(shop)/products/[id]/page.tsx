@@ -4,7 +4,6 @@ import { Metadata } from "next";
 import { Product } from "@/types/api";
 import { notFound } from "next/navigation";
 
-// Generate metadata for each product page
 export async function generateMetadata({
   params,
 }: {
@@ -42,9 +41,6 @@ export async function generateMetadata({
   }
 }
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 export default async function ProductDetailPage({
   params,
 }: {
@@ -53,25 +49,17 @@ export default async function ProductDetailPage({
   const resolvedParams = await params;
   const { id } = resolvedParams;
 
-  // Server-side'da ürün detaylarını çek
   let product: Product | null = null;
   let error = null;
 
   try {
-    console.log("🔄 Server-side: Ürün detayları yükleniyor...", id);
     product = await serverApi.getProduct(id);
-    console.log(
-      "✅ Server-side: Ürün detayları başarıyla yüklendi:",
-      product.name
-    );
   } catch (err) {
-    console.error("❌ Server-side: Ürün detay yükleme hatası:", err);
     error =
       err instanceof Error
         ? err.message
         : "Ürün detayları yüklenirken hata oluştu";
 
-    // Ürün bulunamadıysa 404 sayfasına yönlendir
     if (err instanceof Error && err.message.includes("404")) {
       notFound();
     }

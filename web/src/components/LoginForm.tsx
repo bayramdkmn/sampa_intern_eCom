@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
@@ -12,8 +12,19 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+
+    if (savedEmail && savedRememberMe) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +98,18 @@ export default function LoginForm() {
 
       console.log("🚀 Calling login() with userData:", userData);
       login(userData);
+
+      // Beni hatırla seçiliyse emaili localStorage'a kaydet
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email);
+        localStorage.setItem("rememberMe", "true");
+        console.log("✅ Email saved to localStorage for remember me");
+      } else {
+        // Seçili değilse kayıtlı emaili sil
+        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberMe");
+        console.log("🗑️ Email removed from localStorage");
+      }
 
       showToast.success(toastMessages.loginSuccess);
 
@@ -194,6 +217,8 @@ export default function LoginForm() {
             <label className="flex items-center">
               <input
                 type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <span className="ml-2 text-sm text-gray-600">Beni hatırla</span>
