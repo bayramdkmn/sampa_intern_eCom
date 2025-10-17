@@ -41,42 +41,46 @@ class CreateOrderView(generics.CreateAPIView):
         if not user or not user.is_authenticated:
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # CartItem is linked to Cart, not directly to User. Query via cart__user
         cart_items = CartItem.objects.filter(cart__user=user).select_related('product', 'cart')
         if not cart_items.exists():
             return Response({"error": "Sepetiniz boş!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # total_price güvenli şekilde Decimal ile hesaplanıyor
+        address = user.addresses.filter(is_primary=True).first()
+        if not address:
+            return Response({"error": "Lütfen önce bir adres ekleyin veya primary adres belirleyin."}, status=status.HTTP_400_BAD_REQUEST)
+
+        payment_card = user.cards.filter(is_primary=True).first()
+        if not payment_card:
+            return Response({"error": "Lütfen önce bir ödeme kartı ekleyin veya primary kart belirleyin."}, status=status.HTTP_400_BAD_REQUEST)
+
         total_price = Decimal('0.00')
         for item in cart_items:
             price = Decimal(str(item.product.price or 0))
-            quantity = int(item.quantity)
-            total_price += price * quantity
+            total_price += price * item.quantity
 
         total_price = total_price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-        # Create order + items atomically
         with transaction.atomic():
             order = Order.objects.create(
                 user=user,
                 total_price=total_price,
+                address=address,
+                payment_card=payment_card,
                 status='pending'
             )
 
-            # OrderItem oluştur (fiyat snapshot olarak kaydediliyor)
             for item in cart_items:
                 OrderItem.objects.create(
                     order=order,
                     product=item.product,
-                    quantity=int(item.quantity),
-                    price=Decimal(str(item.product.price or 0))
+                    quantity=item.quantity,
+                    price=item.product.price
                 )
 
-            # Sepeti temizle (delete only items for this user's cart)
             CartItem.objects.filter(cart__user=user).delete()
 
-        # Response
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+
 
 
 
