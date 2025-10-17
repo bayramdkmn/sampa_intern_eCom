@@ -7,4 +7,6 @@ urlpatterns = [
     path('remove/', CartViewSet.as_view({'post': 'remove'}), name='cart-remove'),
     path('remove_item/', CartViewSet.as_view({'delete': 'remove_item'}), name='cart-remove-item'),
     path('decrease_quantity/', CartViewSet.as_view({'post': 'decrease_quantity'}), name='cart-decrease-quantity'),
+    path('update_quantity/', CartViewSet.as_view({'patch': 'update_quantity'}), name='cart-update-quantity'),  # <- bu satır eklendi
 ]
+
