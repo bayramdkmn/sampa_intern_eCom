@@ -9,6 +9,7 @@ export interface User {
   name: string;
   phone_number?: string;
   profile_image?: string;
+  pro_photo?: string;
   date_joined?: string;
   is_active?: boolean;
 }

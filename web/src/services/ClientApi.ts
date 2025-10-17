@@ -228,12 +228,6 @@ export class ClientApi {
     throw lastError || new Error('Profil endpointi bulunamadı');
   }
 
-  async updateUserProfile(data: Partial<User>): Promise<User> {
-    return await this.makeRequest<User>("/users/update/", {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  }
 
   async getAddresses(): Promise<Address[]> {
     return await this.makeRequest<Address[]>("/users/addresses/");
@@ -371,6 +365,146 @@ export class ClientApi {
 
   getAccessToken(): string | null {
     return localStorage.getItem('access_token');
+  }
+
+  // Cart Methods
+  async getCartItems(): Promise<any[]> {
+    try {
+      const response = await this.makeRequest<any[]>('/cart/');
+      return response;
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+      throw error;
+    }
+  }
+
+  async addToCart(productId: number, quantity: number): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>('/cart/add', {
+        method: 'POST',
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: quantity,
+        }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      throw error;
+    }
+  }
+
+  async updateCartItem(productId: number, quantity: number): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>('/cart/update', {
+        method: 'PUT',
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: quantity,
+        }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      throw error;
+    }
+  }
+
+  async removeFromCart(productId: number): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>('/cart/remove', {
+        method: 'DELETE',
+        body: JSON.stringify({
+          product_id: productId,
+        }),
+      });
+      return response;
+    } catch (error) {
+      console.error('Error removing from cart:', error);
+      throw error;
+    }
+  }
+
+  // User Profile Methods
+  async updateUserProfile(data: {
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+  }): Promise<any> {
+    try {
+      const response = await this.makeRequest<any>('/users/me/', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
+      return response;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
+  }
+
+  async updateUserProfileWithPhoto(
+    profileData: {
+      first_name?: string;
+      last_name?: string;
+      phone_number?: string;
+    },
+    photoFile?: File
+  ): Promise<any> {
+    try {
+      const formData = new FormData();
+      
+      // Text verilerini ekle
+      if (profileData.first_name) {
+        formData.append('first_name', profileData.first_name);
+      }
+      if (profileData.last_name) {
+        formData.append('last_name', profileData.last_name);
+      }
+      if (profileData.phone_number) {
+        formData.append('phone_number', profileData.phone_number);
+      }
+      
+      // Fotoğraf dosyasını ekle
+      if (photoFile) {
+        formData.append('pro_photo', photoFile);
+      }
+
+      const token = localStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.baseURL}/users/me/`, {
+        method: 'PATCH',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        let errorData;
+        
+        try {
+          errorData = JSON.parse(errorBody);
+        } catch {
+          errorData = { detail: errorBody };
+        }
+
+        throw {
+          message: errorData.message || errorData.detail || 'Bir hata oluştu',
+          errors: errorData.errors || errorData.field_errors || {},
+          status: response.status,
+        };
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating user profile with photo:', error);
+      throw error;
+    }
   }
 }
 

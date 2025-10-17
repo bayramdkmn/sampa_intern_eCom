@@ -490,6 +490,68 @@ export class ServerApi {
       throw err;
     }
   }
+
+  // Cart Methods
+  async getCartItems(): Promise<any[]> {
+    try {
+      const fetchReq = await this.fetchInstance();
+      const response = await fetchReq("/cart/");
+      return response;
+    } catch (err) {
+      console.error("Error fetching cart items:", err);
+      throw err;
+    }
+  }
+
+  async addToCart(productId: number, quantity: number): Promise<any> {
+    try {
+      const fetchReq = await this.fetchInstance();
+      const response = await fetchReq("/cart/add", {
+        method: "POST",
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: quantity,
+        }),
+      });
+      return response;
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      throw err;
+    }
+  }
+
+  async updateCartItem(productId: number, quantity: number): Promise<any> {
+    try {
+      const fetchReq = await this.fetchInstance();
+      const response = await fetchReq("/cart/update", {
+        method: "PUT",
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: quantity,
+        }),
+      });
+      return response;
+    } catch (err) {
+      console.error("Error updating cart item:", err);
+      throw err;
+    }
+  }
+
+  async removeFromCart(productId: number): Promise<any> {
+    try {
+      const fetchReq = await this.fetchInstance();
+      const response = await fetchReq("/cart/remove", {
+        method: "DELETE",
+        body: JSON.stringify({
+          product_id: productId,
+        }),
+      });
+      return response;
+    } catch (err) {
+      console.error("Error removing from cart:", err);
+      throw err;
+    }
+  }
 }
 
 export const serverApi = new ServerApi();

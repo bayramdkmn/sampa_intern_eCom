@@ -7,6 +7,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { clientApi } from "@/services/ClientApi";
 
 export interface CartItem {
   id: string;
@@ -20,9 +21,11 @@ export interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  addToCart: (
+    item: Omit<CartItem, "quantity"> & { quantity?: number }
+  ) => Promise<void>;
+  removeFromCart: (id: string) => Promise<void>;
+  updateQuantity: (id: string, quantity: number) => Promise<void>;
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
@@ -49,35 +52,87 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [cartItems, isLoaded]);
 
-  const addToCart = (
+  const addToCart = async (
     item: Omit<CartItem, "quantity"> & { quantity?: number }
   ) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (i) => i.id === item.id && i.color === item.color
-      );
+    try {
+      // Önce API'ye gönder
+      const productId = parseInt(item.id);
+      const quantity = item.quantity || 1;
 
-      if (existingItem) {
-        return prevItems.map((i) =>
-          i.id === item.id && i.color === item.color
-            ? { ...i, quantity: i.quantity + (item.quantity || 1) }
-            : i
+      await clientApi.addToCart(productId, quantity);
+
+      // API başarılı olursa local state'i güncelle
+      setCartItems((prevItems) => {
+        const existingItem = prevItems.find(
+          (i) => i.id === item.id && i.color === item.color
         );
-      } else {
-        return [...prevItems, { ...item, quantity: item.quantity || 1 }];
-      }
-    });
+
+        if (existingItem) {
+          return prevItems.map((i) =>
+            i.id === item.id && i.color === item.color
+              ? { ...i, quantity: i.quantity + quantity }
+              : i
+          );
+        } else {
+          return [...prevItems, { ...item, quantity }];
+        }
+      });
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      // API hatası durumunda sadece local state'e ekle (offline mode)
+      setCartItems((prevItems) => {
+        const existingItem = prevItems.find(
+          (i) => i.id === item.id && i.color === item.color
+        );
+
+        if (existingItem) {
+          return prevItems.map((i) =>
+            i.id === item.id && i.color === item.color
+              ? { ...i, quantity: i.quantity + (item.quantity || 1) }
+              : i
+          );
+        } else {
+          return [...prevItems, { ...item, quantity: item.quantity || 1 }];
+        }
+      });
+    }
   };
 
-  const removeFromCart = (id: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const removeFromCart = async (id: string) => {
+    try {
+      // Önce API'den sil
+      const productId = parseInt(id);
+      await clientApi.removeFromCart(productId);
+
+      // API başarılı olursa local state'i güncelle
+      setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      // API hatası durumunda sadece local state'den sil
+      setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    }
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = async (id: string, quantity: number) => {
     if (quantity < 1) return;
-    setCartItems((prevItems) =>
-      prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
-    );
+
+    try {
+      // Önce API'yi güncelle
+      const productId = parseInt(id);
+      await clientApi.updateCartItem(productId, quantity);
+
+      // API başarılı olursa local state'i güncelle
+      setCartItems((prevItems) =>
+        prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
+      );
+    } catch (error) {
+      console.error("Error updating cart item:", error);
+      // API hatası durumunda sadece local state'i güncelle
+      setCartItems((prevItems) =>
+        prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
+      );
+    }
   };
 
   const clearCart = () => {

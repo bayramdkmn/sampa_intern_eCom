@@ -45,7 +45,6 @@ export default function CheckOutComponent({
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  // Tüm hook'ları component'in başında tanımla
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [shippingMethod, setShippingMethod] =
@@ -69,7 +68,6 @@ export default function CheckOutComponent({
     nameOnCard: "",
   });
 
-  // Props'tan gelen veya varsayılan sipariş ürünleri
   const [orderItems] = useState<OrderItem[]>(
     initialOrderItems.length > 0
       ? initialOrderItems
@@ -102,7 +100,6 @@ export default function CheckOutComponent({
     );
   }
 
-  // AuthContext yüklendi ama user yoksa (login değilse)
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center items-center">
@@ -114,7 +111,6 @@ export default function CheckOutComponent({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Postal code için sadece rakam kabul et
     if (name === "zipCode") {
       const numericValue = value.replace(/\D/g, "");
       setFormData({
@@ -133,13 +129,12 @@ export default function CheckOutComponent({
   const handlePaymentInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Kredi kartı numarası formatı: 4'er 4'er
     if (name === "cardNumber") {
       const numericValue = value.replace(/\D/g, "");
       const formattedValue = numericValue
         .replace(/(\d{4})/g, "$1 ")
         .trim()
-        .substring(0, 19); // 16 rakam + 3 boşluk
+        .substring(0, 19);
       setPaymentData({
         ...paymentData,
         [name]: formattedValue,
@@ -147,7 +142,6 @@ export default function CheckOutComponent({
       return;
     }
 
-    // CVC sadece 3 rakam
     if (name === "cvc") {
       const numericValue = value.replace(/\D/g, "").substring(0, 3);
       setPaymentData({
@@ -157,7 +151,6 @@ export default function CheckOutComponent({
       return;
     }
 
-    // Expiry date formatı: MM / YY
     if (name === "expiryDate") {
       const numericValue = value.replace(/\D/g, "");
       let formattedValue = numericValue;
@@ -179,7 +172,6 @@ export default function CheckOutComponent({
   };
 
   const validateShippingForm = () => {
-    // Email regex pattern
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.email || !emailPattern.test(formData.email)) {
@@ -207,26 +199,22 @@ export default function CheckOutComponent({
 
   const validatePaymentForm = () => {
     if (paymentMethod === "credit") {
-      // Kart numarası kontrolü (16 rakam)
       const cardNumberDigits = paymentData.cardNumber.replace(/\s/g, "");
       if (!cardNumberDigits || cardNumberDigits.length !== 16) {
         alert("Lütfen geçerli bir kart numarası girin! (16 rakam)");
         return false;
       }
 
-      // Expiry date kontrolü
       if (!paymentData.expiryDate || paymentData.expiryDate.length < 7) {
         alert("Lütfen geçerli bir son kullanma tarihi girin! (MM / YY)");
         return false;
       }
 
-      // CVC kontrolü (3 rakam)
       if (!paymentData.cvc || paymentData.cvc.length !== 3) {
         alert("Lütfen geçerli bir CVC kodu girin! (3 rakam)");
         return false;
       }
 
-      // Kart üzerindeki isim kontrolü
       if (!paymentData.nameOnCard || paymentData.nameOnCard.trim().length < 3) {
         alert("Lütfen kart üzerindeki ismi girin!");
         return false;
@@ -234,15 +222,13 @@ export default function CheckOutComponent({
 
       return true;
     }
-    return true; // PayPal ve Google Pay için form validasyonu yok
+    return true;
   };
 
   const handleContinueToPayment = () => {
     if (!validateShippingForm()) {
       return;
     }
-    console.log("Shipping Data:", formData);
-    console.log("Shipping Method:", shippingMethod);
     setCurrentStep(2);
   };
 
@@ -250,23 +236,18 @@ export default function CheckOutComponent({
     if (!validatePaymentForm()) {
       return;
     }
-    console.log("Payment Data:", paymentData);
-    console.log("Payment Method:", paymentMethod);
     setCurrentStep(3);
   };
 
   const handleConfirmOrder = () => {
-    console.log("Order Confirmed!");
     setShowSuccessModal(true);
 
-    // 3 saniye sonra ana sayfaya yönlendir
     setTimeout(() => {
       router.push("/");
     }, 3000);
   };
 
   const handleStepClick = (stepNumber: number) => {
-    // Sadece tamamlanmış adımlara geri dönebilir
     if (stepNumber < currentStep) {
       setCurrentStep(stepNumber);
     }
@@ -352,7 +333,6 @@ export default function CheckOutComponent({
           </div>
         </div>
 
-        {/* Step 1: Shipping */}
         {currentStep === 1 && (
           <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
             <div>
@@ -910,16 +890,12 @@ export default function CheckOutComponent({
         )}
       </div>
 
-      {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
 
-          {/* Modal */}
           <div className="relative z-10 w-full max-w-md transform rounded-2xl bg-white p-8 shadow-2xl transition-all">
             <div className="text-center">
-              {/* Success Icon */}
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
                 <svg
                   className="h-12 w-12 text-green-600"
@@ -936,24 +912,20 @@ export default function CheckOutComponent({
                 </svg>
               </div>
 
-              {/* Title */}
               <h3 className="mb-3 text-2xl font-bold text-gray-900">
                 Ödeme Alındı!
               </h3>
 
-              {/* Message */}
               <p className="mb-6 text-gray-600">
                 Siparişiniz başarıyla oluşturuldu. Kısa süre içinde ana sayfaya
                 yönlendirileceksiniz.
               </p>
 
-              {/* Order Number */}
               <div className="rounded-lg bg-gray-50 p-4">
                 <p className="text-sm text-gray-600">Sipariş Numarası</p>
                 <p className="text-lg font-bold text-gray-900">#12345</p>
               </div>
 
-              {/* Loading Indicator */}
               <div className="mt-6">
                 <div className="mx-auto h-1 w-full max-w-xs overflow-hidden rounded-full bg-gray-200">
                   <div className="h-full w-full animate-[loading_3s_ease-in-out] bg-green-600"></div>

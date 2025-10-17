@@ -5,7 +5,7 @@ npm install
 ```
 
 ```bash
-npx expo start
+npx expo start -c
 ```
 
 ## 📱 Özellikler

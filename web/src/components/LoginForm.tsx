@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { LoginData, AuthResponse } from "@/services";
 import { showToast, toastMessages } from "@/utils/toast";
+import { clientApi } from "@/services/ClientApi";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -73,51 +74,95 @@ export default function LoginForm() {
         }
       }
 
+      // Profil fotoğrafı URL'sini normalize et
+      const getProfileImageUrl = (imagePath: string | null | undefined) => {
+        if (!imagePath) return undefined;
+
+        // Eğer tam URL ise olduğu gibi döndür
+        if (imagePath.startsWith("http")) {
+          return imagePath;
+        }
+
+        // Eğer /media/ ile başlıyorsa base URL ile birleştir
+        if (imagePath.startsWith("/media/")) {
+          const baseURL =
+            process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+          const cleanBaseURL = baseURL.replace("/api", "");
+          return `${cleanBaseURL}${imagePath}`;
+        }
+
+        return imagePath;
+      };
+
+      // Token kaydedildikten sonra backend'den güncel kullanıcı bilgilerini çek
+      console.log("🔄 Fetching user profile from backend...");
       let userData;
-      if (response.user) {
+
+      try {
+        const userProfile = await clientApi.getUserProfile();
+        console.log("✅ User profile fetched from backend:", userProfile);
+
+        const profileImagePath =
+          userProfile.profile_image || (userProfile as any).pro_photo;
         userData = {
-          id: response.user.id || response.user.pk || "temp-id",
-          firstName: response.user.first_name || response.user.name || "User",
-          lastName: response.user.last_name || "",
-          email: response.user.email || email,
-          phoneNumber: response.user.phone_number,
-          profileImage: response.user.profile_image,
+          id: String(userProfile.id || userProfile.pk || "temp-id"),
+          firstName: userProfile.first_name || userProfile.name || "User",
+          lastName: userProfile.last_name || "",
+          email: userProfile.email || email,
+          phoneNumber: userProfile.phone_number,
+          profileImage: getProfileImageUrl(profileImagePath),
         };
-        console.log("👤 User data from response.user:", userData);
-      } else {
-        userData = {
-          id: "temp-id",
-          firstName: email.split("@")[0] || "User",
-          lastName: "",
-          email: email,
-          phoneNumber: undefined,
-          profileImage: undefined,
-        };
-        console.log("👤 Fallback user data created:", userData);
+
+        console.log("👤 Final user data for AuthContext:", userData);
+        console.log("🖼️ Profile image URL:", userData.profileImage);
+      } catch (profileError) {
+        console.error(
+          "⚠️ Failed to fetch user profile, using response.user fallback:",
+          profileError
+        );
+
+        // Profil çekilemezse response.user'ı kullan
+        if (response.user) {
+          const profileImagePath =
+            response.user.profile_image || (response.user as any).pro_photo;
+          userData = {
+            id: response.user.id || response.user.pk || "temp-id",
+            firstName: response.user.first_name || response.user.name || "User",
+            lastName: response.user.last_name || "",
+            email: response.user.email || email,
+            phoneNumber: response.user.phone_number,
+            profileImage: getProfileImageUrl(profileImagePath),
+          };
+          console.log("👤 User data from response.user:", userData);
+          console.log("🖼️ Profile image URL:", userData.profileImage);
+        } else {
+          userData = {
+            id: "temp-id",
+            firstName: email.split("@")[0] || "User",
+            lastName: "",
+            email: email,
+            phoneNumber: undefined,
+            profileImage: undefined,
+          };
+          console.log("👤 Fallback user data created:", userData);
+        }
       }
 
       console.log("🚀 Calling login() with userData:", userData);
       login(userData);
 
-      // Beni hatırla seçiliyse emaili localStorage'a kaydet
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", email);
         localStorage.setItem("rememberMe", "true");
-        console.log("✅ Email saved to localStorage for remember me");
       } else {
-        // Seçili değilse kayıtlı emaili sil
         localStorage.removeItem("rememberedEmail");
         localStorage.removeItem("rememberMe");
-        console.log("🗑️ Email removed from localStorage");
       }
 
       showToast.success(toastMessages.loginSuccess);
 
-      console.log("🏠 Redirecting to home page");
       router.push("/");
     } catch (error: unknown) {
-      console.error("Giriş hatası:", error);
-
       let errorMessage = "Giriş sırasında bir hata oluştu";
 
       if (error && typeof error === "object") {

@@ -10,7 +10,6 @@ interface OrderItem {
   price: number;
 }
 
-// SEO Metadata - Server-side rendered
 export const metadata: Metadata = {
   title: "Sampa Connect - Checkout",
   description:
@@ -27,7 +26,6 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function CheckOutPage() {
-  // Server-side'da kullanıcı verilerini çek
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let userAddresses: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,40 +33,63 @@ export default async function CheckOutPage() {
   let cartItems: OrderItem[] = [];
 
   try {
-    console.log("🔄 Server-side: Checkout verileri yükleniyor...");
-
-    // Cookie'den auth token kontrolü
     const cookieStore = await cookies();
     const authToken = cookieStore.get("auth_token");
 
     if (authToken) {
-      // Kullanıcının adreslerini çek
       try {
         userAddresses = await serverApi.getAddresses();
-        console.log("✅ Kullanıcı adresleri yüklendi:", userAddresses.length);
       } catch (err) {
-        console.log("⚠️ Adresler yüklenemedi:", err);
+        console.error("Error fetching addresses:", err);
       }
 
-      // Kullanıcının kartlarını çek
       try {
         userCards = await serverApi.getPaymentCards();
-        console.log("✅ Kullanıcı kartları yüklendi:", userCards.length);
       } catch (err) {
-        console.log("⚠️ Kartlar yüklenemedi:", err);
+        console.error("Error fetching payment cards:", err);
       }
+
+      try {
+        const cartData = await serverApi.getCartItems();
+
+        if (Array.isArray(cartData)) {
+          cartItems = cartData.map((item: any) => ({
+            id: item.product_id || item.id,
+            name:
+              item.product_name || item.name || item.product?.name || "Ürün",
+            quantity: item.quantity || 1,
+            price: item.price || item.product?.price || 0,
+          }));
+        } else if (cartData && typeof cartData === "object") {
+          const cartObj = cartData as any;
+          const items =
+            cartObj.items || cartObj.products || cartObj.cart_items || [];
+          if (Array.isArray(items)) {
+            cartItems = items.map((item: any) => ({
+              id: item.product_id || item.id,
+              name:
+                item.product_name || item.name || item.product?.name || "Ürün",
+              quantity: item.quantity || 1,
+              price: item.price || item.product?.price || 0,
+            }));
+          } else {
+            console.log("Items is not an array:", items);
+            cartItems = [];
+          }
+        } else {
+          console.log("Cart data is not an array or object:", cartData);
+          cartItems = [];
+        }
+      } catch (err) {
+        console.error("Error fetching cart items:", err);
+        cartItems = [];
+      }
+    } else {
+      cartItems = [];
     }
-
-    // Sepet verilerini çek (örnek veriler)
-    cartItems = [
-      { id: 1, name: "Eco-Friendly Water Bottle", quantity: 2, price: 30.0 },
-      { id: 2, name: "Organic Cotton T-Shirt", quantity: 1, price: 25.0 },
-      { id: 3, name: "Reusable Shopping Bag", quantity: 3, price: 15.0 },
-    ];
-
-    console.log("✅ Server-side: Checkout verileri başarıyla yüklendi");
   } catch (err) {
-    console.error("❌ Server-side: Checkout verileri yükleme hatası:", err);
+    console.error("Checkout page error:", err);
+    cartItems = [];
   }
 
   return (

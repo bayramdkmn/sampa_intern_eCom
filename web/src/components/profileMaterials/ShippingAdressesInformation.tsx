@@ -56,11 +56,19 @@ const ShippingAdressesInformation = ({
         return;
       }
 
+      // Token kontrolü - logout sırasında API çağrısı yapma
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        console.log("⚠️ No token available, skipping address fetch");
+        if (mounted) setLoading(false);
+        return;
+      }
+
       try {
         const res = await authService.getAddresses();
         if (!mounted) return;
 
-        const normalized: Address[] = (res || []).map((a: any) => ({
+        const normalized = (res || []).map((a: any) => ({
           id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
           title: a.title || "",
           street: a.street || a.address_line_1 || a.line1 || "",
@@ -71,7 +79,7 @@ const ShippingAdressesInformation = ({
           isPrimary: Boolean(a.is_primary || a.isPrimary),
         }));
 
-        setAddresses(normalized);
+        setAddresses(normalized as any);
       } catch (e: any) {
         console.error("Address loading error:", e);
         const msg =
@@ -135,7 +143,7 @@ const ShippingAdressesInformation = ({
     try {
       await authService.deleteAddress(selectedAddress.id);
       const res = await authService.getAddresses();
-      const normalized: Address[] = (res || []).map((a: any) => ({
+      const normalized = (res || []).map((a: any) => ({
         id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
         title: a.title || "",
         street: a.street || a.address_line || a.line1 || "",
@@ -145,7 +153,7 @@ const ShippingAdressesInformation = ({
         zipCode: a.zipCode || a.postal_code || a.zip || "",
         isPrimary: Boolean(a.is_primary || a.isPrimary),
       }));
-      setAddresses(normalized);
+      setAddresses(normalized as any);
       setIsDeleteDialogOpen(false);
       setSelectedAddress(null);
     } catch (e: any) {
@@ -158,6 +166,7 @@ const ShippingAdressesInformation = ({
       title: "",
       street: "",
       city: "",
+      district: "",
       country: "",
       zipCode: "",
       isPrimary: false,
@@ -167,7 +176,7 @@ const ShippingAdressesInformation = ({
 
   const handleSaveNew = async () => {
     if (formData.isPrimary) {
-      const existingPrimary = addresses.find((addr) => addr.isPrimary);
+      const existingPrimary = addresses.find((addr) => (addr as any).isPrimary);
       if (existingPrimary) {
         setPendingSave("add");
         setIsPrimaryWarningOpen(true);
@@ -193,7 +202,7 @@ const ShippingAdressesInformation = ({
       await authService.createAddress(payload);
       // Başarı sonrası listeyi yeniden çek
       const res = await authService.getAddresses();
-      const normalized: Address[] = (res || []).map((a: any) => ({
+      const normalized = (res || []).map((a: any) => ({
         id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),
         title: a.title || "",
         street: a.street || a.address_line || a.line1 || "",
@@ -203,7 +212,7 @@ const ShippingAdressesInformation = ({
         zipCode: a.zipCode || a.postal_code || a.zip || "",
         isPrimary: Boolean(a.is_primary || a.isPrimary),
       }));
-      setAddresses(normalized);
+      setAddresses(normalized as any);
       setIsAddModalOpen(false);
     } catch (e: any) {
       setError(e?.message || "Adres kaydedilemedi");
@@ -213,9 +222,9 @@ const ShippingAdressesInformation = ({
   const handleSaveEdit = () => {
     if (!selectedAddress) return;
 
-    if (formData.isPrimary && !selectedAddress.isPrimary) {
+    if (formData.isPrimary && !(selectedAddress as any).isPrimary) {
       const existingPrimary = addresses.find(
-        (addr) => addr.isPrimary && addr.id !== selectedAddress.id
+        (addr) => (addr as any).isPrimary && addr.id !== selectedAddress.id
       );
       if (existingPrimary) {
         setPendingSave("edit");
@@ -239,10 +248,10 @@ const ShippingAdressesInformation = ({
         ...addr,
         isPrimary: false,
       }));
-      const newAddress: Address = {
+      const newAddress = {
         id: Date.now().toString(),
         ...formData,
-      };
+      } as any;
       setAddresses([...updatedAddresses, newAddress]);
       setIsAddModalOpen(false);
     } else if (pendingSave === "edit" && selectedAddress) {
@@ -307,12 +316,16 @@ const ShippingAdressesInformation = ({
               >
                 <div>
                   <p className="text-lg font-semibold text-gray-900">
-                    {address.title ? address.title + " – " : ""}
-                    {address.street}, {address.city}
-                    {address.district ? `, ${address.district}` : ""},{" "}
-                    {address.country} {address.zipCode}
+                    {(address as any).title
+                      ? (address as any).title + " – "
+                      : ""}
+                    {(address as any).street}, {(address as any).city}
+                    {(address as any).district
+                      ? `, ${(address as any).district}`
+                      : ""}
+                    , {(address as any).country} {(address as any).zipCode}
                   </p>
-                  {address.isPrimary && (
+                  {(address as any).isPrimary && (
                     <span className="text-sm text-gray-600 mt-1 inline-block">
                       Primary Address
                     </span>
@@ -456,7 +469,8 @@ const ShippingAdressesInformation = ({
             Are you sure you want to delete this address?
             <br />
             <strong>
-              {selectedAddress?.street}, {selectedAddress?.city}
+              {(selectedAddress as any)?.street},{" "}
+              {(selectedAddress as any)?.city}
             </strong>
             <br />
             <br />

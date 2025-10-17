@@ -4,6 +4,6 @@ export interface User {
     lastName: string;
     email: string;
     phoneNumber?: string;
-    profileImage?: string;
+    profileImage?: string | null;
   }
   

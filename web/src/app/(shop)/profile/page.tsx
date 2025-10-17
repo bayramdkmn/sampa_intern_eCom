@@ -49,6 +49,8 @@ export default async function ProfilePage() {
     // Kullanıcı bilgilerini çek
     user = await serverApi.getUserProfile();
     console.log("✅ Kullanıcı bilgileri yüklendi:", user.first_name);
+    console.log("📸 Profil fotoğrafı:", user.pro_photo);
+    console.log("👤 Tam kullanıcı verisi:", user);
 
     // Kullanıcının adreslerini çek
     try {

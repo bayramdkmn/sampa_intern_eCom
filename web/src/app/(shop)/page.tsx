@@ -17,23 +17,13 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 export default async function ShopHomePage() {
   let products: Product[] = [];
   let error: string | null = null;
 
   try {
-    console.log("🔄 Server-side: Ürünler yükleniyor...");
     products = await serverApi.getProducts();
-    console.log(
-      "✅ Server-side: Ürünler başarıyla yüklendi:",
-      products.length,
-      "ürün"
-    );
   } catch (err) {
-    console.error("❌ Server-side: Ürün yükleme hatası:", err);
     error =
       err instanceof Error ? err.message : "Ürünler yüklenirken hata oluştu";
   }

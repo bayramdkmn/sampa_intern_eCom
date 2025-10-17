@@ -83,23 +83,28 @@ export default function ProductDetailComponent({
 
   const defaultImages = [product.image || "/sampa-logo.png"];
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
 
-    addToCart({
-      id: product.id.toString(),
-      name: product.name,
-      price: displayPrice,
-      color: defaultColors[selectedColor].name,
-      image: defaultImages[0],
-      quantity: quantity,
-    });
+    try {
+      await addToCart({
+        id: product.id.toString(),
+        name: product.name,
+        price: displayPrice,
+        color: defaultColors[selectedColor].name,
+        image: defaultImages[0],
+        quantity: quantity,
+      });
 
-    showToast.success("Ürün sepete eklendi!");
+      showToast.success("Ürün sepete eklendi!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      showToast.error("Ürün sepete eklenirken hata oluştu!");
+    }
   };
 
-  const handleBuyNow = () => {
-    handleAddToCart();
+  const handleBuyNow = async () => {
+    await handleAddToCart();
     router.push("/basket");
   };
 

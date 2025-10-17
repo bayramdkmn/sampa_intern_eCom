@@ -62,11 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (userData: User) => {
-    console.log("🚀 Login called with user:", userData.firstName);
+    console.log("🚀 Login called with user:", userData);
+    console.log("🖼️ Profile image in userData:", userData.profileImage);
     setUser(userData);
     // User bilgisini localStorage'a kaydet
     localStorage.setItem("user", JSON.stringify(userData));
-    console.log("✅ User saved to localStorage");
+    console.log("✅ User saved to localStorage:", {
+      firstName: userData.firstName,
+      profileImage: userData.profileImage,
+      phoneNumber: userData.phoneNumber,
+    });
   };
 
   const logout = async () => {
