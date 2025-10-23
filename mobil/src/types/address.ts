@@ -1,11 +1,11 @@
 export interface Address {
   id: string;
   title: string; 
-  fullName: string;
-  phone: string;
   city: string;
   district: string;
   fullAddress: string;
+  postalCode: string;
+  country: string;
   isDefault?: boolean;
 }
 
@@ -23,6 +23,7 @@ export interface AddressFormProps {
   city: string;
   district: string;
   fullAddress: string;
+  postalCode: string;
   isDefault: boolean;
   onTitleChange: (value: string) => void;
   onFullNameChange: (value: string) => void;
@@ -30,6 +31,7 @@ export interface AddressFormProps {
   onCityChange: (value: string) => void;
   onDistrictChange: (value: string) => void;
   onFullAddressChange: (value: string) => void;
+  onPostalCodeChange: (value: string) => void;
   onIsDefaultChange: (value: boolean) => void;
 }
 

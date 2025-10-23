@@ -1,5 +1,27 @@
 import { create } from "zustand";
 import { Product, Category } from "../types";
+import { api } from "../services/api";
+import type { Product as ApiProduct } from "../types/api";
+
+// API Product'tan Local Product'a dönüşüm
+const mapApiProductToLocalProduct = (apiProduct: ApiProduct): Product => ({
+  id: apiProduct.id.toString(),
+  name: apiProduct.name,
+  description: apiProduct.description || "",
+  price: parseFloat(apiProduct.discount_price || apiProduct.price),
+  originalPrice: apiProduct.discount_price 
+    ? parseFloat(apiProduct.price) 
+    : undefined,
+  image: apiProduct.image || apiProduct.images?.[0] || "https://via.placeholder.com/400",
+  images: apiProduct.images || (apiProduct.image ? [apiProduct.image] : []),
+  category: apiProduct.category || "Diğer",
+  brand: apiProduct.brand,
+  rating: parseFloat(apiProduct.rating_average) || 0,
+  reviewCount: apiProduct.rating_count || 0,
+  inStock: apiProduct.stock > 0,
+  stock: apiProduct.stock,
+  slug: apiProduct.slug,
+});
 
 interface ProductState {
   // State
@@ -17,6 +39,7 @@ interface ProductState {
   setSelectedCategory: (categoryId: string | null) => void;
   setSearchQuery: (query: string) => void;
   getFilteredProducts: () => Product[];
+  clearError: () => void;
 }
 
 export const useProductStore = create<ProductState>()((set, get) => ({
@@ -29,74 +52,18 @@ export const useProductStore = create<ProductState>()((set, get) => ({
   error: null,
 
   // 📦 Ürünleri API'den Çek
-  // Redux'ta: dispatch(fetchProducts()) ve saga/thunk kullanırsın
-  // Zustand'da: await fetchProducts() - Direkt async/await!
   fetchProducts: async () => {
     try {
       set({ isLoading: true, error: null });
 
-      // TODO: Gerçek API çağrısı
-      // const response = await fetch('YOUR_API/products');
-      // const data = await response.json();
+      const apiProducts = await api.getProducts();
+      const localProducts = apiProducts.map(mapApiProductToLocalProduct);
 
-      // Şimdilik mock data
-      const mockProducts: Product[] = [
-        {
-          id: "1",
-          name: "Premium Kablosuz Kulaklık",
-          description: "Aktif gürültü önleme özellikli",
-          price: 1299,
-          image: "https://via.placeholder.com/400",
-          category: "elektronik",
-          rating: 4.8,
-          inStock: true,
-        },
-        {
-          id: "2",
-          name: "Akıllı Saat Pro",
-          description: "Sağlık takibi ve bildirimler",
-          price: 2499,
-          image: "https://via.placeholder.com/400",
-          category: "elektronik",
-          rating: 4.5,
-          inStock: true,
-        },
-        {
-          id: "3",
-          name: "Dizüstü Bilgisayar",
-          description: "16GB RAM, 512GB SSD",
-          price: 15999,
-          image: "https://via.placeholder.com/400",
-          category: "bilgisayar",
-          rating: 4.9,
-          inStock: true,
-        },
-        {
-          id: "4",
-          name: "Bluetooth Hoparlör",
-          description: "Su geçirmez, 20 saat pil",
-          price: 549,
-          image: "https://via.placeholder.com/400",
-          category: "elektronik",
-          rating: 4.6,
-          inStock: true,
-        },
-        {
-          id: "5",
-          name: "Wireless Mouse",
-          description: "Ergonomik tasarım",
-          price: 299,
-          image: "https://via.placeholder.com/400",
-          category: "bilgisayar",
-          rating: 4.4,
-          inStock: true,
-        },
-      ];
-
-      set({ products: mockProducts, isLoading: false });
-    } catch (error) {
+      set({ products: localProducts, isLoading: false });
+    } catch (error: any) {
+      console.error('Ürünler yüklenirken hata:', error);
       set({
-        error: "Ürünler yüklenirken hata oluştu",
+        error: error.message || "Ürünler yüklenirken hata oluştu",
         isLoading: false,
       });
     }
@@ -136,17 +103,28 @@ export const useProductStore = create<ProductState>()((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // TODO: Gerçek API çağrısı
-      // const response = await fetch(`YOUR_API/products/${id}`);
-      // const data = await response.json();
+      // Önce local state'de var mı kontrol et
+      const existingProduct = get().products.find((p) => p.id === id);
+      if (existingProduct) {
+        set({ isLoading: false });
+        return existingProduct;
+      }
 
-      const product = get().products.find((p) => p.id === id) || null;
+      // Yoksa API'den çek
+      const apiProduct = await api.getProduct(id);
+      const localProduct = mapApiProductToLocalProduct(apiProduct);
 
-      set({ isLoading: false });
-      return product;
-    } catch (error) {
+      // Store'a ekle
+      set((state) => ({
+        products: [...state.products, localProduct],
+        isLoading: false,
+      }));
+
+      return localProduct;
+    } catch (error: any) {
+      console.error('Ürün yüklenirken hata:', error);
       set({
-        error: "Ürün yüklenirken hata oluştu",
+        error: error.message || "Ürün yüklenirken hata oluştu",
         isLoading: false,
       });
       return null;
@@ -164,8 +142,6 @@ export const useProductStore = create<ProductState>()((set, get) => ({
   },
 
   // 🎯 Filtrelenmiş Ürünleri Al
-  // Redux'ta selector kullanırsın
-  // Zustand'da direkt fonksiyon!
   getFilteredProducts: () => {
     const { products, selectedCategory, searchQuery } = get();
 
@@ -174,7 +150,7 @@ export const useProductStore = create<ProductState>()((set, get) => ({
     // Kategoriye göre filtrele
     if (selectedCategory) {
       filtered = filtered.filter(
-        (p) => p.category.toLowerCase() === selectedCategory.toLowerCase()
+        (p) => p.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
@@ -186,6 +162,11 @@ export const useProductStore = create<ProductState>()((set, get) => ({
     }
 
     return filtered;
+  },
+
+  // 🧹 Hatayı Temizle
+  clearError: () => {
+    set({ error: null });
   },
 }));
 

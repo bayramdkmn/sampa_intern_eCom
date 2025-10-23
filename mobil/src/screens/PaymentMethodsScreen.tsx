@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,10 +22,17 @@ const PaymentMethodsScreen: React.FC = () => {
     addPaymentMethod,
     deletePaymentMethod,
     setDefaultPaymentMethod,
+    fetchPaymentMethods,
+    isLoading,
   } = usePaymentStore();
   const { theme } = useTheme();
 
   const [modalVisible, setModalVisible] = useState(false);
+
+  // Ekran yüklendiğinde ödeme yöntemlerini çek
+  useEffect(() => {
+    fetchPaymentMethods();
+  }, [fetchPaymentMethods]);
 
   const handleAddPaymentMethod = (paymentMethod: Omit<PaymentMethod, "id">) => {
     addPaymentMethod(paymentMethod);
@@ -102,7 +109,15 @@ const PaymentMethodsScreen: React.FC = () => {
             paddingBottom: Platform.OS === "ios" ? 110 : 90,
           }}
         >
-          {paymentMethods.length === 0 ? (
+          {isLoading ? (
+            // Loading State
+            <View style={tw`items-center justify-center py-16`}>
+              <Text style={tw`text-4xl mb-4`}>⏳</Text>
+              <Text style={tw`text-gray-600 text-lg font-semibold`}>
+                Ödeme yöntemleri yükleniyor...
+              </Text>
+            </View>
+          ) : paymentMethods.length === 0 ? (
             // Boş State
             <View style={tw`items-center justify-center py-16`}>
               <Text style={tw`text-6xl mb-4`}>💳</Text>

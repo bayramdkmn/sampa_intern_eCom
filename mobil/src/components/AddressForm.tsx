@@ -16,6 +16,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
   city,
   district,
   fullAddress,
+  postalCode,
   isDefault,
   onTitleChange,
   onFullNameChange,
@@ -23,6 +24,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
   onCityChange,
   onDistrictChange,
   onFullAddressChange,
+  onPostalCodeChange,
   onIsDefaultChange,
 }) => {
   return (
@@ -37,31 +39,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
           value={title}
           onChangeText={onTitleChange}
           placeholder="Örn: Ev, İş, Ofis"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Full Name */}
-      <View style={tw`mb-4`}>
-        <Text style={tw`text-gray-700 font-semibold mb-2`}>Ad Soyad *</Text>
-        <TextInput
-          style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`}
-          value={fullName}
-          onChangeText={onFullNameChange}
-          placeholder="Alıcı adı soyadı"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Phone */}
-      <View style={tw`mb-4`}>
-        <Text style={tw`text-gray-700 font-semibold mb-2`}>Telefon *</Text>
-        <TextInput
-          style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`}
-          value={phone}
-          onChangeText={onPhoneChange}
-          placeholder="+90 555 123 45 67"
-          keyboardType="phone-pad"
           placeholderTextColor="#9CA3AF"
         />
       </View>
@@ -102,6 +79,26 @@ const AddressForm: React.FC<AddressFormProps> = ({
           numberOfLines={3}
           textAlignVertical="top"
           placeholderTextColor="#9CA3AF"
+        />
+      </View>
+
+      {/* Postal Code */}
+      <View style={tw`mb-4`}>
+        <Text style={tw`text-gray-700 font-semibold mb-2`}>Posta Kodu *</Text>
+        <TextInput
+          style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`}
+          value={postalCode}
+          onChangeText={(text) => {
+            // Sadece rakam kabul et, max 5 karakter
+            const cleaned = text.replace(/\D/g, "");
+            if (cleaned.length <= 5) {
+              onPostalCodeChange(cleaned);
+            }
+          }}
+          placeholder="34000"
+          keyboardType="number-pad"
+          placeholderTextColor="#9CA3AF"
+          maxLength={5}
         />
       </View>
 

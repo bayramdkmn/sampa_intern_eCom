@@ -26,32 +26,31 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [fullAddress, setFullAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
   useEffect(() => {
     if (visible) {
       if (editingAddress) {
         setTitle(editingAddress.title);
-        setFullName(editingAddress.fullName);
-        setPhone(editingAddress.phone);
         setCity(editingAddress.city);
         setDistrict(editingAddress.district);
         setFullAddress(editingAddress.fullAddress);
+        setPostalCode(editingAddress.postalCode || "");
         setIsDefault(editingAddress.isDefault || false);
       } else {
         setTitle("");
-        setFullName("");
-        setPhone("");
         setCity("");
         setDistrict("");
         setFullAddress("");
+        setPostalCode("");
         setIsDefault(addresses.length === 0);
       }
     }
   }, [visible, editingAddress, addresses.length]);
 
   const handleSave = () => {
-    if (!title || !fullName || !phone || !city || !district || !fullAddress) {
+    if (!title || !city || !district || !fullAddress || !postalCode) {
       alert("Lütfen tüm alanları doldurun!");
       return;
     }
@@ -59,22 +58,22 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
     if (editingAddress) {
       updateAddress(editingAddress.id, {
         title,
-        fullName,
-        phone,
         city,
         district,
         fullAddress,
+        postalCode,
+        country: "TR",
         isDefault,
       });
       alert("Adres güncellendi! 📍");
     } else {
       addAddress({
         title,
-        fullName,
-        phone,
         city,
         district,
         fullAddress,
+        postalCode,
+        country: "TR",
         isDefault,
       });
       alert("Yeni adres eklendi! 📍");
@@ -117,6 +116,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               city={city}
               district={district}
               fullAddress={fullAddress}
+              postalCode={postalCode}
               isDefault={isDefault}
               onTitleChange={setTitle}
               onFullNameChange={setFullName}
@@ -124,6 +124,7 @@ const AddressFormModal: React.FC<AddressFormModalProps> = ({
               onCityChange={setCity}
               onDistrictChange={setDistrict}
               onFullAddressChange={setFullAddress}
+              onPostalCodeChange={setPostalCode}
               onIsDefaultChange={setIsDefault}
             />
 

@@ -1,137 +1,196 @@
 import { create } from "zustand";
 import { Address } from "../types";
+import { api } from "../services/api";
+import type { Address as ApiAddress } from "../types/api";
+import { useAuthStore } from "./authStore";
+
+const mapApiAddressToLocalAddress = (apiAddress: ApiAddress): Address => {
+  console.log('🏠 API Address raw:', JSON.stringify(apiAddress, null, 2));
+  
+  return {
+    id: apiAddress.id,
+    title: apiAddress.title || "",
+    city: apiAddress.city || "",
+    district: apiAddress.district || apiAddress.state_province || "",
+    fullAddress: apiAddress.address_line || apiAddress.address_line_1 || "",
+    isDefault: apiAddress.is_default || false,
+    postalCode: apiAddress.postal_code || "",
+    country: apiAddress.country || "TR",
+  };
+};
 
 interface AddressState {
   addresses: Address[];
+  isLoading: boolean;
+  error: string | null;
   
-  
-  addAddress: (address: Omit<Address, "id">) => void;
-  updateAddress: (id: string, address: Partial<Address>) => void;
-  deleteAddress: (id: string) => void;
-  setDefaultAddress: (id: string) => void;
+  fetchAddresses: () => Promise<void>;
+  addAddress: (address: Omit<Address, "id">) => Promise<void>;
+  updateAddress: (id: string, address: Partial<Address>) => Promise<void>;
+  deleteAddress: (id: string) => Promise<void>;
+  setDefaultAddress: (id: string) => Promise<void>;
   getDefaultAddress: () => Address | null;
+  clearError: () => void;
 }
 
-
-const MOCK_ADDRESSES: Address[] = [
-  {
-    id: "1",
-    title: "Ev",
-    fullName: "Bayram Dikmen",
-    phone: "+90 555 123 45 67",
-    city: "İstanbul",
-    district: "Kadıköy",
-    fullAddress: "Caferağa Mahallesi, Moda Caddesi No: 123 Daire: 5",
-    isDefault: true,
-  },
-  {
-    id: "2",
-    title: "İş",
-    fullName: "Bayram Dikmen",
-    phone: "+90 555 123 45 67",
-    city: "İstanbul",
-    district: "Şişli",
-    fullAddress: "Mecidiyeköy Mahallesi, Büyükdere Caddesi No: 45 Kat: 8",
-    isDefault: false,
-  },
-];
-
 export const useAddressStore = create<AddressState>()((set, get) => ({
-  
-  addresses: MOCK_ADDRESSES,
+  addresses: [],
+  isLoading: false,
+  error: null,
 
-  // 📍 Yeni Adres Ekle
-  addAddress: (address: Omit<Address, "id">) => {
-    const { addresses } = get();
-    const newAddress: Address = {
-      ...address,
-      id: Date.now().toString(),
-      isDefault: addresses.length === 0 ? true : address.isDefault || false,
-    };
-    
-    // Eğer yeni adres varsayılan olarak işaretlendiyse, diğerlerini kaldır
-    if (newAddress.isDefault) {
-      const updatedAddresses = addresses.map(addr => ({ ...addr, isDefault: false }));
-      set({ addresses: [...updatedAddresses, newAddress] });
-    } else {
-      set({ addresses: [...addresses, newAddress] });
+  fetchAddresses: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      
+      const apiAddresses = await api.getAddresses();
+      const localAddresses = apiAddresses.map(mapApiAddressToLocalAddress);
+      
+      set({ addresses: localAddresses, isLoading: false });
+    } catch (error: any) {
+      console.error('Adresler yüklenirken hata:', error);
+      set({ 
+        error: error.message || 'Adresler yüklenemedi', 
+        isLoading: false 
+      });
     }
   },
 
-  updateAddress: (id: string, updatedData: Partial<Address>) => {
-    const { addresses } = get();
-    
-    if (updatedData.isDefault) {
-      const newAddresses = addresses.map(addr => ({
-        ...addr,
-        isDefault: addr.id === id ? true : false,
-        ...(addr.id === id ? updatedData : {}),
+  addAddress: async (address: Omit<Address, "id">) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const user = useAuthStore.getState().user;
+      const userFullName = user?.name || 'Kullanıcı';
+      const nameParts = userFullName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const newApiAddress = await api.createAddress({
+        title: address.title,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: user?.phone || '',
+        city: address.city,
+        district: address.district, 
+        address_line: address.fullAddress,
+        postal_code: address.postalCode || '00000',
+        country: address.country || 'TR',
+        is_default: address.isDefault,
+      });
+
+      const newLocalAddress = mapApiAddressToLocalAddress(newApiAddress);
+      
+      set((state) => ({
+        addresses: [...state.addresses, newLocalAddress],
+        isLoading: false,
       }));
-      set({ addresses: newAddresses });
-    } else {
-      const newAddresses = addresses.map(addr =>
-        addr.id === id ? { ...addr, ...updatedData } : addr
-      );
-      set({ addresses: newAddresses });
+    } catch (error: any) {
+      console.error('Adres eklenirken hata:', error);
+      set({ 
+        error: error.message || 'Adres eklenemedi', 
+        isLoading: false 
+      });
+      throw error;
     }
   },
 
-  // 🗑️ Adresi Sil
-  deleteAddress: (id: string) => {
-    const { addresses } = get();
-    const addressToDelete = addresses.find(addr => addr.id === id);
-    const newAddresses = addresses.filter(addr => addr.id !== id);
-    
-    // Eğer silinen adres varsayılan adres ise ve başka adresler varsa, ilkini varsayılan yap
-    if (addressToDelete?.isDefault && newAddresses.length > 0) {
-      newAddresses[0].isDefault = true;
+  updateAddress: async (id: string, updatedData: Partial<Address>) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const updatePayload: any = {};
+      
+      if (updatedData.title) updatePayload.title = updatedData.title;
+      if (updatedData.city) updatePayload.city = updatedData.city;
+      if (updatedData.district) updatePayload.district = updatedData.district; // Backend'de district kullanılıyor
+      if (updatedData.fullAddress) updatePayload.address_line = updatedData.fullAddress; // Backend'de address_line kullanılıyor
+      if (updatedData.postalCode) updatePayload.postal_code = updatedData.postalCode;
+      if (updatedData.isDefault !== undefined) updatePayload.is_default = updatedData.isDefault;
+
+      const updatedApiAddress = await api.updateAddress(id, updatePayload);
+      const updatedLocalAddress = mapApiAddressToLocalAddress(updatedApiAddress);
+
+      set((state) => ({
+        addresses: state.addresses.map(addr =>
+          addr.id === id ? updatedLocalAddress : addr
+        ),
+        isLoading: false,
+      }));
+    } catch (error: any) {
+      console.error('Adres güncellenirken hata:', error);
+      set({ 
+        error: error.message || 'Adres güncellenemedi', 
+        isLoading: false 
+      });
+      throw error;
     }
-    
-    set({ addresses: newAddresses });
   },
 
-  // ⭐ Varsayılan Adres Olarak Ayarla
-  setDefaultAddress: (id: string) => {
-    const { addresses } = get();
-    const newAddresses = addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === id,
-    }));
-    set({ addresses: newAddresses });
+  deleteAddress: async (id: string) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      await api.deleteAddress(id);
+
+      set((state) => ({
+        addresses: state.addresses.filter(addr => addr.id !== id),
+        isLoading: false,
+      }));
+    } catch (error: any) {
+      console.error('Adres silinirken hata:', error);
+      set({ 
+        error: error.message || 'Adres silinemedi', 
+        isLoading: false 
+      });
+      throw error;
+    }
   },
 
-  // 🎯 Varsayılan Adresi Al
+  setDefaultAddress: async (id: string) => {
+    try {
+      console.log('🔄 setDefaultAddress başladı, id:', id);
+      set({ isLoading: true, error: null });
+
+      const { addresses } = get();
+      const currentDefault = addresses.find(addr => addr.isDefault);
+      
+      if (currentDefault && currentDefault.id !== id) {
+        console.log('🔄 Mevcut varsayılan adresi false yapıyor:', currentDefault.id);
+        console.log('📤 Backend\'e gönderilen data:', { is_default: false });
+        await api.updateAddress(currentDefault.id, { is_default: false });
+        console.log('✅ Mevcut varsayılan adres false yapıldı');
+      }
+
+      console.log('🔄 Yeni adresi varsayılan yapıyor:', id);
+      console.log('📤 Backend\'e gönderilen data:', { is_default: true });
+      await api.updateAddress(id, { is_default: true });
+      console.log('✅ Yeni adres varsayılan yapıldı');
+
+      set((state) => ({
+        addresses: state.addresses.map(addr => ({
+          ...addr,
+          isDefault: addr.id === id // Sadece seçilen adres true, diğerleri false
+        })),
+        isLoading: false,
+      }));
+      
+      console.log('✅ setDefaultAddress tamamlandı (local state güncellendi)');
+    } catch (error: any) {
+      console.error('❌ Varsayılan adres ayarlanırken hata:', error);
+      set({ 
+        error: error.message || 'Varsayılan adres ayarlanamadı', 
+        isLoading: false 
+      });
+      throw error;
+    }
+  },
+
   getDefaultAddress: () => {
     const { addresses } = get();
     return addresses.find(addr => addr.isDefault) || null;
   },
+
+  clearError: () => {
+    set({ error: null });
+  },
 }));
-
-// 🎯 KULLANIM ÖRNEĞİ:
-// 
-// import { useAddressStore } from '../store/addressStore';
-// 
-// function AddressesScreen() {
-//   const { addresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } = useAddressStore();
-//   
-//   const handleAddAddress = () => {
-//     addAddress({
-//       title: "Ev",
-//       fullName: "Ahmet Yılmaz",
-//       phone: "+90 555 123 45 67",
-//       city: "İstanbul",
-//       district: "Kadıköy",
-//       fullAddress: "Moda Caddesi No: 123",
-//       isDefault: false,
-//     });
-//   };
-//   
-//   return (
-//     <View>
-//       {addresses.map(address => (
-//         <AddressCard key={address.id} address={address} />
-//       ))}
-//     </View>
-//   );
-// }
-

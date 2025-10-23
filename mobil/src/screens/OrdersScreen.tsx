@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,143 +11,22 @@ import {
 } from "react-native";
 import tw from "twrnc";
 import { useTheme } from "../context/ThemeContext";
-import { BaseOrder, OrderItem } from "../types";
+import { BaseOrder, OrderItem, StoreOrder } from "../types";
+import { useOrderStore } from "../store/orderStore";
 
-const ORDERS: BaseOrder[] = [
-  {
-    id: "1",
-    orderNumber: "#12345",
-    createdAt: "2024-01-15",
-    date: "2024-01-15",
-    total: 150.0,
-    status: "shipped",
-    items: [], // CartItem array - boş bırakıyoruz çünkü products kullanıyoruz
-    shippingCost: 15.0,
-    address: "Atatürk Cad. No:123, Kadıköy/İstanbul",
-    deliveryAddress: "Atatürk Cad. No:123, Kadıköy/İstanbul",
-    products: [
-      {
-        id: "1",
-        name: "Premium Kuru Fasulye",
-        image: "https://via.placeholder.com/100",
-        price: 45.0,
-        quantity: 2,
-      },
-      {
-        id: "2",
-        name: "Organik Mercimek",
-        image: "https://via.placeholder.com/100",
-        price: 30.0,
-        quantity: 2,
-      },
-    ],
-  },
-  {
-    id: "2",
-    orderNumber: "#12346",
-    createdAt: "2024-02-20",
-    date: "2024-02-20",
-    total: 200.0,
-    status: "delivered",
-    items: [],
-    shippingCost: 20.0,
-    address: "Bağdat Cad. No:456, Kadıköy/İstanbul",
-    deliveryAddress: "Bağdat Cad. No:456, Kadıköy/İstanbul",
-    products: [
-      {
-        id: "3",
-        name: "Osmanlı Kahvesi",
-        image: "https://via.placeholder.com/100",
-        price: 60.0,
-        quantity: 1,
-      },
-      {
-        id: "4",
-        name: "Baharat Seti",
-        image: "https://via.placeholder.com/100",
-        price: 40.0,
-        quantity: 3,
-      },
-    ],
-  },
-  {
-    id: "3",
-    orderNumber: "#12347",
-    createdAt: "2024-03-05",
-    date: "2024-03-05",
-    total: 75.0,
-    status: "processing",
-    items: [],
-    shippingCost: 10.0,
-    address: "İstiklal Cad. No:789, Beyoğlu/İstanbul",
-    deliveryAddress: "İstiklal Cad. No:789, Beyoğlu/İstanbul",
-    products: [
-      {
-        id: "5",
-        name: "Antep Fıstığı",
-        image: "https://via.placeholder.com/100",
-        price: 55.0,
-        quantity: 1,
-      },
-    ],
-  },
-  {
-    id: "4",
-    orderNumber: "#12348",
-    createdAt: "2024-04-10",
-    date: "2024-04-10",
-    total: 300.0,
-    status: "delivered",
-    items: [],
-    shippingCost: 25.0,
-    address: "Nişantaşı Mah. No:321, Şişli/İstanbul",
-    deliveryAddress: "Nişantaşı Mah. No:321, Şişli/İstanbul",
-    products: [
-      {
-        id: "6",
-        name: "Premium Zeytinyağı",
-        image: "https://via.placeholder.com/100",
-        price: 120.0,
-        quantity: 2,
-      },
-      {
-        id: "7",
-        name: "Kuru Üzüm",
-        image: "https://via.placeholder.com/100",
-        price: 35.0,
-        quantity: 1,
-      },
-    ],
-  },
-  {
-    id: "5",
-    orderNumber: "#12349",
-    createdAt: "2024-05-12",
-    date: "2024-05-12",
-    total: 100.0,
-    status: "shipped",
-    items: [],
-    shippingCost: 15.0,
-    address: "Çamlıca Mah. No:567, Üsküdar/İstanbul",
-    deliveryAddress: "Çamlıca Mah. No:567, Üsküdar/İstanbul",
-    products: [
-      {
-        id: "8",
-        name: "Çay",
-        image: "https://via.placeholder.com/100",
-        price: 25.0,
-        quantity: 3,
-      },
-    ],
-  },
-];
+// Mock data kaldırıldı - API'den çekilecek
 
 const OrdersScreen: React.FC = () => {
-  const [orders, setOrders] = useState<BaseOrder[]>(ORDERS);
-  const [selectedOrder, setSelectedOrder] = useState<BaseOrder | null>(null);
+  const { orders, fetchOrders, isLoading, error } = useOrderStore();
+  const [selectedOrder, setSelectedOrder] = useState<StoreOrder | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
-  const getStatusConfig = (status: BaseOrder["status"]) => {
+  // API'den siparişleri çek
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const getStatusConfig = (status: StoreOrder["status"]) => {
     switch (status) {
       case "pending":
         return {
@@ -194,10 +73,10 @@ const OrdersScreen: React.FC = () => {
     }
   };
 
-  const handleCancelOrder = (order: BaseOrder) => {
+  const handleCancelOrder = async (order: StoreOrder) => {
     Alert.alert(
       "Siparişi İptal Et",
-      `${order.orderNumber} numaralı siparişi iptal etmek istediğinize emin misiniz?`,
+      `${order.id} numaralı siparişi iptal etmek istediğinize emin misiniz?`,
       [
         {
           text: "Vazgeç",
@@ -206,20 +85,20 @@ const OrdersScreen: React.FC = () => {
         {
           text: "İptal Et",
           style: "destructive",
-          onPress: () => {
-            setOrders((prevOrders) =>
-              prevOrders.map((o) =>
-                o.id === order.id ? { ...o, status: "cancelled" as const } : o
-              )
-            );
-            Alert.alert("Başarılı", "Siparişiniz iptal edildi.");
+          onPress: async () => {
+            try {
+              await useOrderStore.getState().cancelOrder(order.id);
+              Alert.alert("Başarılı", "Siparişiniz iptal edildi.");
+            } catch (error) {
+              Alert.alert("Hata", "Sipariş iptal edilemedi.");
+            }
           },
         },
       ]
     );
   };
 
-  const handleViewOrder = (order: BaseOrder) => {
+  const handleViewOrder = (order: StoreOrder) => {
     setSelectedOrder(order);
     setDetailModalVisible(true);
   };
@@ -238,10 +117,9 @@ const OrdersScreen: React.FC = () => {
     return `₺${price.toFixed(2)}`;
   };
 
-  const calculateSubtotal = (order: BaseOrder) => {
-    if (!order.products) return order.total;
-    return order.products.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+  const calculateSubtotal = (order: StoreOrder) => {
+    return order.items.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
       0
     );
   };
@@ -333,27 +211,27 @@ const OrdersScreen: React.FC = () => {
                     <Text style={tw`text-gray-800 font-bold text-base mb-3`}>
                       Ürünler
                     </Text>
-                    {selectedOrder.products?.map((item) => (
+                    {selectedOrder.items?.map((item, index) => (
                       <View
-                        key={item.id}
+                        key={`${item.product.id}-${index}`}
                         style={tw`flex-row items-center mb-3 bg-gray-50 rounded-xl p-3`}
                       >
                         <Image
-                          source={{ uri: item.image }}
+                          source={{ uri: item.product.image }}
                           style={tw`w-16 h-16 rounded-lg bg-gray-200 mr-3`}
                         />
                         <View style={tw`flex-1`}>
                           <Text
                             style={tw`text-gray-800 font-semibold text-sm mb-1`}
                           >
-                            {item.name}
+                            {item.product.name}
                           </Text>
                           <Text style={tw`text-gray-500 text-xs`}>
-                            {formatPrice(item.price)} x {item.quantity}
+                            {formatPrice(item.product.price)} x {item.quantity}
                           </Text>
                         </View>
                         <Text style={tw`text-gray-800 font-bold text-base`}>
-                          {formatPrice(item.price * item.quantity)}
+                          {formatPrice(item.product.price * item.quantity)}
                         </Text>
                       </View>
                     ))}
@@ -489,7 +367,7 @@ const OrdersScreen: React.FC = () => {
                   <Text
                     style={[tw`text-sm`, { color: theme.colors.textSecondary }]}
                   >
-                    {order.products?.length || 0} ürün
+                    {order.items?.length || 0} ürün
                   </Text>
                 </View>
                 <View style={tw`flex-row items-center`}>

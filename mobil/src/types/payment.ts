@@ -5,6 +5,7 @@ export interface PaymentMethod {
   expiryDate: string; 
   cardType: "visa" | "mastercard" | "amex" | "other";
   isDefault?: boolean;
+  cvv?: string; // CVV alanı eklendi
 }
 
 export interface PaymentMethodCardProps {

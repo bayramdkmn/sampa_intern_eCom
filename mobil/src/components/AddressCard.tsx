@@ -27,8 +27,6 @@ const AddressCard: React.FC<AddressCardProps> = ({
               </View>
             )}
           </View>
-          <Text style={tw`text-gray-700 mb-1`}>{address.fullName}</Text>
-          <Text style={tw`text-gray-600 text-sm mb-1`}>{address.phone}</Text>
           <Text style={tw`text-gray-600 text-sm mb-1`}>
             {address.city} / {address.district}
           </Text>

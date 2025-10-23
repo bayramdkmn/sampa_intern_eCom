@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -19,11 +19,21 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const AddressesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { addresses, deleteAddress, setDefaultAddress } = useAddressStore();
+  const {
+    addresses,
+    deleteAddress,
+    setDefaultAddress,
+    fetchAddresses,
+    isLoading,
+  } = useAddressStore();
   const { theme } = useTheme();
 
   const [formVisible, setFormVisible] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+
+  useEffect(() => {
+    fetchAddresses();
+  }, [fetchAddresses]);
 
   const openAddForm = () => {
     setEditingAddress(null);
@@ -91,7 +101,14 @@ const AddressesScreen: React.FC = () => {
           paddingBottom: Platform.OS === "ios" ? 110 : 90,
         }}
       >
-        {addresses.length === 0 ? (
+        {isLoading ? (
+          <View style={tw`items-center justify-center py-16`}>
+            <Text style={tw`text-4xl mb-4`}>⏳</Text>
+            <Text style={tw`text-gray-600 text-lg font-semibold`}>
+              Adresler yükleniyor...
+            </Text>
+          </View>
+        ) : addresses.length === 0 ? (
           <View style={tw`items-center justify-center py-12 px-8`}>
             <Text style={tw`text-6xl mb-4`}>📍</Text>
             <Text style={tw`text-gray-800 text-xl font-bold mb-2 text-center`}>

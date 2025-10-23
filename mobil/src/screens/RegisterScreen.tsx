@@ -20,17 +20,19 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { register, isLoading } = useAuthStore();
+  const { register, isLoading, error, clearError } = useAuthStore();
   const { theme } = useTheme();
 
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -39,17 +41,26 @@ const RegisterScreen: React.FC = () => {
   const validateForm = () => {
     let valid = true;
     const newErrors = {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
     };
 
-    if (!name.trim()) {
-      newErrors.name = "Ad Soyad gereklidir";
+    if (!firstName.trim()) {
+      newErrors.firstName = "Ad gereklidir";
       valid = false;
-    } else if (name.trim().length < 3) {
-      newErrors.name = "Ad Soyad en az 3 karakter olmalıdır";
+    } else if (firstName.trim().length < 2) {
+      newErrors.firstName = "Ad en az 2 karakter olmalıdır";
+      valid = false;
+    }
+
+    if (!lastName.trim()) {
+      newErrors.lastName = "Soyad gereklidir";
+      valid = false;
+    } else if (lastName.trim().length < 2) {
+      newErrors.lastName = "Soyad en az 2 karakter olmalıdır";
       valid = false;
     }
 
@@ -84,12 +95,18 @@ const RegisterScreen: React.FC = () => {
   const handleRegister = async () => {
     if (!validateForm()) return;
 
+    clearError(); // Önceki hatayı temizle
+
     try {
-      await register(name.trim(), email, password);
+      await register(firstName.trim(), lastName.trim(), email, password);
+
       // Başarı ekranına yönlendir
-      navigation.navigate("WelcomeSuccess", { userName: name.trim() });
-    } catch (error) {
-      alert("Kayıt başarısız. Lütfen tekrar deneyin.");
+      navigation.navigate("WelcomeSuccess", {
+        userName: `${firstName.trim()} ${lastName.trim()}`,
+      });
+    } catch (err: any) {
+      // Hata mesajı store'da error state'inde
+      console.error("Register error:", err);
     }
   };
 
@@ -124,11 +141,12 @@ const RegisterScreen: React.FC = () => {
             </Text>
           </View>
 
+          {/* Ad */}
           <View style={tw`mb-4`}>
             <Text
               style={[tw`font-semibold mb-2`, { color: theme.colors.text }]}
             >
-              Ad Soyad
+              Ad
             </Text>
             <TextInput
               style={[
@@ -136,22 +154,58 @@ const RegisterScreen: React.FC = () => {
                 {
                   backgroundColor: theme.colors.inputBackground,
                   color: theme.colors.text,
-                  borderWidth: errors.name ? 2 : 0,
-                  borderColor: errors.name
+                  borderWidth: errors.firstName ? 2 : 0,
+                  borderColor: errors.firstName
                     ? theme.colors.error
                     : theme.colors.inputBorder,
                 },
               ]}
-              value={name}
+              value={firstName}
               onChangeText={(text) => {
-                setName(text);
-                setErrors({ ...errors, name: "" });
+                setFirstName(text);
+                setErrors({ ...errors, firstName: "" });
               }}
-              placeholder="Adınız ve Soyadınız"
+              placeholder="Adınız"
               placeholderTextColor="#9CA3AF"
             />
-            {errors.name ? (
-              <Text style={tw`text-red-500 text-sm mt-1`}>{errors.name}</Text>
+            {errors.firstName ? (
+              <Text style={[tw`text-sm mt-1`, { color: theme.colors.error }]}>
+                {errors.firstName}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Soyad */}
+          <View style={tw`mb-4`}>
+            <Text
+              style={[tw`font-semibold mb-2`, { color: theme.colors.text }]}
+            >
+              Soyad
+            </Text>
+            <TextInput
+              style={[
+                tw`rounded-xl px-4 py-3 text-base`,
+                {
+                  backgroundColor: theme.colors.inputBackground,
+                  color: theme.colors.text,
+                  borderWidth: errors.lastName ? 2 : 0,
+                  borderColor: errors.lastName
+                    ? theme.colors.error
+                    : theme.colors.inputBorder,
+                },
+              ]}
+              value={lastName}
+              onChangeText={(text) => {
+                setLastName(text);
+                setErrors({ ...errors, lastName: "" });
+              }}
+              placeholder="Soyadınız"
+              placeholderTextColor="#9CA3AF"
+            />
+            {errors.lastName ? (
+              <Text style={[tw`text-sm mt-1`, { color: theme.colors.error }]}>
+                {errors.lastName}
+              </Text>
             ) : null}
           </View>
 
@@ -276,6 +330,20 @@ const RegisterScreen: React.FC = () => {
               </Text>
             ) : null}
           </View>
+
+          {/* Backend Hata Mesajı */}
+          {error && (
+            <View
+              style={[
+                tw`px-4 py-3 rounded-xl mb-4`,
+                { backgroundColor: `${theme.colors.error}15` },
+              ]}
+            >
+              <Text style={[tw`text-sm`, { color: theme.colors.error }]}>
+                ⚠️ {error}
+              </Text>
+            </View>
+          )}
 
           <TouchableOpacity
             onPress={handleRegister}

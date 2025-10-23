@@ -20,7 +20,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, error, clearError } = useAuthStore();
   const { theme } = useTheme();
 
   const [email, setEmail] = useState("");
@@ -55,11 +55,18 @@ const LoginScreen: React.FC = () => {
   const handleLogin = async () => {
     if (!validateForm()) return;
 
+    clearError(); // Önceki hatayı temizle
+
     try {
       await login(email, password);
-      navigation.navigate("MainTabs");
-    } catch (error) {
-      alert("Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
+      // Başarılı giriş - navigation MainTabs'a otomatik yönlendirilecek
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainTabs" }],
+      });
+    } catch (err: any) {
+      // Hata mesajı store'da error state'inde
+      console.error("Login error:", err);
     }
   };
 
@@ -177,6 +184,20 @@ const LoginScreen: React.FC = () => {
               Şifremi Unuttum?
             </Text>
           </TouchableOpacity>
+
+          {/* Backend Hata Mesajı */}
+          {error && (
+            <View
+              style={[
+                tw`px-4 py-3 rounded-xl mb-4`,
+                { backgroundColor: `${theme.colors.error}15` },
+              ]}
+            >
+              <Text style={[tw`text-sm`, { color: theme.colors.error }]}>
+                ⚠️ {error}
+              </Text>
+            </View>
+          )}
 
           <TouchableOpacity
             onPress={handleLogin}

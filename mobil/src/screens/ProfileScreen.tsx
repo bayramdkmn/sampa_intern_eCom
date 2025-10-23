@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import * as ImagePicker from "expo-image-picker";
 import {
   View,
   Text,
@@ -9,6 +10,8 @@ import {
   Modal,
   TextInput,
   KeyboardAvoidingView,
+  Alert,
+  Linking,
 } from "react-native";
 import tw from "twrnc";
 import { User } from "../types";
@@ -23,6 +26,7 @@ import {
   useOrderStore,
 } from "../store";
 import { useTheme } from "../context/ThemeContext";
+import { api } from "../services/api";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -47,12 +51,32 @@ const ProfileScreen: React.FC = () => {
   const { favorites } = useFavoriteStore();
   const { addresses } = useAddressStore();
   const { paymentMethods } = usePaymentStore();
-  const { user, isAuthenticated, updateUser } = useAuthStore();
-  const { orders } = useOrderStore();
+  const { user, isAuthenticated, updateUser, fetchUserProfile, isLoading } =
+    useAuthStore();
+  const { orders, fetchOrders } = useOrderStore();
   const { theme, toggleTheme } = useTheme();
 
   // Fallback to mock user if not authenticated
   const currentUser = user || USER;
+
+  // API'den profil çek (avatar yoksa veya kullanıcı yoksa)
+  useEffect(() => {
+    if (isAuthenticated && (!user || !user.avatar)) {
+      fetchUserProfile().catch(() => {});
+    }
+  }, [isAuthenticated, user?.avatar]);
+
+  // Siparişleri çek
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchOrders();
+    }
+  }, [isAuthenticated]);
+
+  // Debug: Avatar URL'yi logla
+  useEffect(() => {
+    console.log("👤 Avatar URL:", currentUser?.avatar);
+  }, [currentUser?.avatar]);
 
   // İstatistik hesaplamaları
   const totalOrders = orders.length;
@@ -66,8 +90,8 @@ const ProfileScreen: React.FC = () => {
   // Profile Edit Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [editedName, setEditedName] = useState(currentUser.name);
-  const [editedEmail, setEditedEmail] = useState(currentUser.email);
   const [editedPhone, setEditedPhone] = useState(currentUser.phone || "");
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const MENU_ITEMS = [
     {
@@ -75,7 +99,7 @@ const ProfileScreen: React.FC = () => {
       icon: "📦",
       title: "Siparişlerim",
       description: "Geçmiş siparişlerinizi görüntüleyin",
-      badge: "3",
+      badge: orders.length > 0 ? orders.length.toString() : undefined,
     },
     {
       id: "2",
@@ -137,18 +161,17 @@ const ProfileScreen: React.FC = () => {
 
   const handleEditPress = () => {
     setEditedName(currentUser.name);
-    setEditedEmail(currentUser.email);
     setEditedPhone(currentUser.phone || "");
     setModalVisible(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isAuthenticated && updateUser) {
-      updateUser({
+      await updateUser({
         name: editedName,
-        email: editedEmail,
         phone: editedPhone,
       });
+      await fetchUserProfile();
     }
     setModalVisible(false);
     alert("Profil bilgileriniz güncellendi!");
@@ -220,31 +243,7 @@ const ProfileScreen: React.FC = () => {
                 />
               </View>
 
-              <View style={tw`mb-4`}>
-                <Text
-                  style={[
-                    tw`text-gray-700 font-semibold mb-2`,
-                    { color: theme.colors.text },
-                  ]}
-                >
-                  E-posta
-                </Text>
-                <TextInput
-                  style={[
-                    tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`,
-                    {
-                      color: theme.colors.text,
-                      backgroundColor: theme.colors.surfaceVariant,
-                    },
-                  ]}
-                  value={editedEmail}
-                  onChangeText={setEditedEmail}
-                  placeholder="E-posta"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
+              {/* E-posta alanı kaldırıldı */}
 
               <View style={tw`mb-6`}>
                 <Text
@@ -288,6 +287,58 @@ const ProfileScreen: React.FC = () => {
                 >
                   <Text style={tw`text-white font-bold text-center text-base`}>
                     Kaydet
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Profil fotoğrafı yükleme */}
+              <View style={tw`mt-4`}>
+                <TouchableOpacity
+                  disabled={avatarUploading}
+                  onPress={async () => {
+                    try {
+                      setAvatarUploading(true);
+                      // Expo Image Picker entegrasyonu
+                      const perm =
+                        await ImagePicker.requestMediaLibraryPermissionsAsync();
+                      if (perm.status !== "granted") {
+                        Alert.alert(
+                          "İzin gerekli",
+                          "Fotoğraf seçebilmek için galeri izni gerekiyor.",
+                          [
+                            { text: "İptal", style: "cancel" },
+                            {
+                              text: "Ayarları Aç",
+                              onPress: () => Linking.openSettings(),
+                            },
+                          ]
+                        );
+                        return;
+                      }
+
+                      const result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                        quality: 0.9,
+                        allowsEditing: true,
+                        aspect: [1, 1],
+                      });
+
+                      if (!result.canceled && result.assets?.length) {
+                        const uri = result.assets[0].uri;
+                        await api.uploadProfilePhoto(uri);
+                        // Profili yenile
+                        await fetchUserProfile();
+                      }
+                    } finally {
+                      setAvatarUploading(false);
+                    }
+                  }}
+                  style={tw`bg-gray-200 py-3 rounded-xl items-center`}
+                >
+                  <Text style={tw`font-semibold`}>
+                    {avatarUploading
+                      ? "Yükleniyor..."
+                      : "Profil Fotoğrafı Yükle"}
                   </Text>
                 </TouchableOpacity>
               </View>

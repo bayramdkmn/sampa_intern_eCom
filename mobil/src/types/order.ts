@@ -26,12 +26,15 @@ export interface BaseOrder {
 
 export interface StoreOrder {
   id: string;
+  orderNumber: string;
   items: CartItem[];
   total: number;
   shippingCost: number;
   finalTotal: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   createdAt: string;
+  date: string;
+  address: string;
   deliveryAddress?: string;
   paymentMethod?: string;
 }

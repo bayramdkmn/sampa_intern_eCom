@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,12 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  Alert,
 } from "react-native";
 import tw from "twrnc";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
-import { useProductStore, useAuthStore } from "../store";
+import { useProductStore, useAuthStore, useCartStore } from "../store";
 import { useTheme } from "../context/ThemeContext";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<
@@ -29,9 +30,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const { products, categories, fetchProducts, fetchCategories, isLoading } =
     useProductStore();
   const { isAuthenticated } = useAuthStore();
+  const { addToCart } = useCartStore();
   const { theme } = useTheme();
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
-  // Component mount olduğunda ürünleri ve kategorileri çek
   useEffect(() => {
     fetchProducts();
     fetchCategories();
@@ -41,7 +43,34 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate("ProductDetail", { productId });
   };
 
-  // Loading durumu
+  const handleAddToCart = async (product: any, e: any) => {
+    e.stopPropagation(); // Parent TouchableOpacity'yi tetikleme
+
+    try {
+      setAddingToCart(product.id);
+      await addToCart(product, 1);
+      Alert.alert("✅ Başarılı", `${product.name} sepete eklendi!`);
+    } catch (error) {
+      Alert.alert("❌ Hata", "Ürün sepete eklenemedi");
+    } finally {
+      setAddingToCart(null);
+    }
+  };
+
+  const handleBuyNow = async (product: any, e: any) => {
+    e.stopPropagation(); // Parent TouchableOpacity'yi tetikleme
+
+    try {
+      setAddingToCart(product.id);
+      await addToCart(product, 1);
+      navigation.navigate("MainTabs", { screen: "Cart" });
+    } catch (error) {
+      Alert.alert("❌ Hata", "Ürün sepete eklenemedi");
+    } finally {
+      setAddingToCart(null);
+    }
+  };
+
   if (isLoading && products.length === 0) {
     return (
       <View
@@ -79,7 +108,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
         </View>
 
-        {/* Search Bar */}
         <View
           style={[
             tw`rounded-xl px-4 py-3 flex-row items-center`,
@@ -188,7 +216,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       )}
 
-      {/* Categories */}
       <View style={tw`mt-6 px-4`}>
         <View style={tw`flex-row justify-between items-center mb-3`}>
           <Text style={[tw`text-lg font-bold`, { color: theme.colors.text }]}>
@@ -224,7 +251,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      {/* Featured Products */}
       <View style={tw`mt-6 px-4 pb-6`}>
         <View style={tw`flex-row justify-between items-center mb-3`}>
           <Text style={[tw`text-lg font-bold`, { color: theme.colors.text }]}>
@@ -245,52 +271,85 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 },
               ]}
             >
-              <Image
-                source={{ uri: product.image }}
-                style={[
-                  tw`w-28 h-28`,
-                  { backgroundColor: theme.colors.surfaceVariant },
-                ]}
-              />
-              <View style={tw`flex-1 p-4 justify-between`}>
-                <View>
-                  <Text
+              <View style={{ width: "30%", height: "100%" }}>
+                <Image
+                  source={{ uri: product.image }}
+                  style={[tw`w-full h-44`, { resizeMode: "stretch" }]}
+                />
+              </View>
+
+              <View style={[tw`p-4 justify-between`, { width: "70%" }]}>
+                {/* Başlık */}
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    tw`font-bold text-base mb-1`,
+                    { color: theme.colors.text },
+                  ]}
+                >
+                  {product.name}
+                </Text>
+
+                <Text
+                  numberOfLines={2}
+                  style={[
+                    tw`text-xs leading-4 mb-3`,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
+                  {product.description || "Ürün açıklaması bulunmamaktadır"}
+                </Text>
+
+                {/* Fiyat */}
+                <Text
+                  style={[
+                    tw`font-bold text-lg mb-2`,
+                    { color: theme.colors.primary },
+                  ]}
+                >
+                  ₺{product.price.toLocaleString("tr-TR")}
+                </Text>
+
+                {/* Butonlar */}
+                <View style={tw`flex-row gap-2`}>
+                  <TouchableOpacity
+                    onPress={(e) => handleBuyNow(product, e)}
+                    disabled={addingToCart === product.id}
                     style={[
-                      tw`font-bold text-base mb-1`,
-                      { color: theme.colors.text },
+                      tw`flex-1 py-2 rounded-lg`,
+                      {
+                        backgroundColor: theme.colors.primary,
+                        opacity: addingToCart === product.id ? 0.5 : 1,
+                      },
                     ]}
                   >
-                    {product.name}
-                  </Text>
-                  <Text
+                    <Text
+                      style={tw`text-white text-xs font-semibold text-center`}
+                    >
+                      {addingToCart === product.id ? "..." : "Satın Al"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={(e) => handleAddToCart(product, e)}
+                    disabled={addingToCart === product.id}
                     style={[
-                      tw`text-sm mb-2`,
-                      { color: theme.colors.textSecondary },
+                      tw`flex-1 py-2 rounded-lg border`,
+                      {
+                        borderColor: theme.colors.primary,
+                        opacity: addingToCart === product.id ? 0.5 : 1,
+                      },
                     ]}
                   >
-                    {product.description}
-                  </Text>
-                </View>
-                <View style={tw`flex-row justify-between items-center`}>
-                  <Text
-                    style={[
-                      tw`font-bold text-lg`,
-                      { color: theme.colors.primary },
-                    ]}
-                  >
-                    ₺{product.price.toLocaleString("tr-TR")}
-                  </Text>
-                  <View style={tw`flex-row items-center`}>
-                    <Text style={tw`text-yellow-500 mr-1`}>⭐</Text>
                     <Text
                       style={[
-                        tw`font-semibold`,
-                        { color: theme.colors.textSecondary },
+                        tw`text-xs font-semibold text-center`,
+                        { color: theme.colors.primary },
                       ]}
                     >
-                      {product.rating}
+                      {addingToCart === product.id ? "..." : "🛒 Ekle"}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             </TouchableOpacity>
