@@ -28,7 +28,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # local env files
-.env*
+ecommerce/.env
 .env*.local
 
 # vercel

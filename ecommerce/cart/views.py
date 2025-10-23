@@ -46,30 +46,26 @@ class CartViewSet(viewsets.ViewSet):
     # DELETE /api/cart/remove/
     @action(detail=False, methods=['delete'])
     def remove(self, request):
+        """Sepetten belirli bir ürünü tamamen çıkarır."""
         product_id = request.data.get('product_id')
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-
-        CartItem.objects.filter(cart=cart, product_id=product_id).delete()
-
-        return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
-
-    # DELETE /api/cart/remove_item/
-    @action(detail=False, methods=['delete'])
-    def remove_item(self, request):
-        product_id = request.data.get('product_id')
+        if not product_id:
+            return Response({'error': 'Product ID gerekli'}, status=400)
+            
         cart, _ = Cart.objects.get_or_create(user=request.user)
         CartItem.objects.filter(cart=cart, product_id=product_id).delete()
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['patch'], url_path='update_quantity')
-    def update_quantity(self, request):
+    # PATCH /api/cart/decrease/
+    @action(detail=False, methods=['patch'])
+    def decrease(self, request):
+        """Sepetteki bir ürünün miktarını azaltır, miktar 0'a düşerse ürünü sepetten çıkarır."""
         product_id = request.data.get('product_id')
         if not product_id:
             return Response({'error': 'Product ID gerekli'}, status=400)
 
         try:
-            quantity_to_change = int(request.data.get('quantity', 1))
-            if quantity_to_change < 1:
+            quantity = int(request.data.get('quantity', 1))
+            if quantity < 1:
                 return Response({'error': 'Quantity >= 1 olmalı'}, status=400)
         except (TypeError, ValueError):
             return Response({'error': 'Quantity geçersiz'}, status=400)
@@ -77,20 +73,27 @@ class CartViewSet(viewsets.ViewSet):
         cart, _ = Cart.objects.get_or_create(user=request.user)
 
         try:
-            # Sadece ilgili ürün seçiliyor
             item = CartItem.objects.get(cart=cart, product_id=product_id)
         except CartItem.DoesNotExist:
             return Response({'error': 'Ürün sepetinizde yok'}, status=404)
 
-        if item.quantity > quantity_to_change:
-            item.quantity -= quantity_to_change
+        if item.quantity > quantity:
+            item.quantity -= quantity
             item.save()
         else:
-            # Sadece bu item silinir
+            # Miktar 0 veya daha az olursa ürünü sepetten çıkar
             item.delete()
 
         serializer = CartSerializer(cart)
         return Response(serializer.data)
+
+    # DELETE /api/cart/clear/
+    @action(detail=False, methods=['delete'])
+    def clear(self, request):
+        """Sepeti tamamen temizler, tüm ürünleri kaldırır."""
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        CartItem.objects.filter(cart=cart).delete()
+        return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
 
 
 

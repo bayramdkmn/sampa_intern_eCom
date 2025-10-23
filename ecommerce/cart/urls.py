@@ -4,9 +4,8 @@ from .views import CartViewSet
 urlpatterns = [
     path('', CartViewSet.as_view({'get': 'list'}), name='cart-list'),
     path('add/', CartViewSet.as_view({'post': 'add'}), name='cart-add'),
-    path('remove/', CartViewSet.as_view({'post': 'remove'}), name='cart-remove'),
-    path('remove_item/', CartViewSet.as_view({'delete': 'remove_item'}), name='cart-remove-item'),
-    path('decrease_quantity/', CartViewSet.as_view({'post': 'decrease_quantity'}), name='cart-decrease-quantity'),
-    path('update_quantity/', CartViewSet.as_view({'patch': 'update_quantity'}), name='cart-update-quantity'),  # <- bu satır eklendi
+    path('remove/', CartViewSet.as_view({'delete': 'remove'}), name='cart-remove'),
+    path('decrease/', CartViewSet.as_view({'patch': 'decrease'}), name='cart-decrease'),
+    path('clear/', CartViewSet.as_view({'delete': 'clear'}), name='cart-clear'),
 ]
 
