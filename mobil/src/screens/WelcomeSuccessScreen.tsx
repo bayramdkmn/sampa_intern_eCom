@@ -55,7 +55,6 @@ const WelcomeSuccessScreen: React.FC = () => {
   }, []);
 
   const handleContinue = () => {
-    console.log("Continue button pressed");
     navigation.navigate("MainTabs");
   };
 

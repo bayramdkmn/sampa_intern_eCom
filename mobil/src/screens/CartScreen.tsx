@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,47 +6,99 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  Alert,
+  Modal,
 } from "react-native";
 import tw from "twrnc";
-import { useCartStore, useOrderStore } from "../store";
+import {
+  useCartStore,
+  useOrderStore,
+  useAddressStore,
+  usePaymentStore,
+} from "../store";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
-import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-import { RootStackParamList } from "../types";
 
 const CartScreen: React.FC = () => {
-  // 🎯 Zustand Store'dan veri al
-  // Redux'ta: useSelector() ile state çekerdin
-  // Zustand'da: direkt store'dan al!
   const { items, total, updateQuantity, removeFromCart } = useCartStore();
   const { createOrder } = useOrderStore();
+  const { addresses, fetchAddresses } = useAddressStore();
+  const { paymentMethods, fetchPaymentMethods } = usePaymentStore();
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    string | null
+  >(null);
 
-  const calculateShipping = () => {
-    return total > 500 ? 0 : 29.99;
-  };
+  useEffect(() => {
+    fetchAddresses();
+    fetchPaymentMethods();
+  }, []);
 
   const calculateFinalTotal = () => {
-    return total + calculateShipping();
+    return total; // Kargo ücretsiz
   };
 
-  const handleCheckout = async () => {
-    try {
-      const shippingCost = calculateShipping();
-      const order = await createOrder(items, total, shippingCost);
+  const handleCheckout = () => {
+    navigation.navigate("AddressInfo" as never);
+  };
 
-      alert(
-        `Sipariş oluşturuldu! #${
-          order.id
-        }\nToplam: ₺${order.finalTotal.toLocaleString("tr-TR")}`
-      );
-
-      // TODO: Sipariş başarı sayfasına yönlendir
-      // navigation.navigate('OrderSuccess', { orderId: order.id });
-    } catch (error) {
-      alert("Sipariş oluşturulamadı!");
+  const handleConfirmOrder = async () => {
+    if (!selectedAddress || !selectedPaymentMethod) {
+      Alert.alert("Hata", "Lütfen adres ve ödeme yöntemi seçin.");
+      return;
     }
+
+    Alert.alert(
+      "Siparişi Onayla",
+      `Toplam: ₺${calculateFinalTotal().toLocaleString(
+        "tr-TR"
+      )}\n\nBu siparişi onaylamak istediğinizden emin misiniz?`,
+      [
+        {
+          text: "Hayır",
+          style: "cancel",
+        },
+        {
+          text: "Evet, Onayla",
+          style: "default",
+          onPress: async () => {
+            try {
+              setCheckoutModalVisible(false);
+
+              const order = await createOrder(
+                selectedAddress,
+                selectedPaymentMethod
+              );
+
+              const { clearCart } = useCartStore.getState();
+              clearCart();
+
+              Alert.alert(
+                "Sipariş Oluşturuldu! 🎉",
+                `Sipariş #${
+                  order.id
+                } başarıyla oluşturuldu!\nToplam: ₺${order.finalTotal.toLocaleString(
+                  "tr-TR"
+                )}\n\nSepetiniz temizlendi.`,
+                [
+                  {
+                    text: "Tamam",
+                    onPress: () => {
+                      navigation.navigate("MainTabs", { screen: "Home" });
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              Alert.alert("Hata", "Sipariş oluşturulamadı!");
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (items.length === 0) {
@@ -58,9 +110,13 @@ const CartScreen: React.FC = () => {
             { backgroundColor: theme.colors.headerBackground },
           ]}
         >
-          <Text style={[tw`text-2xl font-bold`, { color: theme.colors.text }]}>
-            Sepetim
-          </Text>
+          <View style={tw`flex-row justify-between items-center`}>
+            <Text
+              style={[tw`text-2xl font-bold`, { color: theme.colors.text }]}
+            >
+              Sepetim
+            </Text>
+          </View>
         </View>
 
         <View style={tw`flex-1 items-center justify-center px-6`}>
@@ -130,7 +186,6 @@ const CartScreen: React.FC = () => {
           paddingBottom: Platform.OS === "ios" ? 110 : 90,
         }}
       >
-        {/* Cart Items */}
         <View style={tw`p-4`}>
           {items.map((item) => (
             <View
@@ -264,39 +319,18 @@ const CartScreen: React.FC = () => {
                 <Text style={[tw``, { color: theme.colors.textSecondary }]}>
                   Kargo
                 </Text>
-                {calculateShipping() === 0 ? (
-                  <View style={tw`flex-row items-center`}>
-                    <Text
-                      style={[
-                        tw`font-semibold mr-1`,
-                        { color: theme.colors.primary },
-                      ]}
-                    >
-                      ÜCRETSİZ
-                    </Text>
-                    <Text style={tw`text-xs`}>🎉</Text>
-                  </View>
-                ) : (
+                <View style={tw`flex-row items-center`}>
                   <Text
-                    style={[tw`font-semibold`, { color: theme.colors.text }]}
+                    style={[
+                      tw`font-semibold mr-1`,
+                      { color: theme.colors.primary },
+                    ]}
                   >
-                    ₺{calculateShipping().toFixed(2)}
+                    ÜCRETSİZ
                   </Text>
-                )}
-              </View>
-
-              {calculateShipping() > 0 && (
-                <View
-                  style={[
-                    tw`rounded-lg p-3`,
-                    { backgroundColor: theme.colors.surfaceVariant },
-                  ]}
-                >
-                  <Text style={[tw`text-xs`, { color: theme.colors.primary }]}>
-                    ℹ️ ₺500 üzeri alışverişlerde kargo ücretsiz!
-                  </Text>
+                  <Text style={tw`text-xs`}>🎉</Text>
                 </View>
-              )}
+              </View>
 
               <View
                 style={[
@@ -344,6 +378,447 @@ const CartScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={checkoutModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View
+          style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
+        >
+          <View
+            style={[
+              tw`pt-16 pb-6 px-6`,
+              {
+                backgroundColor: theme.colors.barColor,
+                borderBottomLeftRadius: 24,
+                borderBottomRightRadius: 24,
+                shadowColor: theme.colors.shadow,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 12,
+                elevation: 8,
+              },
+            ]}
+          >
+            <View style={tw`flex-row items-center justify-between mb-6`}>
+              <TouchableOpacity
+                onPress={() => setCheckoutModalVisible(false)}
+                style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center`,
+                  { backgroundColor: theme.colors.card },
+                ]}
+              >
+                <Text
+                  style={[tw`text-xl font-bold`, { color: theme.colors.text }]}
+                >
+                  ←
+                </Text>
+              </TouchableOpacity>
+
+              <Text
+                style={[tw`text-xl font-bold`, { color: theme.colors.text }]}
+              >
+                Güvenli Ödeme
+              </Text>
+
+              <View style={tw`w-10`} />
+            </View>
+
+            <View style={tw`flex-row justify-center items-center mb-6`}>
+              <View
+                style={[
+                  tw`w-3 h-3 rounded-full mr-2`,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              />
+              <View
+                style={[
+                  tw`w-3 h-3 rounded-full mr-2`,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              />
+              <View
+                style={[
+                  tw`w-3 h-3 rounded-full`,
+                  { backgroundColor: theme.colors.border },
+                ]}
+              />
+            </View>
+          </View>
+
+          <ScrollView
+            style={tw`flex-1 px-6`}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Teslimat Adresi Section */}
+            <View style={tw`mt-8`}>
+              <Text
+                style={[
+                  tw`text-lg font-bold mb-4`,
+                  { color: theme.colors.text },
+                ]}
+              >
+                Teslimat Adresi
+              </Text>
+
+              {addresses.map((address, index) => (
+                <TouchableOpacity
+                  key={address.id}
+                  onPress={() => setSelectedAddress(address.id)}
+                  style={[
+                    tw`p-4 rounded-2xl mb-3 border-2`,
+                    {
+                      backgroundColor: theme.colors.card,
+                      borderColor:
+                        selectedAddress === address.id
+                          ? theme.colors.primary
+                          : theme.colors.border,
+                    },
+                  ]}
+                >
+                  <View style={tw`flex-row items-center justify-between`}>
+                    <View style={tw`flex-row items-center flex-1`}>
+                      <View
+                        style={[
+                          tw`w-10 h-10 rounded-xl items-center justify-center mr-3`,
+                          {
+                            backgroundColor:
+                              selectedAddress === address.id
+                                ? theme.colors.primary
+                                : theme.colors.border,
+                          },
+                        ]}
+                      >
+                        <Text style={tw`text-lg`}>🏠</Text>
+                      </View>
+                      <View style={tw`flex-1`}>
+                        <Text
+                          style={[
+                            tw`font-bold text-base mb-1`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
+                          {address.title}
+                        </Text>
+                        <Text
+                          style={[
+                            tw`text-sm`,
+                            { color: theme.colors.textSecondary },
+                          ]}
+                        >
+                          {address.fullAddress}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View
+                      style={[
+                        tw`w-6 h-6 rounded-full border-2 items-center justify-center`,
+                        {
+                          borderColor:
+                            selectedAddress === address.id
+                              ? theme.colors.primary
+                              : theme.colors.border,
+                          backgroundColor:
+                            selectedAddress === address.id
+                              ? theme.colors.primary
+                              : "transparent",
+                        },
+                      ]}
+                    >
+                      {selectedAddress === address.id && (
+                        <Text
+                          style={[
+                            tw`text-xs font-bold`,
+                            { color: theme.colors.buttonText },
+                          ]}
+                        >
+                          ✓
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={tw`mt-8`}>
+              <Text
+                style={[
+                  tw`text-lg font-bold mb-4`,
+                  { color: theme.colors.text },
+                ]}
+              >
+                Ödeme Yöntemi
+              </Text>
+
+              {paymentMethods.map((payment, index) => (
+                <TouchableOpacity
+                  key={payment.id}
+                  onPress={() => setSelectedPaymentMethod(payment.id)}
+                  style={[
+                    tw`p-4 rounded-2xl mb-3 border-2`,
+                    {
+                      backgroundColor: theme.colors.card,
+                      borderColor:
+                        selectedPaymentMethod === payment.id
+                          ? theme.colors.primary
+                          : theme.colors.border,
+                    },
+                  ]}
+                >
+                  <View style={tw`flex-row items-center justify-between`}>
+                    <View style={tw`flex-row items-center flex-1`}>
+                      <View
+                        style={[
+                          tw`w-10 h-10 rounded-xl items-center justify-center mr-3`,
+                          {
+                            backgroundColor:
+                              selectedPaymentMethod === payment.id
+                                ? theme.colors.primary
+                                : theme.colors.border,
+                          },
+                        ]}
+                      >
+                        <Text style={tw`text-lg`}>💳</Text>
+                      </View>
+                      <View style={tw`flex-1`}>
+                        <Text
+                          style={[
+                            tw`font-bold text-base mb-1`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
+                          {payment.cardType} •••• {payment.cardNumber.slice(-4)}
+                        </Text>
+                        <Text
+                          style={[
+                            tw`text-sm`,
+                            { color: theme.colors.textSecondary },
+                          ]}
+                        >
+                          {payment.cardHolderName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View
+                      style={[
+                        tw`w-6 h-6 rounded-full border-2 items-center justify-center`,
+                        {
+                          borderColor:
+                            selectedPaymentMethod === payment.id
+                              ? theme.colors.primary
+                              : theme.colors.border,
+                          backgroundColor:
+                            selectedPaymentMethod === payment.id
+                              ? theme.colors.primary
+                              : "transparent",
+                        },
+                      ]}
+                    >
+                      {selectedPaymentMethod === payment.id && (
+                        <Text
+                          style={[
+                            tw`text-xs font-bold`,
+                            { color: theme.colors.buttonText },
+                          ]}
+                        >
+                          ✓
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Sipariş Özeti Section */}
+            <View style={tw`mt-8 mb-6`}>
+              <Text
+                style={[
+                  tw`text-lg font-bold mb-4`,
+                  { color: theme.colors.text },
+                ]}
+              >
+                Sipariş Özeti
+              </Text>
+
+              <View
+                style={[
+                  tw`p-6 rounded-2xl`,
+                  {
+                    backgroundColor: theme.colors.card,
+                  },
+                ]}
+              >
+                <View style={tw`mb-4`}>
+                  <Text
+                    style={[
+                      tw`font-semibold mb-3`,
+                      { color: theme.colors.text },
+                    ]}
+                  >
+                    Ürünler ({items.length})
+                  </Text>
+                  {items.slice(0, 3).map((item) => (
+                    <View
+                      key={item.product.id}
+                      style={tw`flex-row justify-between items-center mb-2`}
+                    >
+                      <Text
+                        style={[
+                          tw`text-sm flex-1`,
+                          { color: theme.colors.textSecondary },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {item.product.name} x{item.quantity}
+                      </Text>
+                      <Text
+                        key={`price-${item.product.id}`}
+                        style={[
+                          tw`text-sm font-semibold`,
+                          { color: theme.colors.text },
+                        ]}
+                      >
+                        ₺
+                        {(item.product.price * item.quantity).toLocaleString(
+                          "tr-TR"
+                        )}
+                      </Text>
+                    </View>
+                  ))}
+                  {items.length > 3 && (
+                    <Text
+                      style={[
+                        tw`text-xs text-center mt-2`,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
+                      +{items.length - 3} ürün daha...
+                    </Text>
+                  )}
+                </View>
+
+                <View style={tw`border-t border-gray-200 pt-4`}>
+                  <View style={tw`flex-row justify-between mb-3`}>
+                    <Text
+                      style={[
+                        tw`text-sm`,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
+                      Ara Toplam
+                    </Text>
+                    <Text
+                      style={[
+                        tw`text-sm font-semibold`,
+                        { color: theme.colors.text },
+                      ]}
+                    >
+                      ₺{total.toLocaleString("tr-TR")}
+                    </Text>
+                  </View>
+
+                  <View style={tw`flex-row justify-between mb-3`}>
+                    <Text
+                      style={[
+                        tw`text-sm`,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
+                      Kargo Ücreti
+                    </Text>
+                    <Text
+                      style={[
+                        tw`text-sm font-semibold`,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
+                      Ücretsiz
+                    </Text>
+                  </View>
+
+                  <View
+                    style={[
+                      tw`border-t pt-3 mt-2`,
+                      { borderTopColor: theme.colors.border },
+                    ]}
+                  >
+                    <View style={tw`flex-row justify-between items-center`}>
+                      <Text
+                        style={[
+                          tw`text-lg font-bold`,
+                          { color: theme.colors.text },
+                        ]}
+                      >
+                        Toplam
+                      </Text>
+                      <Text
+                        style={[
+                          tw`text-xl font-bold`,
+                          { color: theme.colors.primary },
+                        ]}
+                      >
+                        ₺{calculateFinalTotal().toLocaleString("tr-TR")}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Modern Onay Butonu */}
+          <View style={[tw`p-6`, { backgroundColor: theme.colors.barColor }]}>
+            <TouchableOpacity
+              onPress={handleConfirmOrder}
+              disabled={!selectedAddress || !selectedPaymentMethod}
+              style={[
+                tw`py-4 rounded-2xl flex-row items-center justify-center`,
+                {
+                  backgroundColor:
+                    !selectedAddress || !selectedPaymentMethod
+                      ? theme.colors.border
+                      : theme.colors.primary,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  tw`text-center font-bold text-lg`,
+                  {
+                    color:
+                      !selectedAddress || !selectedPaymentMethod
+                        ? theme.colors.textSecondary
+                        : theme.colors.buttonText,
+                  },
+                ]}
+              >
+                {!selectedAddress || !selectedPaymentMethod
+                  ? "Adres ve Ödeme Seçin"
+                  : `₺${calculateFinalTotal().toLocaleString(
+                      "tr-TR"
+                    )} Ödemeyi Tamamla`}
+              </Text>
+            </TouchableOpacity>
+
+            {(!selectedAddress || !selectedPaymentMethod) && (
+              <Text
+                style={[
+                  tw`text-center text-sm mt-2`,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Lütfen adres ve ödeme yöntemi seçin
+              </Text>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

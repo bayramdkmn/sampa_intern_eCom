@@ -74,9 +74,7 @@ const ProfileScreen: React.FC = () => {
   }, [isAuthenticated]);
 
   // Debug: Avatar URL'yi logla
-  useEffect(() => {
-    console.log("👤 Avatar URL:", currentUser?.avatar);
-  }, [currentUser?.avatar]);
+  useEffect(() => {}, [currentUser?.avatar]);
 
   // İstatistik hesaplamaları
   const totalOrders = orders.length;
@@ -106,24 +104,21 @@ const ProfileScreen: React.FC = () => {
       icon: "❤️",
       title: "Favorilerim",
       description: "Beğendiğiniz ürünler",
-      badge: favorites.length > 0 ? favorites.length.toString() : undefined,
+      badge: undefined,
     },
     {
       id: "3",
       icon: "📍",
       title: "Adreslerim",
       description: "Teslimat adreslerinizi yönetin",
-      badge: addresses.length > 0 ? addresses.length.toString() : undefined,
+      badge: undefined,
     },
     {
       id: "4",
       icon: "💳",
       title: "Ödeme Yöntemlerim",
       description: "Kayıtlı kartlarınız",
-      badge:
-        paymentMethods.length > 0
-          ? paymentMethods.length.toString()
-          : undefined,
+      badge: undefined,
     },
   ];
 

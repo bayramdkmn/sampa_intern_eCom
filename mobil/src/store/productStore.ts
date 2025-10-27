@@ -8,9 +8,9 @@ const mapApiProductToLocalProduct = (apiProduct: ApiProduct): Product => ({
   id: apiProduct.id.toString(),
   name: apiProduct.name,
   description: apiProduct.description || "",
-  price: parseFloat(apiProduct.discount_price || apiProduct.price),
+  price: parseFloat(apiProduct.price),
   originalPrice: apiProduct.discount_price 
-    ? parseFloat(apiProduct.price) 
+    ? parseFloat(apiProduct.discount_price) 
     : undefined,
   image: apiProduct.image || apiProduct.images?.[0] || "https://via.placeholder.com/400",
   images: apiProduct.images || (apiProduct.image ? [apiProduct.image] : []),

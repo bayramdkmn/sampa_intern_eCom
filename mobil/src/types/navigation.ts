@@ -7,6 +7,9 @@ export type RootStackParamList = {
   Favorites: undefined;
   Addresses: undefined;
   PaymentMethods: undefined;
+  AddressInfo: undefined;
+  PaymentInfo: undefined;
+  OrderConfirm: undefined;
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;

@@ -55,27 +55,20 @@ class ApiClient {
           config.headers.Authorization = `Bearer ${token}`;
         }
         
-        console.log('🚀 API Request:', {
-          method: config.method?.toUpperCase(),
-          url: config.url,
-          hasToken: !!token,
-        });
+
         
         return config;
       },
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor - Hata yönetimi ve token refresh
     this.api.interceptors.response.use(
       (response) => {
-        console.log('✅ API Response:', response.config.url, response.status);
         return response;
       },
       async (error: AxiosError) => {
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-        // 401 hatası ve henüz retry yapılmadıysa token yenile
         if (error.response?.status === 401 && !originalRequest._retry) {
           if (this.isRefreshing) {
             return new Promise((resolve) => {
@@ -95,12 +88,12 @@ class ApiClient {
             const refreshToken = await tokenStorage.getRefreshToken();
             if (!refreshToken) throw new Error('No refresh token');
 
-            const response = await this.api.post<{ access_token: string }>(
-              '/users/refresh/',
-              { refresh_token: refreshToken }
-            );
+              const response = await this.api.post<{ access: string }>(
+                '/users/token/refresh/',
+                { refresh: refreshToken }
+              );
 
-            const newAccessToken = response.data.access_token;
+              const newAccessToken = response.data.access;
             await tokenStorage.setAccessToken(newAccessToken);
 
             this.refreshSubscribers.forEach((cb) => cb(newAccessToken));
@@ -129,7 +122,6 @@ class ApiClient {
    * Hata Yönetimi
    */
   private handleError(error: AxiosError): ApiError {
-    console.log('🔍 Full Error Object:', JSON.stringify(error.response?.data, null, 2));
     
     const apiError: ApiError = {
       message: 'Bir hata oluştu',
@@ -161,11 +153,9 @@ class ApiClient {
   // ==================== AUTH ====================
 
   async login(data: LoginData): Promise<AuthResponse> {
-    console.log('📤 Login Request Data:', JSON.stringify(data, null, 2));
     
     const response = await this.api.post<AuthResponse>('/users/login/', data);
     
-    console.log('📥 Login Response Data:', JSON.stringify(response.data, null, 2));
 
     // Backend'den access veya access_token gelebilir
     const accessToken = response.data.access_token || response.data.access;
@@ -185,11 +175,9 @@ class ApiClient {
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    console.log('📤 Register Request Data:', JSON.stringify(data, null, 2));
     
     const response = await this.api.post<AuthResponse>('/users/register/', data);
     
-    console.log('📥 Register Response Data:', JSON.stringify(response.data, null, 2));
 
     if (response.data.access_token) {
       await tokenStorage.setAccessToken(response.data.access_token);
@@ -334,7 +322,7 @@ class ApiClient {
   }
 
   async createOrder(data: CreateOrderData): Promise<Order> {
-    const response = await this.api.post<Order>('/orders/', data);
+    const response = await this.api.post<Order>('/orders/create/', data);
     return response.data;
   }
 
@@ -351,8 +339,45 @@ class ApiClient {
   // ==================== CART ====================
 
   async getCartItems(): Promise<CartItem[]> {
-    const response = await this.api.get<CartItem[]>('/cart/');
-    return response.data;
+    try {
+      const response = await this.api.get<any>('/cart/');
+      
+      // Backend response'unu kontrol et
+      let cartItems: any[] = [];
+      if (Array.isArray(response.data)) {
+        cartItems = response.data;
+      } else if (response.data && Array.isArray(response.data.items)) {
+        cartItems = response.data.items;
+      } else if (response.data && response.data.results) {
+        cartItems = response.data.results;
+      }
+      
+      // Backend'den gelen item'ları CartItem formatına çevir
+      return cartItems.map(item => ({
+        id: item.id.toString(),
+        product: {
+          id: item.id.toString(),
+          name: item.product_name || 'Ürün',
+          price: item.product?.price || item.product_price || 0,
+          image: '',
+          category: '',
+          stock: 1,
+          description: '',
+          rating_average: '0',
+          rating_count: 0,
+          slug: '',
+          isActive: true,
+          brand: '',
+          created_at: '',
+          updated_at: '',
+          main_window_display: true
+        },
+        quantity: item.quantity
+      }));
+    } catch (error) {
+      console.error('❌ getCartItems error:', error);
+      return [];
+    }
   }
 
   async addToCart(data: AddToCartData): Promise<CartItem> {
@@ -361,11 +386,94 @@ class ApiClient {
   }
 
   async updateCartItem(productId: number, quantity: number): Promise<CartItem> {
-    const response = await this.api.put<CartItem>('/cart/update/', {
-      product_id: productId,
-      quantity,
-    });
-    return response.data;
+    // Backend'de update endpoint'i yok, mevcut endpoint'leri kullanacağız
+    if (quantity <= 0) {
+      // Miktar 0 veya negatif, ürünü sepetten çıkar
+      await this.api.post('/cart/remove/', { product_id: productId });
+      throw new Error('Ürün sepetten çıkarıldı');
+    }
+
+    // Önce mevcut sepeti al
+    const cartResponse = await this.api.get<any>('/cart/');
+    let cartItems: any[] = [];
+    
+    // Backend response'unu kontrol et
+    if (Array.isArray(cartResponse.data)) {
+      cartItems = cartResponse.data;
+    } else if (cartResponse.data && Array.isArray(cartResponse.data.items)) {
+      cartItems = cartResponse.data.items;
+    } else if (cartResponse.data && cartResponse.data.results) {
+      cartItems = cartResponse.data.results;
+    }
+    
+    const existingItem = cartItems.find(item => 
+      item.product?.id === productId || 
+      item.product_id === productId ||
+      item.id === productId
+    );
+    
+    if (existingItem) {
+      const currentQuantity = existingItem.quantity;
+      const difference = quantity - currentQuantity;
+      
+      if (difference > 0) {
+        // Artırma gerekiyor - add endpoint'ini kullan
+        await this.api.post('/cart/add/', { product_id: productId, quantity: difference });
+      } else if (difference < 0) {
+        // Azaltma gerekiyor - decrease endpoint'ini kullan
+        for (let i = 0; i < Math.abs(difference); i++) {
+          await this.api.post('/cart/decrease/', { product_id: productId });
+        }
+      }
+    } else {
+      // Ürün sepette yok, ekle
+      await this.api.post('/cart/add/', { product_id: productId, quantity: quantity });
+    }
+    
+    // Güncellenmiş sepeti döndür
+    const updatedCart = await this.api.get<any>('/cart/');
+    let updatedCartItems: any[] = [];
+    
+    if (Array.isArray(updatedCart.data)) {
+      updatedCartItems = updatedCart.data;
+    } else if (updatedCart.data && Array.isArray(updatedCart.data.items)) {
+      updatedCartItems = updatedCart.data.items;
+    } else if (updatedCart.data && updatedCart.data.results) {
+      updatedCartItems = updatedCart.data.results;
+    }
+    
+    const updatedItem = updatedCartItems.find(item => 
+      item.product?.id === productId || 
+      item.product_id === productId ||
+      item.id === productId
+    );
+    
+    if (!updatedItem) {
+      throw new Error('Ürün sepetten bulunamadı');
+    }
+    
+    // Backend'den gelen item'ı CartItem formatına çevir
+    return {
+      id: updatedItem.id.toString(),
+      product: {
+        id: updatedItem.product?.id?.toString() || updatedItem.product_id?.toString() || updatedItem.id.toString(),
+        name: updatedItem.product_name || updatedItem.product?.name || 'Ürün',
+        price: updatedItem.product?.price || updatedItem.product_price || 0,
+        image: updatedItem.product?.image || '',
+        category: updatedItem.product?.category || '',
+        stock: updatedItem.product?.stock || 1,
+        description: updatedItem.product?.description || '',
+        rating_average: updatedItem.product?.rating_average || '0',
+        rating_count: updatedItem.product?.rating_count || 0,
+        slug: updatedItem.product?.slug || '',
+        isActive: updatedItem.product?.isActive || true,
+        brand: updatedItem.product?.brand || '',
+        created_at: updatedItem.product?.created_at || '',
+        updated_at: updatedItem.product?.updated_at || '',
+        main_window_display: updatedItem.product?.main_window_display || true
+      },
+      quantity: updatedItem.quantity
+    };
   }
 
   async removeFromCart(productId: number): Promise<void> {
@@ -374,15 +482,27 @@ class ApiClient {
     });
   }
 
-  // ==================== HELPERS ====================
 
   async isAuthenticated(): Promise<boolean> {
-    const token = await tokenStorage.getAccessToken();
-    return !!token;
+    try {
+      const token = await tokenStorage.getAccessToken();
+      if (!token) return false;
+      
+      // Token var mı ve geçerli mi kontrol et
+      await this.api.get('/users/me/');
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   async getCurrentUser(): Promise<User | null> {
-    return await userStorage.getUserData();
+    try {
+      const response = await this.api.get<User>('/users/me/');
+      return response.data;
+    } catch (error) {
+      return null;
+    }
   }
 }
 

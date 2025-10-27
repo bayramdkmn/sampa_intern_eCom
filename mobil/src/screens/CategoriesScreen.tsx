@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,14 @@ import {
   TextInput,
   Platform,
   Modal,
+  ActivityIndicator,
 } from "react-native";
+import Slider from "@react-native-community/slider";
 import tw from "twrnc";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Category, Product } from "../types";
 import { useTheme } from "../context/ThemeContext";
+import { useProductStore, useCartStore } from "../store";
 
 type CategoriesScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -23,16 +26,26 @@ interface Props {
   navigation: CategoriesScreenNavigationProp;
 }
 
-const CATEGORIES: Category[] = [
-  { id: "all", name: "Tümü", icon: "🛍️", productCount: 8000 },
-  { id: "1", name: "Elektronik", icon: "📱", productCount: 1245 },
-  { id: "2", name: "Moda", icon: "👔", productCount: 3542 },
-  { id: "3", name: "Ev & Yaşam", icon: "🏠", productCount: 892 },
-  { id: "4", name: "Spor", icon: "⚽", productCount: 567 },
-  { id: "5", name: "Kitap", icon: "📚", productCount: 2341 },
-  { id: "6", name: "Oyuncak", icon: "🧸", productCount: 445 },
-  { id: "7", name: "Kozmetik", icon: "💄", productCount: 723 },
-];
+// Kategori ikonları mapping
+const CATEGORY_ICONS: { [key: string]: string } = {
+  Elektronik: "📱",
+  Moda: "👔",
+  "Ev & Yaşam": "🏠",
+  Spor: "⚽",
+  Kitap: "📚",
+  Oyuncak: "🧸",
+  Kozmetik: "💄",
+  Giyim: "👕",
+  Ayakkabı: "👟",
+  Saat: "⌚",
+  Mücevher: "💍",
+  Ev: "🏡",
+  Bahçe: "🌱",
+  "Spor & Outdoor": "🏃",
+  Bilgisayar: "💻",
+  Telefon: "📞",
+  default: "🛍️",
+};
 
 const PRODUCTS_BY_CATEGORY: Product[] = [
   {
@@ -107,6 +120,9 @@ const PRICE_RANGES = [
 
 const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
   const { theme } = useTheme();
+  const { products, categories, fetchProducts, fetchCategories, isLoading } =
+    useProductStore();
+  const { addToCart } = useCartStore();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     "all",
   ]);
@@ -118,9 +134,68 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
   const [sortBy, setSortBy] = useState<
     "default" | "price-asc" | "price-desc" | "rating"
   >("default");
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
+
+  // Fiyat slider state'leri
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(10000);
+  const [useCustomPriceRange, setUseCustomPriceRange] = useState(false);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
+
+  // Ürünlerden dinamik kategori listesi oluştur
+  const getDynamicCategories = (): Category[] => {
+    const categoryMap = new Map<string, number>();
+
+    // Her ürünün kategorisini say
+    products.forEach((product) => {
+      if (product.category) {
+        const count = categoryMap.get(product.category) || 0;
+        categoryMap.set(product.category, count + 1);
+      }
+    });
+
+    // Kategori listesi oluştur
+    const dynamicCategories: Category[] = [
+      {
+        id: "all",
+        name: "Tümü",
+        icon: "🛍️",
+        productCount: products.length,
+      },
+    ];
+
+    // Her kategoriden bir tane ekle
+    categoryMap.forEach((count, categoryName) => {
+      dynamicCategories.push({
+        id: categoryName.toLowerCase().replace(/\s+/g, "-"),
+        name: categoryName,
+        icon: CATEGORY_ICONS[categoryName] || CATEGORY_ICONS.default,
+        productCount: count,
+      });
+    });
+
+    return dynamicCategories;
+  };
+
+  const dynamicCategories = getDynamicCategories();
 
   const handleProductPress = (productId: string) => {
     navigation.navigate("ProductDetail", { productId });
+  };
+
+  const handleAddToCart = async (product: Product) => {
+    try {
+      setAddingToCart(product.id);
+      await addToCart(product, 1);
+    } catch (error) {
+      console.error("Sepete ekleme hatası:", error);
+    } finally {
+      setAddingToCart(null);
+    }
   };
 
   const toggleCategory = (categoryId: string) => {
@@ -144,10 +219,15 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
     setSelectedCategories(["all"]);
     setSelectedPriceRange(null);
     setSortBy("default");
+    setSearchQuery("");
+    setUseCustomPriceRange(false);
+    setMinPrice(0);
+    setMaxPrice(10000);
+    setFilterModalVisible(false);
   };
 
   const getFilteredProducts = () => {
-    let filtered = PRODUCTS_BY_CATEGORY;
+    let filtered = products;
 
     // Arama filtresi
     if (searchQuery) {
@@ -160,13 +240,17 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
     if (!selectedCategories.includes("all")) {
       filtered = filtered.filter((product) =>
         selectedCategories.includes(
-          CATEGORIES.find((c) => c.name === product.category)?.id || ""
+          product.category?.toLowerCase().replace(/\s+/g, "-") || ""
         )
       );
     }
 
     // Fiyat filtresi
-    if (selectedPriceRange) {
+    if (useCustomPriceRange) {
+      filtered = filtered.filter(
+        (product) => product.price >= minPrice && product.price <= maxPrice
+      );
+    } else if (selectedPriceRange) {
       const range = PRICE_RANGES.find((r) => r.id === selectedPriceRange);
       if (range) {
         filtered = filtered.filter(
@@ -181,7 +265,7 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
     } else if (sortBy === "price-desc") {
       filtered.sort((a, b) => b.price - a.price);
     } else if (sortBy === "rating") {
-      filtered.sort((a, b) => b.rating - a.rating);
+      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
 
     return filtered;
@@ -192,6 +276,22 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
     (selectedCategories.includes("all") ? 0 : selectedCategories.length) +
     (selectedPriceRange ? 1 : 0) +
     (sortBy !== "default" ? 1 : 0);
+
+  if (isLoading && products.length === 0) {
+    return (
+      <View
+        style={[
+          tw`flex-1 items-center justify-center`,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[tw`mt-4`, { color: theme.colors.textSecondary }]}>
+          Yükleniyor...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
@@ -239,7 +339,7 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
       >
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={tw`flex-row px-4 gap-2`}>
-            {CATEGORIES.map((category) => (
+            {dynamicCategories.map((category) => (
               <TouchableOpacity
                 key={category.id}
                 onPress={() => toggleCategory(category.id)}
@@ -361,27 +461,53 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                 >
                   {product.description}
                 </Text>
-                <View style={tw`flex-row justify-between items-center`}>
-                  <Text
-                    style={[
-                      tw`font-bold text-base`,
-                      { color: theme.colors.primary },
-                    ]}
-                  >
-                    ₺{product.price.toLocaleString("tr-TR")}
-                  </Text>
-                  <View style={tw`flex-row items-center`}>
-                    <Text style={tw`text-yellow-500 text-xs mr-1`}>⭐</Text>
+                <View style={tw`flex-row justify-between items-center mb-2`}>
+                  <View style={tw`flex-row items-center gap-2`}>
                     <Text
                       style={[
-                        tw`text-xs font-semibold`,
-                        { color: theme.colors.textSecondary },
+                        tw`font-bold text-base`,
+                        { color: theme.colors.primary },
                       ]}
                     >
-                      {product.rating}
+                      ₺{product.price.toLocaleString("tr-TR")}
                     </Text>
+                    {product.originalPrice && product.originalPrice > product.price && (
+                      <>
+                        <Text
+                          style={[
+                            tw`text-sm line-through text-gray-500`,
+                          ]}
+                        >
+                          ₺{product.originalPrice.toLocaleString("tr-TR")}
+                        </Text>
+                        <Text
+                          style={[
+                            tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
+                          ]}
+                        >
+                          %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
+                        </Text>
+                      </>
+                    )}
                   </View>
                 </View>
+                <TouchableOpacity
+                  onPress={() => handleAddToCart(product)}
+                  disabled={addingToCart === product.id}
+                  style={[
+                    tw`py-2 px-3 rounded-lg`,
+                    {
+                      backgroundColor: theme.colors.primary,
+                      opacity: addingToCart === product.id ? 0.5 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={tw`text-white text-xs font-semibold text-center`}
+                  >
+                    {addingToCart === product.id ? "..." : "🛒 Ekle"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
           ))}
@@ -439,7 +565,7 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                   Kategoriler
                 </Text>
                 <View style={tw`flex-row flex-wrap gap-2`}>
-                  {CATEGORIES.map((category) => (
+                  {dynamicCategories.map((category) => (
                     <TouchableOpacity
                       key={category.id}
                       onPress={() => toggleCategory(category.id)}
@@ -471,36 +597,89 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={tw`text-gray-800 font-bold text-lg mb-3`}>
                   Fiyat Aralığı
                 </Text>
-                {PRICE_RANGES.map((range) => (
-                  <TouchableOpacity
-                    key={range.id}
-                    onPress={() =>
-                      setSelectedPriceRange(
-                        selectedPriceRange === range.id ? null : range.id
-                      )
-                    }
+
+                {/* Özel Fiyat Aralığı Toggle */}
+                <TouchableOpacity
+                  onPress={() => setUseCustomPriceRange(!useCustomPriceRange)}
+                  style={[
+                    tw`px-4 py-3 rounded-xl mb-3 flex-row items-center justify-between border-2`,
+                    useCustomPriceRange
+                      ? tw`bg-blue-50 border-blue-600`
+                      : tw`bg-white border-gray-200`,
+                  ]}
+                >
+                  <Text
                     style={[
-                      tw`px-4 py-4 rounded-xl mb-2 flex-row items-center justify-between border-2`,
-                      selectedPriceRange === range.id
-                        ? tw`bg-blue-50 border-blue-600`
-                        : tw`bg-white border-gray-200`,
+                      tw`font-semibold`,
+                      useCustomPriceRange
+                        ? tw`text-blue-600`
+                        : tw`text-gray-800`,
                     ]}
                   >
-                    <Text
+                    Özel Fiyat Aralığı
+                  </Text>
+                  {useCustomPriceRange && (
+                    <Text style={tw`text-blue-600 text-xl`}>✓</Text>
+                  )}
+                </TouchableOpacity>
+
+                {useCustomPriceRange ? (
+                  <View style={tw`px-4 py-4 bg-gray-50 rounded-xl`}>
+                    <Text style={tw`text-gray-700 font-semibold mb-3`}>
+                      ₺{minPrice.toLocaleString("tr-TR")} - ₺
+                      {maxPrice.toLocaleString("tr-TR")}
+                    </Text>
+                    <Slider
+                      style={tw`w-full h-8`}
+                      minimumValue={0}
+                      maximumValue={100000}
+                      value={minPrice}
+                      onValueChange={(value) => setMinPrice(Math.round(value))}
+                      minimumTrackTintColor="#3B82F6"
+                      maximumTrackTintColor="#E5E7EB"
+                    />
+                    <Slider
+                      style={tw`w-full h-8 mt-2`}
+                      minimumValue={0}
+                      maximumValue={100000}
+                      value={maxPrice}
+                      onValueChange={(value) => setMaxPrice(Math.round(value))}
+                      minimumTrackTintColor="#3B82F6"
+                      maximumTrackTintColor="#E5E7EB"
+                    />
+                  </View>
+                ) : (
+                  PRICE_RANGES.map((range) => (
+                    <TouchableOpacity
+                      key={range.id}
+                      onPress={() =>
+                        setSelectedPriceRange(
+                          selectedPriceRange === range.id ? null : range.id
+                        )
+                      }
                       style={[
-                        tw`font-semibold`,
+                        tw`px-4 py-4 rounded-xl mb-2 flex-row items-center justify-between border-2`,
                         selectedPriceRange === range.id
-                          ? tw`text-blue-600`
-                          : tw`text-gray-700`,
+                          ? tw`bg-blue-50 border-blue-600`
+                          : tw`bg-white border-gray-200`,
                       ]}
                     >
-                      {range.label}
-                    </Text>
-                    {selectedPriceRange === range.id && (
-                      <Text style={tw`text-blue-600 text-xl`}>✓</Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={[
+                          tw`font-semibold`,
+                          selectedPriceRange === range.id
+                            ? tw`text-blue-600`
+                            : tw`text-gray-700`,
+                        ]}
+                      >
+                        {range.label}
+                      </Text>
+                      {selectedPriceRange === range.id && (
+                        <Text style={tw`text-blue-600 text-xl`}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
 
               {/* Sıralama */}

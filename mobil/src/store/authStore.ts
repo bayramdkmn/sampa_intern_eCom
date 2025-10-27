@@ -83,7 +83,6 @@ export const useAuthStore = create<AuthState>()(
               error: null,
             });
             
-            console.log('✅ Login başarılı!');
           } else {
             console.error('❌ Login eksik data:', { hasUser: !!response.user, hasToken: !!accessToken });
             throw new Error('Giriş başarısız');
@@ -112,25 +111,14 @@ export const useAuthStore = create<AuthState>()(
             last_name: lastName,
           });
 
-          console.log('✅ Kayıt başarılı:', registerResponse);
 
           // 2. Backend token dönmüyorsa otomatik login yap
           const accessToken = registerResponse.access_token || registerResponse.access;
           
           if (!accessToken) {
-            console.log('🔄 Token yok, otomatik login yapılıyor...');
             
-            // Kayıt başarılı, şimdi login yap
             const loginResponse = await api.login({ email, password });
             
-            console.log('🔍 Login Response Check:', {
-              hasUser: !!loginResponse.user,
-              hasAccessToken: !!loginResponse.access_token,
-              hasAccess: !!loginResponse.access,
-              fullResponse: loginResponse,
-            });
-
-            // Login'den gelen token'ı al (access veya access_token)
             const loginAccessToken = loginResponse.access_token || loginResponse.access;
             
             if (loginResponse.user && loginAccessToken) {
@@ -144,14 +132,12 @@ export const useAuthStore = create<AuthState>()(
                 error: null,
               });
               
-              console.log('✅ Otomatik login başarılı!');
               return;
             } else {
               console.error('❌ Login response eksik:', loginResponse);
             }
           }
 
-          // Backend token döndüyse direkt kullan
           if (registerResponse.user && accessToken) {
             const localUser = mapApiUserToLocalUser(registerResponse.user);
             
@@ -163,11 +149,9 @@ export const useAuthStore = create<AuthState>()(
               error: null,
             });
             
-            console.log('✅ Token ile kayıt başarılı!');
             return;
           }
 
-          // Hiçbiri olmadıysa hata
           throw new Error('Kayıt başarısız - Giriş yapılamadı');
           
         } catch (error: any) {
@@ -185,10 +169,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
 
-          // TODO: Backend'de password reset endpoint'i eklendiğinde burası güncellenecek
-          // await apiService.resetPassword({ email });
-
-          // Şimdilik mock
           await new Promise(resolve => setTimeout(resolve, 1000));
 
           set({ isLoading: false, error: null });
@@ -206,10 +186,8 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          // Backend'e logout isteği gönder
           await api.logout();
 
-          // Diğer store'ları temizle
           const { clearFavorites } = useFavoriteStore.getState();
           const { clearCart } = useCartStore.getState();
           
@@ -229,7 +207,6 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           console.error('Logout error:', error);
-          // Hata olsa bile local state'i temizle
           set({
             user: null,
             token: null,
@@ -242,7 +219,6 @@ export const useAuthStore = create<AuthState>()(
 
       updateUser: async (userData: Partial<User>) => {
         try {
-          // Access token kontrolü – yoksa düzenleme yapma
           const accessToken = await tokenStorage.getAccessToken();
           if (!accessToken) {
             set({
@@ -261,7 +237,6 @@ export const useAuthStore = create<AuthState>()(
 
           set({ isLoading: true, error: null });
 
-          // Backend'e güncelleme isteği gönder
           const updatedApiUser = await api.updateUserProfile({
             first_name: userData.name?.split(' ')[0],
             last_name: userData.name?.split(' ').slice(1).join(' '),
@@ -289,9 +264,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
           const profile = await api.getUserProfile();
-          console.log('👤 getUserProfile raw:', profile);
           const localUser = mapApiUserToLocalUser(profile as ApiUser);
-          console.log('👤 mapped avatar:', localUser.avatar);
           set({ user: localUser, isAuthenticated: true, isLoading: false });
         } catch (error: any) {
           const errorMessage = error.message || 'Profil alınamadı';

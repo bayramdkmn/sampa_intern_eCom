@@ -150,9 +150,29 @@ const FavoritesScreen: React.FC = () => {
                 </View>
 
                 <View style={tw`flex-row items-center justify-between`}>
-                  <Text style={tw`text-blue-600 font-bold text-lg`}>
-                    ₺{product.price.toLocaleString("tr-TR")}
-                  </Text>
+                  <View style={tw`flex-row items-center gap-2`}>
+                    <Text style={tw`text-blue-600 font-bold text-lg`}>
+                      ₺{product.price.toLocaleString("tr-TR")}
+                    </Text>
+                    {product.originalPrice && product.originalPrice > product.price && (
+                      <>
+                        <Text
+                          style={[
+                            tw`text-sm line-through text-gray-500`,
+                          ]}
+                        >
+                          ₺{product.originalPrice.toLocaleString("tr-TR")}
+                        </Text>
+                        <Text
+                          style={[
+                            tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
+                          ]}
+                        >
+                          %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
+                        </Text>
+                      </>
+                    )}
+                  </View>
                   <TouchableOpacity
                     onPress={(e) => {
                       e.stopPropagation();

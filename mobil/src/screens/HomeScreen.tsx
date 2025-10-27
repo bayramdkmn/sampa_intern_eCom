@@ -12,9 +12,30 @@ import {
 } from "react-native";
 import tw from "twrnc";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
+import { RootStackParamList, Category } from "../types";
 import { useProductStore, useAuthStore, useCartStore } from "../store";
 import { useTheme } from "../context/ThemeContext";
+
+// Kategori ikonları mapping
+const CATEGORY_ICONS: { [key: string]: string } = {
+  Elektronik: "📱",
+  Moda: "👔",
+  "Ev & Yaşam": "🏠",
+  Spor: "⚽",
+  Kitap: "📚",
+  Oyuncak: "🧸",
+  Kozmetik: "💄",
+  Giyim: "👕",
+  Ayakkabı: "👟",
+  Saat: "⌚",
+  Mücevher: "💍",
+  Ev: "🏡",
+  Bahçe: "🌱",
+  "Spor & Outdoor": "🏃",
+  Bilgisayar: "💻",
+  Telefon: "📞",
+  default: "🛍️",
+};
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -33,15 +54,66 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const { addToCart } = useCartStore();
   const { theme } = useTheme();
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
   }, []);
 
+  // Ürünlerden dinamik kategori listesi oluştur
+  const getDynamicCategories = (): Category[] => {
+    const categoryMap = new Map<string, number>();
+
+    // Her ürünün kategorisini say
+    products.forEach((product) => {
+      if (product.category) {
+        const count = categoryMap.get(product.category) || 0;
+        categoryMap.set(product.category, count + 1);
+      }
+    });
+
+    // Kategori listesi oluştur
+    const dynamicCategories: Category[] = [];
+
+    // Her kategoriden bir tane ekle
+    categoryMap.forEach((count, categoryName) => {
+      dynamicCategories.push({
+        id: categoryName.toLowerCase().replace(/\s+/g, "-"),
+        name: categoryName,
+        icon: CATEGORY_ICONS[categoryName] || CATEGORY_ICONS.default,
+        productCount: count,
+      });
+    });
+
+    return dynamicCategories;
+  };
+
+  const dynamicCategories = getDynamicCategories();
+
+  const handleCategoryPress = (categoryName: string) => {
+    if (selectedCategory === categoryName) {
+      setSelectedCategory(null); // Aynı kategoriye tekrar tıklanırsa filtreyi kaldır
+    } else {
+      setSelectedCategory(categoryName);
+    }
+  };
+
   const handleProductPress = (productId: string) => {
     navigation.navigate("ProductDetail", { productId });
   };
+
+  // Filtrelenmiş ürünleri al
+  const getFilteredProducts = () => {
+    if (!selectedCategory) {
+      return products.slice(0, 5); // Tüm ürünlerden ilk 5'i
+    }
+    return products
+      .filter((product) => product.category === selectedCategory)
+      .slice(0, 5);
+  };
+
+  const filteredProducts = getFilteredProducts();
 
   const handleAddToCart = async (product: any, e: any) => {
     e.stopPropagation(); // Parent TouchableOpacity'yi tetikleme
@@ -49,7 +121,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     try {
       setAddingToCart(product.id);
       await addToCart(product, 1);
-      Alert.alert("✅ Başarılı", `${product.name} sepete eklendi!`);
     } catch (error) {
       Alert.alert("❌ Hata", "Ürün sepete eklenemedi");
     } finally {
@@ -192,7 +263,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 { color: theme.colors.buttonText },
               ]}
             >
-              Kış İndirimleri! 🎉
+              Hoş Geldiniz! 🎉
             </Text>
             <Text
               style={[
@@ -200,7 +271,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 { color: theme.colors.buttonText, opacity: 0.8 },
               ]}
             >
-              Tüm kategorilerde %50'ye varan indirimler
+              Tüm ürünlere göz atın...
             </Text>
             <TouchableOpacity
               style={[
@@ -224,24 +295,34 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={tw`flex-row gap-3`}>
-            {categories.map((category) => (
+          <View style={tw`flex-row gap-2`}>
+            {dynamicCategories.slice(0, 8).map((category) => (
               <TouchableOpacity
                 key={category.id}
+                onPress={() => handleCategoryPress(category.name)}
                 style={[
-                  tw`rounded-2xl px-5 py-4 items-center shadow-sm min-w-24`,
+                  tw`rounded-xl px-3 py-3 items-center shadow-sm min-w-20`,
                   {
-                    backgroundColor: theme.colors.card,
+                    backgroundColor:
+                      selectedCategory === category.name
+                        ? theme.colors.primary
+                        : theme.colors.card,
                     shadowColor: theme.colors.shadow,
                   },
                 ]}
               >
-                <Text style={tw`text-3xl mb-2`}>{category.icon}</Text>
+                <Text style={tw`text-2xl mb-1`}>{category.icon}</Text>
                 <Text
                   style={[
                     tw`text-xs font-semibold text-center`,
-                    { color: theme.colors.textSecondary },
+                    {
+                      color:
+                        selectedCategory === category.name
+                          ? theme.colors.buttonText
+                          : theme.colors.textSecondary,
+                    },
                   ]}
+                  numberOfLines={1}
                 >
                   {category.name}
                 </Text>
@@ -254,12 +335,32 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       <View style={tw`mt-6 px-4 pb-6`}>
         <View style={tw`flex-row justify-between items-center mb-3`}>
           <Text style={[tw`text-lg font-bold`, { color: theme.colors.text }]}>
-            Öne Çıkan Ürünler
+            {selectedCategory
+              ? `${selectedCategory} Ürünleri`
+              : "Öne Çıkan Ürünler"}
           </Text>
+          {selectedCategory && (
+            <TouchableOpacity
+              onPress={() => setSelectedCategory(null)}
+              style={[
+                tw`px-3 py-1 rounded-full`,
+                { backgroundColor: theme.colors.primary },
+              ]}
+            >
+              <Text
+                style={[
+                  tw`text-xs font-semibold`,
+                  { color: theme.colors.buttonText },
+                ]}
+              >
+                Tümünü Göster
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={tw`gap-3`}>
-          {products.slice(0, 5).map((product) => (
+          {filteredProducts.map((product) => (
             <TouchableOpacity
               key={product.id}
               onPress={() => handleProductPress(product.id)}
@@ -301,14 +402,34 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 </Text>
 
                 {/* Fiyat */}
-                <Text
-                  style={[
-                    tw`font-bold text-lg mb-2`,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  ₺{product.price.toLocaleString("tr-TR")}
-                </Text>
+                <View style={tw`flex-row items-center gap-2 mb-2`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-lg`,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
+                    ₺{product.price.toLocaleString("tr-TR")}
+                  </Text>
+                  {product.originalPrice && product.originalPrice > product.price && (
+                    <>
+                      <Text
+                        style={[
+                          tw`text-sm line-through text-gray-500`,
+                        ]}
+                      >
+                        ₺{product.originalPrice.toLocaleString("tr-TR")}
+                      </Text>
+                      <Text
+                        style={[
+                          tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
+                        ]}
+                      >
+                        %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
+                      </Text>
+                    </>
+                  )}
+                </View>
 
                 {/* Butonlar */}
                 <View style={tw`flex-row gap-2`}>

@@ -227,17 +227,17 @@ const OrdersScreen: React.FC = () => {
                             {item.product.name}
                           </Text>
                           <Text style={tw`text-gray-500 text-xs`}>
-                            {formatPrice(item.product.price)} x {item.quantity}
+                            {item.quantity} adet
                           </Text>
                         </View>
                         <Text style={tw`text-gray-800 font-bold text-base`}>
+                          Toplam:{" "}
                           {formatPrice(item.product.price * item.quantity)}
                         </Text>
                       </View>
                     ))}
                   </View>
 
-                  {/* Divider */}
                   <View style={tw`border-t border-gray-200 my-4`} />
 
                   {/* Price Summary */}

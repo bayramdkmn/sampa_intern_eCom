@@ -4,16 +4,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CartItem, StoreOrder } from "../types";
 import { api } from "../services/api";
 import type { Order as ApiOrder } from "../types/api";
+import { useCartStore } from "./cartStore";
 
 // API Order'dan Local StoreOrder'a dönüşüm
 const mapApiOrderToLocalOrder = (apiOrder: any): StoreOrder => {
-  console.log('🔍 Mapping order:', JSON.stringify(apiOrder, null, 2));
   
   const items: CartItem[] = apiOrder.items.map((item: any) => ({
     product: {
       id: item.product?.toString() || item.product_id?.toString() || "unknown",
       name: item.product_name || "Ürün adı yok",
-      price: parseFloat(item.price || "0"),
+      price: parseFloat(item.price || "0") / (item.quantity || 1), // Backend'den gelen price toplam fiyat, unit price'a çevir
       image: "https://via.placeholder.com/400", // Backend'de product detayı yok
       category: "Genel",
       description: "Ürün açıklaması yok",
@@ -24,20 +24,19 @@ const mapApiOrderToLocalOrder = (apiOrder: any): StoreOrder => {
   }));
 
   const total = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const finalTotal = parseFloat(apiOrder.total_price || "0");
   
   return {
     id: apiOrder.id.toString(),
     orderNumber: `#${apiOrder.id}`, // Backend'de order_number yok, id kullanıyoruz
     items,
     total,
-    shippingCost: 0,
-    finalTotal: parseFloat(apiOrder.total_price || "0"),
+    shippingCost: 0, // Kargo ücretsiz
+    finalTotal,
     status: apiOrder.status,
     createdAt: apiOrder.created_at,
     date: apiOrder.created_at,
     address: apiOrder.address || "Adres bilgisi yok",
-    shippingAddress: apiOrder.address,
-    billingAddress: null,
   };
 };
 
@@ -48,7 +47,6 @@ interface OrderState {
   isLoading: boolean;
   error: string | null;
 
-  // Actions
   createOrder: (
     shippingAddressId: string, 
     paymentMethodId?: string, 
@@ -64,13 +62,11 @@ interface OrderState {
 export const useOrderStore = create<OrderState>()(
   persist(
     (set, get) => ({
-      // Initial State
       orders: [],
       currentOrder: null,
       isLoading: false,
       error: null,
 
-      // 📦 Sipariş Oluştur
       createOrder: async (
         shippingAddressId: string, 
         paymentMethodId?: string, 
@@ -79,13 +75,31 @@ export const useOrderStore = create<OrderState>()(
         try {
           set({ isLoading: true, error: null });
 
-          const newApiOrder = await api.createOrder({
+          const currentCart = useCartStore.getState();
+          const { items, total } = currentCart;
+          
+          const orderData = {
             shipping_address: shippingAddressId,
             payment_method: paymentMethodId,
             notes,
-          });
+            items: items.map(item => ({
+              product_id: parseInt(item.product.id),
+              quantity: item.quantity,
+              price: (item.product.price * item.quantity).toFixed(2), // Toplam fiyat - 2 ondalık basamak
+            })),
+            total_amount: total.toFixed(2), // 2 ondalık basamak
+          };
+
+          console.log('🚀 BACKEND\'E GÖNDERİLEN VERİ:', JSON.stringify(orderData, null, 2));
+
+          const newApiOrder = await api.createOrder(orderData);
+
+          console.log('📥 BACKEND\'DEN DÖNEN VERİ:', JSON.stringify(newApiOrder, null, 2));
 
           const newLocalOrder = mapApiOrderToLocalOrder(newApiOrder);
+
+          // Sipariş başarılı olduğunda sepeti temizle
+          useCartStore.getState().clearCart();
 
           set({
             orders: [newLocalOrder, ...get().orders],
@@ -110,10 +124,8 @@ export const useOrderStore = create<OrderState>()(
           set({ isLoading: true, error: null });
 
           const apiOrders = await api.getOrders();
-          console.log('📦 API Orders raw:', JSON.stringify(apiOrders, null, 2));
           
           const localOrders = apiOrders.map(mapApiOrderToLocalOrder);
-          console.log('📦 Mapped orders:', JSON.stringify(localOrders, null, 2));
 
           set({ orders: localOrders, isLoading: false });
         } catch (error: any) {

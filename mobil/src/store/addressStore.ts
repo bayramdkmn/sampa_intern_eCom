@@ -5,7 +5,6 @@ import type { Address as ApiAddress } from "../types/api";
 import { useAuthStore } from "./authStore";
 
 const mapApiAddressToLocalAddress = (apiAddress: ApiAddress): Address => {
-  console.log('🏠 API Address raw:', JSON.stringify(apiAddress, null, 2));
   
   return {
     id: apiAddress.id,
@@ -148,23 +147,16 @@ export const useAddressStore = create<AddressState>()((set, get) => ({
 
   setDefaultAddress: async (id: string) => {
     try {
-      console.log('🔄 setDefaultAddress başladı, id:', id);
       set({ isLoading: true, error: null });
 
       const { addresses } = get();
       const currentDefault = addresses.find(addr => addr.isDefault);
       
       if (currentDefault && currentDefault.id !== id) {
-        console.log('🔄 Mevcut varsayılan adresi false yapıyor:', currentDefault.id);
-        console.log('📤 Backend\'e gönderilen data:', { is_default: false });
         await api.updateAddress(currentDefault.id, { is_default: false });
-        console.log('✅ Mevcut varsayılan adres false yapıldı');
       }
 
-      console.log('🔄 Yeni adresi varsayılan yapıyor:', id);
-      console.log('📤 Backend\'e gönderilen data:', { is_default: true });
       await api.updateAddress(id, { is_default: true });
-      console.log('✅ Yeni adres varsayılan yapıldı');
 
       set((state) => ({
         addresses: state.addresses.map(addr => ({
@@ -174,7 +166,6 @@ export const useAddressStore = create<AddressState>()((set, get) => ({
         isLoading: false,
       }));
       
-      console.log('✅ setDefaultAddress tamamlandı (local state güncellendi)');
     } catch (error: any) {
       console.error('❌ Varsayılan adres ayarlanırken hata:', error);
       set({ 

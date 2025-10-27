@@ -21,7 +21,6 @@ const detectCardType = (cardNumber: string): 'visa' | 'mastercard' | 'amex' => {
 };
 
 const mapApiCardToLocalPaymentMethod = (apiCard: any): PaymentMethod => {
-  console.log('💳 API Card raw:', JSON.stringify(apiCard, null, 2));
   
   const expiryYear = apiCard.expiry_year;
   const yearString = typeof expiryYear === 'string' ? expiryYear : String(expiryYear);
@@ -183,22 +182,16 @@ export const usePaymentStore = create<PaymentState>()((set, get) => ({
 
   setDefaultPaymentMethod: async (id: string) => {
     try {
-      console.log('🔄 setDefaultPaymentMethod başladı, id:', id);
 
       const { paymentMethods } = get();
       const currentPrimary = paymentMethods.find(pm => pm.isDefault);
       
-      console.log('🔍 Mevcut primary kart:', currentPrimary);
       
       if (currentPrimary && currentPrimary.id !== id) {
-        console.log('🔄 Mevcut primary kartı false yapıyor:', currentPrimary.id);
         await api.updateCard(currentPrimary.id, { is_primary: false });
-        console.log('✅ Mevcut primary kart false yapıldı');
       }
 
-      console.log('🔄 Yeni kartı primary yapıyor:', id);
       await api.updateCard(id, { is_primary: true });
-      console.log('✅ Yeni kart primary yapıldı');
 
       set((state) => ({
         paymentMethods: state.paymentMethods.map(pm => ({
@@ -207,7 +200,6 @@ export const usePaymentStore = create<PaymentState>()((set, get) => ({
         })),
       }));
       
-      console.log('✅ setDefaultPaymentMethod tamamlandı (local state güncellendi)');
     } catch (error: any) {
       console.error('❌ Varsayılan ödeme yöntemi ayarlanırken hata:', error);
       set({ 

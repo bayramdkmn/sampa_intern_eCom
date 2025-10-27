@@ -41,9 +41,12 @@ class CreateOrderView(generics.CreateAPIView):
         if not user or not user.is_authenticated:
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        cart_items = CartItem.objects.filter(cart__user=user).select_related('product', 'cart')
-        if not cart_items.exists():
-            return Response({"error": "Sepetiniz boş!"}, status=status.HTTP_400_BAD_REQUEST)
+        # Frontend'den gelen veriyi kullan
+        data = request.data
+        items = data.get('items', [])
+        
+        if not items:
+            return Response({"error": "Sipariş ürünleri bulunamadı!"}, status=status.HTTP_400_BAD_REQUEST)
 
         address = user.addresses.filter(is_primary=True).first()
         if not address:
@@ -53,33 +56,41 @@ class CreateOrderView(generics.CreateAPIView):
         if not payment_card:
             return Response({"error": "Lütfen önce bir ödeme kartı ekleyin veya primary kart belirleyin."}, status=status.HTTP_400_BAD_REQUEST)
 
-        total_price = Decimal('0.00')
-        for item in cart_items:
-            price = Decimal(str(item.product.price or 0))
-            total_price += price * item.quantity
-
-        total_price = total_price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-
-        with transaction.atomic():
-            order = Order.objects.create(
-                user=user,
-                total_price=total_price,
-                address=address,
-                payment_card=payment_card,
-                status='pending'
-            )
-
-            for item in cart_items:
-                OrderItem.objects.create(
-                    order=order,
-                    product=item.product,
-                    quantity=item.quantity,
-                    price=item.product.price
+        try:
+            with transaction.atomic():
+                # Frontend'den gelen total_amount'u kullan
+                total_price = Decimal(str(data.get('total_amount', '0.00')))
+                
+                order = Order.objects.create(
+                    user=user,
+                    total_price=total_price,
+                    address=address,
+                    payment_card=payment_card,
+                    status='pending'
                 )
 
-            CartItem.objects.filter(cart__user=user).delete()
+                # Frontend'den gelen items'ları kullan
+                for item_data in items:
+                    from products.models import Product
+                    product = Product.objects.get(id=item_data['product_id'])
+                    
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        quantity=item_data['quantity'],
+                        price=Decimal(str(item_data['price']))
+                    )
 
-        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+                # Sepeti temizle
+                CartItem.objects.filter(cart__user=user).delete()
+
+            return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            return Response(
+                {"error": f"Sipariş oluşturulurken hata oluştu: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 

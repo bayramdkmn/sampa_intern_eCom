@@ -8,6 +8,9 @@ import OrdersScreen from "../screens/OrdersScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import AddressesScreen from "../screens/AddressesScreen";
 import PaymentMethodsScreen from "../screens/PaymentMethodsScreen";
+import AddressInfoScreen from "../screens/AddressInfoScreen";
+import PaymentInfoScreen from "../screens/PaymentInfoScreen";
+import OrderConfirmScreen from "../screens/OrderConfirmScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
@@ -59,6 +62,30 @@ const RootNavigator: React.FC = () => {
         <Stack.Screen
           name="PaymentMethods"
           component={PaymentMethodsScreen}
+          options={{
+            presentation: "card",
+            animation: "slide_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="AddressInfo"
+          component={AddressInfoScreen}
+          options={{
+            presentation: "card",
+            animation: "slide_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="PaymentInfo"
+          component={PaymentInfoScreen}
+          options={{
+            presentation: "card",
+            animation: "slide_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="OrderConfirm"
+          component={OrderConfirmScreen}
           options={{
             presentation: "card",
             animation: "slide_from_right",

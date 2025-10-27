@@ -3,10 +3,16 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  originalPrice?: number;
   image: string;
+  images?: string[];
   category: string;
+  brand?: string;
   rating: number;
+  reviewCount?: number;
   inStock: boolean;
+  stock?: number;
+  slug?: string;
 }
 
 export interface Category {

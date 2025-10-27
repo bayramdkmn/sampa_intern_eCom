@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import tw from "twrnc";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList, Product } from "../types";
-import { useCartStore } from "../store";
+import { useCartStore, useProductStore } from "../store";
 import { useFavoriteStore } from "../store/favoriteStore";
 import { useTheme } from "../context/ThemeContext";
 
@@ -30,17 +31,16 @@ interface Props {
   route: ProductDetailScreenRouteProp;
 }
 
-// Örnek ürün verisi
-const PRODUCT: Product = {
-  id: "1",
-  name: "Premium Kablosuz Kulaklık",
-  description:
-    "Aktif gürültü önleme teknolojisi ile üstün ses kalitesi. 30 saate kadar pil ömrü ve hızlı şarj desteği.",
-  price: 1299,
+// Fallback ürün verisi
+const FALLBACK_PRODUCT: Product = {
+  id: "fallback",
+  name: "Ürün Bulunamadı",
+  description: "Bu ürün bulunamadı.",
+  price: 0,
   image: "https://via.placeholder.com/400",
-  category: "Elektronik",
-  rating: 4.8,
-  inStock: true,
+  category: "Genel",
+  rating: 0,
+  inStock: false,
 };
 
 const FEATURES = [
@@ -52,29 +52,64 @@ const FEATURES = [
 
 const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { theme } = useTheme();
-  const [quantity, setQuantity] = useState(1);
-
   const { addToCart } = useCartStore();
   const { addToFavorites, removeFromFavorites, isFavorite } =
     useFavoriteStore();
+  const { products, fetchProducts, isLoading } = useProductStore();
+  const [quantity, setQuantity] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
 
-  const isProductFavorite = isFavorite(PRODUCT.id);
+  // Route'dan gelen productId'yi al
+  const { productId } = route.params;
 
-  const handleAddToCart = () => {
-    // Zustand store'a ürün ekle
-    addToCart(PRODUCT, quantity);
-    alert(`${quantity} adet "${PRODUCT.name}" sepete eklendi! 🎉`);
+  // Ürünü bul
+  const product = products.find((p) => p.id === productId) || FALLBACK_PRODUCT;
+
+  useEffect(() => {
+    if (products.length === 0) {
+      fetchProducts();
+    }
+  }, [products.length, fetchProducts]);
+
+  const isProductFavorite = isFavorite(product.id);
+
+  const handleAddToCart = async () => {
+    try {
+      setAddingToCart(true);
+      await addToCart(product, quantity);
+      alert(`${quantity} adet "${product.name}" sepete eklendi! 🎉`);
+    } catch (error) {
+      alert("Ürün sepete eklenemedi");
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   const handleToggleFavorite = () => {
     if (isProductFavorite) {
-      removeFromFavorites(PRODUCT.id);
+      removeFromFavorites(product.id);
       alert("Favorilerden çıkarıldı 💔");
     } else {
-      addToFavorites(PRODUCT);
+      addToFavorites(product);
       alert("Favorilere eklendi ❤️");
     }
   };
+
+  if (isLoading && products.length === 0) {
+    return (
+      <View
+        style={[
+          tw`flex-1 items-center justify-center`,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[tw`mt-4`, { color: theme.colors.textSecondary }]}>
+          Yükleniyor...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
@@ -120,7 +155,7 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       >
         <View style={tw`items-center py-6`}>
           <Image
-            source={{ uri: PRODUCT.image }}
+            source={{ uri: product.image }}
             style={tw`w-80 h-80 rounded-xl`}
           />
         </View>
@@ -136,27 +171,38 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   { color: theme.colors.text },
                 ]}
               >
-                {PRODUCT.name}
+                {product.name}
               </Text>
               <View style={tw`bg-green-100 px-3 py-1 rounded-full`}>
                 <Text style={tw`text-green-700 font-bold text-xs`}>Stokta</Text>
               </View>
             </View>
 
-            <View style={tw`flex-row items-center mb-3`}>
-              <View style={tw`flex-row items-center mr-4`}>
-                <Text style={tw`text-yellow-500 text-lg mr-1`}>⭐</Text>
-                <Text style={tw`text-gray-700 font-bold`}>
-                  {PRODUCT.rating}
-                </Text>
-              </View>
+            <View style={tw`flex-row items-center gap-3`}>
+              <Text
+                style={[tw`text-3xl font-bold`, { color: theme.colors.primary }]}
+              >
+                ₺{product.price.toLocaleString("tr-TR")}
+              </Text>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <>
+                  <Text
+                    style={[
+                      tw`text-xl line-through text-gray-500`,
+                    ]}
+                  >
+                    ₺{product.originalPrice.toLocaleString("tr-TR")}
+                  </Text>
+                  <Text
+                    style={[
+                      tw`text-sm bg-red-100 text-red-600 px-2 py-1 rounded`,
+                    ]}
+                  >
+                    %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
+                  </Text>
+                </>
+              )}
             </View>
-
-            <Text
-              style={[tw`text-3xl font-bold`, { color: theme.colors.primary }]}
-            >
-              ₺{PRODUCT.price.toLocaleString("tr-TR")}
-            </Text>
           </View>
 
           <View style={tw`mb-6`}>
@@ -168,7 +214,7 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text
               style={[tw`leading-6`, { color: theme.colors.textSecondary }]}
             >
-              {PRODUCT.description}
+              {product.description || "Ürün açıklaması bulunmamaktadır"}
             </Text>
           </View>
         </View>
@@ -237,7 +283,7 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
               { color: theme.colors.onPrimary },
             ]}
           >
-            Sepete Ekle - ₺{(PRODUCT.price * quantity).toLocaleString("tr-TR")}
+            Sepete Ekle - ₺{(product.price * quantity).toLocaleString("tr-TR")}
           </Text>
         </TouchableOpacity>
       </View>

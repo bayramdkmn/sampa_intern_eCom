@@ -147,6 +147,12 @@ export interface CreateOrderData {
   billing_address?: string; // Address ID
   payment_method?: string; // Card ID
   notes?: string;
+  items: {
+    product_id: number;
+    quantity: number;
+    price: string; // Backend price bekliyor ve bu toplam fiyat olmalı
+  }[];
+  total_amount: string;
 }
 
 export interface OrderListResponse {

@@ -18,7 +18,10 @@ interface CartState {
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
   clearCart: () => void;
   calculateTotal: () => void;
+  setItems: (items: CartItem[]) => void;
+  setTotal: (total: number) => void;
   syncWithBackend: () => Promise<void>; // Backend'den sepeti çek
+  syncCartToBackend: () => Promise<void>; // Local sepeti backend'e gönder
   clearError: () => void;
 }
 
@@ -75,17 +78,22 @@ export const useCartStore = create<CartState>()(
 
       removeFromCart: async (productId: string) => {
         try {
+          // Mevcut state'i sakla (rollback için)
+          const currentItems = get().items;
+          const currentTotal = get().total;
+
           // Önce local state'i güncelle
           set({
             items: get().items.filter((item) => item.product.id !== productId),
           });
           get().calculateTotal();
 
-          // Backend'den sil (arka planda)
+          // Backend'den sil (arka planda, hata olsa bile local state'i değiştirme)
           try {
             await api.removeFromCart(parseInt(productId));
           } catch (apiError) {
-            console.warn('Sepetten silme API hatası (offline mode):', apiError);
+            console.warn('⚠️ Backend remove failed (offline mode):', apiError);
+            // Backend hatası olsa bile local state'i değiştirme (offline-first approach)
           }
         } catch (error: any) {
           console.error('Sepetten silme hatası:', error);
@@ -96,10 +104,16 @@ export const useCartStore = create<CartState>()(
 
       updateQuantity: async (productId: string, quantity: number) => {
         try {
+          console.log(`🛒 UPDATE QUANTITY - Product ID: ${productId}, New Quantity: ${quantity}`);
+          
           if (quantity <= 0) {
-            await get().removeFromCart(productId);
+            get().removeFromCart(productId);
             return;
           }
+
+          // Mevcut state'i sakla (rollback için)
+          const currentItems = get().items;
+          const currentTotal = get().total;
 
           // Önce local state'i güncelle
           set({
@@ -108,16 +122,66 @@ export const useCartStore = create<CartState>()(
             ),
           });
           get().calculateTotal();
+          
+          console.log(`🛒 LOCAL STATE UPDATED - New items:`, get().items.map(item => ({
+            product_id: item.product.id,
+            name: item.product.name,
+            quantity: item.quantity
+          })));
 
-          // Backend'e gönder (arka planda)
+          // Backend'e de güncelle (arka planda, hata olsa bile local state'i değiştirme)
           try {
             await api.updateCartItem(parseInt(productId), quantity);
           } catch (apiError) {
-            console.warn('Miktar güncelleme API hatası (offline mode):', apiError);
+            console.warn('⚠️ Backend quantity update failed (offline mode):', apiError);
+            // Backend hatası olsa bile local state'i değiştirme (offline-first approach)
           }
         } catch (error: any) {
           console.error('Miktar güncelleme hatası:', error);
           set({ error: error.message || 'Miktar güncellenirken hata oluştu' });
+          throw error;
+        }
+      },
+
+      // Backend'e sync et (checkout sırasında veya arada bir çağrılacak)
+      syncCartToBackend: async () => {
+        try {
+          const { items } = get();
+          
+          // Backend'den mevcut cart'ı al
+          const backendCart = await api.getCartItems();
+          
+          // Backend response'unu kontrol et
+          if (!backendCart || !Array.isArray(backendCart)) {
+            console.warn('⚠️ Backend cart is empty or invalid, skipping sync');
+            return;
+          }
+          
+          // Her local item için backend'deki durumu kontrol et ve güncelle
+          for (const localItem of items) {
+            const backendItem = backendCart.find(item => item.product.id.toString() === localItem.product.id);
+            
+            if (backendItem) {
+              // Backend'deki quantity ile local'deki farklıysa güncelle
+              if (backendItem.quantity !== localItem.quantity) {
+                await api.updateCartItem(parseInt(backendItem.id), localItem.quantity);
+              }
+            } else {
+              // Backend'de yoksa ekle
+              await api.addToCart({ product_id: parseInt(localItem.product.id), quantity: localItem.quantity });
+            }
+          }
+          
+          // Backend'de olup local'de olmayan item'ları sil
+          for (const backendItem of backendCart) {
+            const localItem = items.find(item => item.product.id === backendItem.product.id.toString());
+            if (!localItem) {
+              await api.removeFromCart(parseInt(backendItem.id));
+            }
+          }
+          
+        } catch (error) {
+          console.error('❌ Cart sync failed:', error);
           throw error;
         }
       },
@@ -128,6 +192,15 @@ export const useCartStore = create<CartState>()(
           total: 0,
           itemCount: 0,
         });
+      },
+
+      setItems: (items: CartItem[]) => {
+        set({ items });
+        get().calculateTotal();
+      },
+
+      setTotal: (total: number) => {
+        set({ total });
       },
 
       calculateTotal: () => {
