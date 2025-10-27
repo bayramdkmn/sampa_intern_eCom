@@ -104,37 +104,20 @@ export const useCartStore = create<CartState>()(
 
       updateQuantity: async (productId: string, quantity: number) => {
         try {
-          console.log(`🛒 UPDATE QUANTITY - Product ID: ${productId}, New Quantity: ${quantity}`);
-          
           if (quantity <= 0) {
             get().removeFromCart(productId);
             return;
           }
-
-          // Mevcut state'i sakla (rollback için)
-          const currentItems = get().items;
-          const currentTotal = get().total;
-
-          // Önce local state'i güncelle
           set({
             items: get().items.map((item) =>
               item.product.id === productId ? { ...item, quantity } : item
             ),
           });
           get().calculateTotal();
-          
-          console.log(`🛒 LOCAL STATE UPDATED - New items:`, get().items.map(item => ({
-            product_id: item.product.id,
-            name: item.product.name,
-            quantity: item.quantity
-          })));
-
-          // Backend'e de güncelle (arka planda, hata olsa bile local state'i değiştirme)
           try {
             await api.updateCartItem(parseInt(productId), quantity);
           } catch (apiError) {
             console.warn('⚠️ Backend quantity update failed (offline mode):', apiError);
-            // Backend hatası olsa bile local state'i değiştirme (offline-first approach)
           }
         } catch (error: any) {
           console.error('Miktar güncelleme hatası:', error);
@@ -143,36 +126,26 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      // Backend'e sync et (checkout sırasında veya arada bir çağrılacak)
       syncCartToBackend: async () => {
         try {
           const { items } = get();
-          
-          // Backend'den mevcut cart'ı al
           const backendCart = await api.getCartItems();
-          
-          // Backend response'unu kontrol et
           if (!backendCart || !Array.isArray(backendCart)) {
             console.warn('⚠️ Backend cart is empty or invalid, skipping sync');
             return;
           }
-          
-          // Her local item için backend'deki durumu kontrol et ve güncelle
           for (const localItem of items) {
             const backendItem = backendCart.find(item => item.product.id.toString() === localItem.product.id);
             
             if (backendItem) {
-              // Backend'deki quantity ile local'deki farklıysa güncelle
               if (backendItem.quantity !== localItem.quantity) {
                 await api.updateCartItem(parseInt(backendItem.id), localItem.quantity);
               }
             } else {
-              // Backend'de yoksa ekle
               await api.addToCart({ product_id: parseInt(localItem.product.id), quantity: localItem.quantity });
             }
           }
           
-          // Backend'de olup local'de olmayan item'ları sil
           for (const backendItem of backendCart) {
             const localItem = items.find(item => item.product.id === backendItem.product.id.toString());
             if (!localItem) {

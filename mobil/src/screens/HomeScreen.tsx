@@ -411,24 +411,27 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   >
                     ₺{product.price.toLocaleString("tr-TR")}
                   </Text>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <>
-                      <Text
-                        style={[
-                          tw`text-sm line-through text-gray-500`,
-                        ]}
-                      >
-                        ₺{product.originalPrice.toLocaleString("tr-TR")}
-                      </Text>
-                      <Text
-                        style={[
-                          tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
-                        ]}
-                      >
-                        %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
-                      </Text>
-                    </>
-                  )}
+                  {product.originalPrice &&
+                    product.originalPrice > product.price && (
+                      <>
+                        <Text style={[tw`text-sm line-through text-gray-500`]}>
+                          ₺{product.originalPrice.toLocaleString("tr-TR")}
+                        </Text>
+                        <Text
+                          style={[
+                            tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
+                          ]}
+                        >
+                          %
+                          {Math.round(
+                            ((product.originalPrice - product.price) /
+                              product.originalPrice) *
+                              100
+                          )}{" "}
+                          İndirim
+                        </Text>
+                      </>
+                    )}
                 </View>
 
                 {/* Butonlar */}

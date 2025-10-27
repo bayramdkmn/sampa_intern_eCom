@@ -6,15 +6,14 @@ import { api } from "../services/api";
 import type { Order as ApiOrder } from "../types/api";
 import { useCartStore } from "./cartStore";
 
-// API Order'dan Local StoreOrder'a dönüşüm
 const mapApiOrderToLocalOrder = (apiOrder: any): StoreOrder => {
   
   const items: CartItem[] = apiOrder.items.map((item: any) => ({
     product: {
       id: item.product?.toString() || item.product_id?.toString() || "unknown",
       name: item.product_name || "Ürün adı yok",
-      price: parseFloat(item.price || "0") / (item.quantity || 1), // Backend'den gelen price toplam fiyat, unit price'a çevir
-      image: "https://via.placeholder.com/400", // Backend'de product detayı yok
+      price: parseFloat(item.price || "0") / (item.quantity || 1),
+      image: "https://via.placeholder.com/400",
       category: "Genel",
       description: "Ürün açıklaması yok",
       rating: 0,
@@ -28,10 +27,10 @@ const mapApiOrderToLocalOrder = (apiOrder: any): StoreOrder => {
   
   return {
     id: apiOrder.id.toString(),
-    orderNumber: `#${apiOrder.id}`, // Backend'de order_number yok, id kullanıyoruz
+    orderNumber: `#${apiOrder.id}`,
     items,
     total,
-    shippingCost: 0, // Kargo ücretsiz
+    shippingCost: 0,
     finalTotal,
     status: apiOrder.status,
     createdAt: apiOrder.created_at,
@@ -90,15 +89,10 @@ export const useOrderStore = create<OrderState>()(
             total_amount: total.toFixed(2), // 2 ondalık basamak
           };
 
-          console.log('🚀 BACKEND\'E GÖNDERİLEN VERİ:', JSON.stringify(orderData, null, 2));
-
           const newApiOrder = await api.createOrder(orderData);
-
-          console.log('📥 BACKEND\'DEN DÖNEN VERİ:', JSON.stringify(newApiOrder, null, 2));
 
           const newLocalOrder = mapApiOrderToLocalOrder(newApiOrder);
 
-          // Sipariş başarılı olduğunda sepeti temizle
           useCartStore.getState().clearCart();
 
           set({
@@ -118,7 +112,6 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // 📋 Siparişleri Backend'den Çek
       fetchOrders: async () => {
         try {
           set({ isLoading: true, error: null });
@@ -137,19 +130,16 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // 🔍 ID'ye Göre Sipariş Bul
       fetchOrderById: async (orderId: string) => {
         try {
           set({ isLoading: true, error: null });
 
-          // Önce local state'de var mı kontrol et
           const existingOrder = get().orders.find((o) => o.id === orderId);
           if (existingOrder) {
             set({ isLoading: false, currentOrder: existingOrder });
             return existingOrder;
           }
 
-          // Yoksa API'den çek
           const apiOrder = await api.getOrder(orderId);
           const localOrder = mapApiOrderToLocalOrder(apiOrder);
 
@@ -170,7 +160,6 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // ❌ Siparişi İptal Et
       cancelOrder: async (orderId: string) => {
         try {
           set({ isLoading: true, error: null });
@@ -197,12 +186,10 @@ export const useOrderStore = create<OrderState>()(
         }
       },
 
-      // 🧹 Mevcut Siparişi Temizle
       clearCurrentOrder: () => {
         set({ currentOrder: null });
       },
 
-      // 🧹 Hatayı Temizle
       clearError: () => {
         set({ error: null });
       },

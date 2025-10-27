@@ -180,28 +180,34 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
             <View style={tw`flex-row items-center gap-3`}>
               <Text
-                style={[tw`text-3xl font-bold`, { color: theme.colors.primary }]}
+                style={[
+                  tw`text-3xl font-bold`,
+                  { color: theme.colors.primary },
+                ]}
               >
                 ₺{product.price.toLocaleString("tr-TR")}
               </Text>
-              {product.originalPrice && product.originalPrice > product.price && (
-                <>
-                  <Text
-                    style={[
-                      tw`text-xl line-through text-gray-500`,
-                    ]}
-                  >
-                    ₺{product.originalPrice.toLocaleString("tr-TR")}
-                  </Text>
-                  <Text
-                    style={[
-                      tw`text-sm bg-red-100 text-red-600 px-2 py-1 rounded`,
-                    ]}
-                  >
-                    %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
-                  </Text>
-                </>
-              )}
+              {product.originalPrice &&
+                product.originalPrice > product.price && (
+                  <>
+                    <Text style={[tw`text-xl line-through text-gray-500`]}>
+                      ₺{product.originalPrice.toLocaleString("tr-TR")}
+                    </Text>
+                    <Text
+                      style={[
+                        tw`text-sm bg-red-100 text-red-600 px-2 py-1 rounded`,
+                      ]}
+                    >
+                      %
+                      {Math.round(
+                        ((product.originalPrice - product.price) /
+                          product.originalPrice) *
+                          100
+                      )}{" "}
+                      İndirim
+                    </Text>
+                  </>
+                )}
             </View>
           </View>
 
