@@ -7,8 +7,9 @@ import type { Order as ApiOrder } from "../types/api";
 import { useCartStore } from "./cartStore";
 
 const mapApiOrderToLocalOrder = (apiOrder: any): StoreOrder => {
+  console.log('🔍 Mapping order:', JSON.stringify(apiOrder, null, 2));
   
-  const items: CartItem[] = apiOrder.items.map((item: any) => ({
+  const items: CartItem[] = (apiOrder.items || []).map((item: any) => ({
     product: {
       id: item.product?.toString() || item.product_id?.toString() || "unknown",
       name: item.product_name || "Ürün adı yok",
@@ -165,7 +166,10 @@ export const useOrderStore = create<OrderState>()(
           set({ isLoading: true, error: null });
 
           const cancelledApiOrder = await api.cancelOrder(orderId);
+          console.log('🔄 CANCEL ORDER - Backend response:', JSON.stringify(cancelledApiOrder, null, 2));
+          
           const cancelledLocalOrder = mapApiOrderToLocalOrder(cancelledApiOrder);
+          console.log('🔄 CANCEL ORDER - Mapped order:', JSON.stringify(cancelledLocalOrder, null, 2));
 
           set((state) => ({
             orders: state.orders.map(order =>

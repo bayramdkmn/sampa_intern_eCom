@@ -129,4 +129,4 @@ class CancelOrderView(generics.UpdateAPIView):
 
         order.status = 'cancelled'
         order.save()
-        return Response({"message": "Sipariş iptal edildi!"})
+        return Response(OrderSerializer(order).data)

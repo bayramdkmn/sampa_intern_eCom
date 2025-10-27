@@ -46,16 +46,18 @@ const WelcomeSuccessScreen: React.FC = () => {
         useNativeDriver: true,
       }),
     ]).start();
-
     const timer = setTimeout(() => {
-      navigation.navigate("MainTabs");
+      navigation.navigate("MainTabs", {
+        screen: "Home",
+      });
     }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
-
   const handleContinue = () => {
-    navigation.navigate("MainTabs");
+    navigation.navigate("MainTabs", {
+      screen: "Home",
+    });
   };
 
   return (

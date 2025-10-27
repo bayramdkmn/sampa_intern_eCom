@@ -17,7 +17,8 @@ import { useOrderStore } from "../store/orderStore";
 // Mock data kaldırıldı - API'den çekilecek
 
 const OrdersScreen: React.FC = () => {
-  const { orders, fetchOrders, isLoading, error } = useOrderStore();
+  const { orders, fetchOrders, cancelOrder, isLoading, error } =
+    useOrderStore();
   const [selectedOrder, setSelectedOrder] = useState<StoreOrder | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
@@ -118,6 +119,9 @@ const OrdersScreen: React.FC = () => {
   };
 
   const calculateSubtotal = (order: StoreOrder) => {
+    if (!order.items || !Array.isArray(order.items)) {
+      return 0;
+    }
     return order.items.reduce(
       (sum, item) => sum + item.product.price * item.quantity,
       0
@@ -322,7 +326,7 @@ const OrdersScreen: React.FC = () => {
       >
         {orders.map((order) => {
           const statusConfig = getStatusConfig(order.status);
-          const canCancel = order.status === "processing";
+          const canCancel = order.status === "pending";
 
           return (
             <View
