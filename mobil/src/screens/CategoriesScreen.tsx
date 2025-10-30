@@ -9,13 +9,14 @@ import {
   Platform,
   Modal,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import tw from "twrnc";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Category, Product } from "../types";
 import { useTheme } from "../context/ThemeContext";
-import { useProductStore, useCartStore } from "../store";
+import { useProductStore, useCartStore, useAuthStore } from "../store";
 
 type CategoriesScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -25,90 +26,6 @@ type CategoriesScreenNavigationProp = NativeStackNavigationProp<
 interface Props {
   navigation: CategoriesScreenNavigationProp;
 }
-
-// Kategori ikonları mapping
-const CATEGORY_ICONS: { [key: string]: string } = {
-  Elektronik: "📱",
-  Moda: "👔",
-  "Ev & Yaşam": "🏠",
-  Spor: "⚽",
-  Kitap: "📚",
-  Oyuncak: "🧸",
-  Kozmetik: "💄",
-  Giyim: "👕",
-  Ayakkabı: "👟",
-  Saat: "⌚",
-  Mücevher: "💍",
-  Ev: "🏡",
-  Bahçe: "🌱",
-  "Spor & Outdoor": "🏃",
-  Bilgisayar: "💻",
-  Telefon: "📞",
-  default: "🛍️",
-};
-
-const PRODUCTS_BY_CATEGORY: Product[] = [
-  {
-    id: "1",
-    name: "Kablosuz Kulaklık",
-    description: "Aktif gürültü önleme özellikli",
-    price: 899,
-    image: "https://via.placeholder.com/150",
-    category: "Elektronik",
-    rating: 4.7,
-    inStock: true,
-  },
-  {
-    id: "2",
-    name: "Bluetooth Hoparlör",
-    description: "Su geçirmez taşınabilir hoparlör",
-    price: 549,
-    image: "https://via.placeholder.com/150",
-    category: "Elektronik",
-    rating: 4.5,
-    inStock: true,
-  },
-  {
-    id: "3",
-    name: "Şarj Adaptörü",
-    description: "Hızlı şarj özellikli",
-    price: 199,
-    image: "https://via.placeholder.com/150",
-    category: "Elektronik",
-    rating: 4.3,
-    inStock: true,
-  },
-  {
-    id: "4",
-    name: "USB Kablo",
-    description: "3m uzunluğunda dayanıklı kablo",
-    price: 89,
-    image: "https://via.placeholder.com/150",
-    category: "Elektronik",
-    rating: 4.6,
-    inStock: true,
-  },
-  {
-    id: "5",
-    name: "Laptop",
-    description: "16GB RAM, 512GB SSD",
-    price: 18999,
-    image: "https://via.placeholder.com/150",
-    category: "Elektronik",
-    rating: 4.9,
-    inStock: true,
-  },
-  {
-    id: "6",
-    name: "Telefon Kılıfı",
-    description: "Darbe emici koruma",
-    price: 149,
-    image: "https://via.placeholder.com/150",
-    category: "Elektronik",
-    rating: 4.4,
-    inStock: true,
-  },
-];
 
 const PRICE_RANGES = [
   { id: "1", label: "0 - 500 ₺", min: 0, max: 500 },
@@ -120,9 +37,10 @@ const PRICE_RANGES = [
 
 const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
   const { theme } = useTheme();
-  const { products, categories, fetchProducts, fetchCategories, isLoading } =
+  const { products, fetchProducts, fetchCategories, isLoading } =
     useProductStore();
   const { addToCart } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     "all",
   ]);
@@ -136,7 +54,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
   >("default");
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
-  // Fiyat slider state'leri
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(10000);
   const [useCustomPriceRange, setUseCustomPriceRange] = useState(false);
@@ -146,48 +63,26 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
     fetchCategories();
   }, [fetchProducts, fetchCategories]);
 
-  // Ürünlerden dinamik kategori listesi oluştur
-  const getDynamicCategories = (): Category[] => {
-    const categoryMap = new Map<string, number>();
-
-    // Her ürünün kategorisini say
-    products.forEach((product) => {
-      if (product.category) {
-        const count = categoryMap.get(product.category) || 0;
-        categoryMap.set(product.category, count + 1);
-      }
-    });
-
-    // Kategori listesi oluştur
-    const dynamicCategories: Category[] = [
-      {
-        id: "all",
-        name: "Tümü",
-        icon: "🛍️",
-        productCount: products.length,
-      },
-    ];
-
-    // Her kategoriden bir tane ekle
-    categoryMap.forEach((count, categoryName) => {
-      dynamicCategories.push({
-        id: categoryName.toLowerCase().replace(/\s+/g, "-"),
-        name: categoryName,
-        icon: CATEGORY_ICONS[categoryName] || CATEGORY_ICONS.default,
-        productCount: count,
-      });
-    });
-
-    return dynamicCategories;
-  };
-
-  const dynamicCategories = getDynamicCategories();
-
   const handleProductPress = (productId: string) => {
     navigation.navigate("ProductDetail", { productId });
   };
 
   const handleAddToCart = async (product: Product) => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        "Giriş Yapmalısınız",
+        "Sepete ürün eklemek için önce giriş yapmanız gerekiyor.",
+        [
+          { text: "İptal", style: "cancel" },
+          {
+            text: "Giriş Yap",
+            style: "default",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ]
+      );
+      return;
+    }
     try {
       setAddingToCart(product.id);
       await addToCart(product, 1);
@@ -229,14 +124,12 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
   const getFilteredProducts = () => {
     let filtered = products;
 
-    // Arama filtresi
     if (searchQuery) {
       filtered = filtered.filter((product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Kategori filtresi
     if (!selectedCategories.includes("all")) {
       filtered = filtered.filter((product) =>
         selectedCategories.includes(
@@ -245,7 +138,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
       );
     }
 
-    // Fiyat filtresi
     if (useCustomPriceRange) {
       filtered = filtered.filter(
         (product) => product.price >= minPrice && product.price <= maxPrice
@@ -259,7 +151,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
       }
     }
 
-    // Sıralama
     if (sortBy === "price-asc") {
       filtered.sort((a, b) => a.price - b.price);
     } else if (sortBy === "price-desc") {
@@ -276,6 +167,21 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
     (selectedCategories.includes("all") ? 0 : selectedCategories.length) +
     (selectedPriceRange ? 1 : 0) +
     (sortBy !== "default" ? 1 : 0);
+
+  const categories: { id: string; name: string; icon: string }[] =
+    React.useMemo(() => {
+      const arr: { id: string; name: string; icon: string }[] = [];
+      const seen = new Set();
+      for (const product of products) {
+        const cat = product.category?.trim()?.toLowerCase() || "";
+        const key = cat.replace(/\s+/g, "-");
+        if (key && !seen.has(key)) {
+          arr.push({ id: key, name: product.category, icon: "🛍️" });
+          seen.add(key);
+        }
+      }
+      return arr;
+    }, [products]);
 
   if (isLoading && products.length === 0) {
     return (
@@ -339,30 +245,32 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
       >
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={tw`flex-row px-4 gap-2`}>
-            {dynamicCategories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                onPress={() => toggleCategory(category.id)}
-                style={[
-                  tw`px-4 py-2 rounded-full flex-row items-center`,
-                  selectedCategories.includes(category.id)
-                    ? { backgroundColor: theme.colors.barColor }
-                    : { backgroundColor: theme.colors.surfaceVariant },
-                ]}
-              >
-                <Text style={tw`text-base mr-1`}>{category.icon}</Text>
-                <Text
+            {categories.map(
+              (category: { id: string; name: string; icon: string }) => (
+                <TouchableOpacity
+                  key={category.id}
+                  onPress={() => toggleCategory(category.id)}
                   style={[
-                    tw`font-semibold text-sm`,
+                    tw`px-4 py-2 rounded-full flex-row items-center`,
                     selectedCategories.includes(category.id)
-                      ? { color: theme.colors.buttonText }
-                      : { color: theme.colors.textSecondary },
+                      ? { backgroundColor: theme.colors.barColor }
+                      : { backgroundColor: theme.colors.surfaceVariant },
                   ]}
                 >
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text style={tw`text-base mr-1`}>{category.icon}</Text>
+                  <Text
+                    style={[
+                      tw`font-semibold text-sm`,
+                      selectedCategories.includes(category.id)
+                        ? { color: theme.colors.buttonText }
+                        : { color: theme.colors.textSecondary },
+                    ]}
+                  >
+                    {category.name}
+                  </Text>
+                </TouchableOpacity>
+              )
+            )}
           </View>
         </ScrollView>
       </View>
@@ -537,7 +445,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
         )}
       </ScrollView>
 
-      {/* Filter Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -546,7 +453,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={tw`flex-1 justify-end bg-black/50`}>
           <View style={tw`bg-white rounded-t-3xl h-[80%]`}>
-            {/* Modal Header */}
             <View
               style={tw`flex-row items-center justify-between p-4 border-b border-gray-200`}
             >
@@ -565,46 +471,45 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
             </View>
 
             <ScrollView style={tw`flex-1 p-4`}>
-              {/* Kategoriler */}
               <View style={tw`mb-6`}>
                 <Text style={tw`text-gray-800 font-bold text-lg mb-3`}>
                   Kategoriler
                 </Text>
                 <View style={tw`flex-row flex-wrap gap-2`}>
-                  {dynamicCategories.map((category) => (
-                    <TouchableOpacity
-                      key={category.id}
-                      onPress={() => toggleCategory(category.id)}
-                      style={[
-                        tw`px-4 py-3 rounded-xl flex-row items-center border-2`,
-                        selectedCategories.includes(category.id)
-                          ? tw`bg-blue-50 border-blue-600`
-                          : tw`bg-white border-gray-200`,
-                      ]}
-                    >
-                      <Text style={tw`text-lg mr-2`}>{category.icon}</Text>
-                      <Text
+                  {categories.map(
+                    (category: { id: string; name: string; icon: string }) => (
+                      <TouchableOpacity
+                        key={category.id}
+                        onPress={() => toggleCategory(category.id)}
                         style={[
-                          tw`font-semibold`,
+                          tw`px-4 py-3 rounded-xl flex-row items-center border-2`,
                           selectedCategories.includes(category.id)
-                            ? tw`text-blue-600`
-                            : tw`text-gray-700`,
+                            ? tw`bg-blue-50 border-blue-600`
+                            : tw`bg-white border-gray-200`,
                         ]}
                       >
-                        {category.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text style={tw`text-lg mr-2`}>{category.icon}</Text>
+                        <Text
+                          style={[
+                            tw`font-semibold`,
+                            selectedCategories.includes(category.id)
+                              ? tw`text-blue-600`
+                              : tw`text-gray-700`,
+                          ]}
+                        >
+                          {category.name}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  )}
                 </View>
               </View>
 
-              {/* Fiyat Aralığı */}
               <View style={tw`mb-6`}>
                 <Text style={tw`text-gray-800 font-bold text-lg mb-3`}>
                   Fiyat Aralığı
                 </Text>
 
-                {/* Özel Fiyat Aralığı Toggle */}
                 <TouchableOpacity
                   onPress={() => setUseCustomPriceRange(!useCustomPriceRange)}
                   style={[
@@ -688,7 +593,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                 )}
               </View>
 
-              {/* Sıralama */}
               <View style={tw`mb-6`}>
                 <Text style={tw`text-gray-800 font-bold text-lg mb-3`}>
                   Sıralama
@@ -727,7 +631,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </ScrollView>
 
-            {/* Apply Button */}
             <View style={tw`p-4 border-t border-gray-200`}>
               <TouchableOpacity
                 onPress={applyFilters}

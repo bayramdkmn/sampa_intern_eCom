@@ -16,27 +16,6 @@ import { RootStackParamList, Category } from "../types";
 import { useProductStore, useAuthStore, useCartStore } from "../store";
 import { useTheme } from "../context/ThemeContext";
 
-// Kategori ikonları mapping
-const CATEGORY_ICONS: { [key: string]: string } = {
-  Elektronik: "📱",
-  Moda: "👔",
-  "Ev & Yaşam": "🏠",
-  Spor: "⚽",
-  Kitap: "📚",
-  Oyuncak: "🧸",
-  Kozmetik: "💄",
-  Giyim: "👕",
-  Ayakkabı: "👟",
-  Saat: "⌚",
-  Mücevher: "💍",
-  Ev: "🏡",
-  Bahçe: "🌱",
-  "Spor & Outdoor": "🏃",
-  Bilgisayar: "💻",
-  Telefon: "📞",
-  default: "🛍️",
-};
-
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "MainTabs"
@@ -47,8 +26,7 @@ interface Props {
 }
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  // 🎯 Zustand Store'dan veri al
-  const { products, categories, fetchProducts, fetchCategories, isLoading } =
+  const { products, fetchProducts, fetchCategories, isLoading } =
     useProductStore();
   const { isAuthenticated } = useAuthStore();
   const { addToCart } = useCartStore();
@@ -61,39 +39,26 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     fetchCategories();
   }, []);
 
-  // Ürünlerden dinamik kategori listesi oluştur
-  const getDynamicCategories = (): Category[] => {
-    const categoryMap = new Map<string, number>();
-
-    // Her ürünün kategorisini say
-    products.forEach((product) => {
-      if (product.category) {
-        const count = categoryMap.get(product.category) || 0;
-        categoryMap.set(product.category, count + 1);
+  const dynamicCategories = React.useMemo(() => {
+    const arr = [];
+    const seen = new Set();
+    for (const p of products) {
+      const key = (p.category || "").trim().toLowerCase().replace(/\s+/g, "-");
+      if (key && !seen.has(key)) {
+        arr.push({
+          id: key,
+          name: p.category,
+          icon: "🛍️",
+        });
+        seen.add(key);
       }
-    });
-
-    // Kategori listesi oluştur
-    const dynamicCategories: Category[] = [];
-
-    // Her kategoriden bir tane ekle
-    categoryMap.forEach((count, categoryName) => {
-      dynamicCategories.push({
-        id: categoryName.toLowerCase().replace(/\s+/g, "-"),
-        name: categoryName,
-        icon: CATEGORY_ICONS[categoryName] || CATEGORY_ICONS.default,
-        productCount: count,
-      });
-    });
-
-    return dynamicCategories;
-  };
-
-  const dynamicCategories = getDynamicCategories();
+    }
+    return arr;
+  }, [products]);
 
   const handleCategoryPress = (categoryName: string) => {
     if (selectedCategory === categoryName) {
-      setSelectedCategory(null); // Aynı kategoriye tekrar tıklanırsa filtreyi kaldır
+      setSelectedCategory(null);
     } else {
       setSelectedCategory(categoryName);
     }
@@ -103,10 +68,9 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate("ProductDetail", { productId });
   };
 
-  // Filtrelenmiş ürünleri al
   const getFilteredProducts = () => {
     if (!selectedCategory) {
-      return products.slice(0, 5); // Tüm ürünlerden ilk 5'i
+      return products.slice(0, 5);
     }
     return products
       .filter((product) => product.category === selectedCategory)
@@ -116,8 +80,23 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const filteredProducts = getFilteredProducts();
 
   const handleAddToCart = async (product: any, e: any) => {
-    e.stopPropagation(); // Parent TouchableOpacity'yi tetikleme
+    e.stopPropagation();
 
+    if (!isAuthenticated) {
+      Alert.alert(
+        "Giriş Yapmalısınız",
+        "Sepete ürün eklemek için önce giriş yapmanız gerekiyor.",
+        [
+          { text: "İptal", style: "cancel" },
+          {
+            text: "Giriş Yap",
+            style: "default",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ]
+      );
+      return;
+    }
     try {
       setAddingToCart(product.id);
       await addToCart(product, 1);
@@ -129,7 +108,22 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleBuyNow = async (product: any, e: any) => {
-    e.stopPropagation(); // Parent TouchableOpacity'yi tetikleme
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      Alert.alert(
+        "Giriş Yapmalısınız",
+        "Sepete ürün eklemek için önce giriş yapmanız gerekiyor.",
+        [
+          { text: "İptal", style: "cancel" },
+          {
+            text: "Giriş Yap",
+            style: "default",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ]
+      );
+      return;
+    }
 
     try {
       setAddingToCart(product.id);

@@ -15,6 +15,8 @@ import { RootStackParamList, Product } from "../types";
 import { useCartStore, useProductStore } from "../store";
 import { useFavoriteStore } from "../store/favoriteStore";
 import { useTheme } from "../context/ThemeContext";
+import { useAuthStore } from "../store";
+import { Alert } from "react-native";
 
 type ProductDetailScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -31,7 +33,6 @@ interface Props {
   route: ProductDetailScreenRouteProp;
 }
 
-// Fallback ürün verisi
 const FALLBACK_PRODUCT: Product = {
   id: "fallback",
   name: "Ürün Bulunamadı",
@@ -43,13 +44,6 @@ const FALLBACK_PRODUCT: Product = {
   inStock: false,
 };
 
-const FEATURES = [
-  { icon: "🔋", title: "30 Saat Pil", description: "Uzun kullanım süresi" },
-  { icon: "🎵", title: "Hi-Fi Ses", description: "Kristal kalitede müzik" },
-  { icon: "🎧", title: "ANC", description: "Aktif gürültü önleme" },
-  { icon: "📱", title: "Bluetooth 5.0", description: "Hızlı bağlantı" },
-];
-
 const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const { theme } = useTheme();
   const { addToCart } = useCartStore();
@@ -59,10 +53,10 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
 
-  // Route'dan gelen productId'yi al
   const { productId } = route.params;
 
-  // Ürünü bul
+  const { isAuthenticated } = useAuthStore();
+
   const product = products.find((p) => p.id === productId) || FALLBACK_PRODUCT;
 
   useEffect(() => {
@@ -74,6 +68,21 @@ const ProductDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   const isProductFavorite = isFavorite(product.id);
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        "Giriş Yapmalısınız",
+        "Sepete ürün eklemek için önce giriş yapmanız gerekiyor.",
+        [
+          { text: "İptal", style: "cancel" },
+          {
+            text: "Giriş Yap",
+            style: "default",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ]
+      );
+      return;
+    }
     try {
       setAddingToCart(true);
       await addToCart(product, quantity);

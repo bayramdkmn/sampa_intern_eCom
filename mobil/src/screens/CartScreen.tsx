@@ -18,6 +18,7 @@ import {
 } from "../store";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import { useAuthStore } from "../store";
 
 const CartScreen: React.FC = () => {
   const { items, total, updateQuantity, removeFromCart } = useCartStore();
@@ -31,6 +32,7 @@ const CartScreen: React.FC = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     string | null
   >(null);
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     fetchAddresses();
@@ -38,7 +40,7 @@ const CartScreen: React.FC = () => {
   }, []);
 
   const calculateFinalTotal = () => {
-    return total; // Kargo ücretsiz
+    return total;
   };
 
   const handleCheckout = () => {
@@ -101,6 +103,64 @@ const CartScreen: React.FC = () => {
     );
   };
 
+  if (!isAuthenticated) {
+    return (
+      <View
+        style={[
+          tw`flex-1 items-center justify-center px-6`,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <Text style={[tw`text-4xl mb-6`, { color: theme.colors.primary }]}>
+          🛒
+        </Text>
+        <Text
+          style={[tw`text-xl font-bold mb-2`, { color: theme.colors.text }]}
+        >
+          Sepetinize erişmek için giriş yapın
+        </Text>
+        <Text
+          style={[tw`text-center mb-8`, { color: theme.colors.textSecondary }]}
+        >
+          Sepetteki ürünlerinizi ve siparişlerinizi görüntülemek için giriş
+          yapmalısınız.
+        </Text>
+        <View style={tw`flex-row gap-4`}>
+          <TouchableOpacity
+            style={[
+              tw`flex-1 py-4 rounded-xl mr-2`,
+              { backgroundColor: theme.colors.primary },
+            ]}
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text style={[tw`text-white font-bold text-center`]}>
+              Giriş Yap
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              tw`flex-1 py-4 rounded-xl ml-2`,
+              {
+                backgroundColor: theme.colors.card,
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+              },
+            ]}
+            onPress={() => navigation.navigate("Register")}
+          >
+            <Text
+              style={[
+                tw`font-bold text-center`,
+                { color: theme.colors.primary },
+              ]}
+            >
+              Kayıt Ol
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
   if (items.length === 0) {
     return (
       <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>

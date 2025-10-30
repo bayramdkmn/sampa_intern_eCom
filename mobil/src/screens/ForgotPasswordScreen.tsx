@@ -117,7 +117,6 @@ const ForgotPasswordScreen: React.FC = () => {
     } catch {}
   };
 
-  // STEP YÖNLENDİRME
   if (passwordResetStep === "done" || passwordResetSuccess) {
     return (
       <View style={tw`flex-1 bg-white px-6 justify-center`}>
