@@ -25,7 +25,7 @@ export class ClientApi {
     this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
   }
 
-  private async makeRequest<T = unknown>(
+  async makeRequest<T = unknown>(
     endpoint: string,
     options: RequestInit = {},
     skipAuth: boolean = false

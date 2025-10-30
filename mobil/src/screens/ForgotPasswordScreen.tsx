@@ -16,7 +16,7 @@ import { RootStackParamList } from "../types";
 import { useAuthStore } from "../store";
 import { useTheme } from "../context/ThemeContext";
 
-const CODE_TIMER = 60; // saniye
+const CODE_TIMER = 60;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -33,7 +33,6 @@ const ForgotPasswordScreen: React.FC = () => {
   } = useAuthStore();
   const { theme } = useTheme();
 
-  // Form stateleri
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [code, setCode] = useState("");
@@ -43,8 +42,8 @@ const ForgotPasswordScreen: React.FC = () => {
   const [passwordError, setPasswordError] = useState("");
   const [timer, setTimer] = useState(CODE_TIMER);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [serverCode, setServerCode] = useState("");
 
-  // Timer kontrolü (kod adımında aktif)
   useEffect(() => {
     if (passwordResetStep === "verify" && timer > 0) {
       timerRef.current = setTimeout(() => setTimer(timer - 1), 1000);
@@ -55,11 +54,9 @@ const ForgotPasswordScreen: React.FC = () => {
   }, [timer, passwordResetStep]);
 
   useEffect(() => {
-    // Step değişirse timer baştan başlasın
     if (passwordResetStep === "verify") setTimer(CODE_TIMER);
   }, [passwordResetStep]);
 
-  // E-posta validasyonu
   const validateEmail = () => {
     if (!email) {
       setEmailError("E-posta adresi gereklidir");
@@ -72,7 +69,6 @@ const ForgotPasswordScreen: React.FC = () => {
     return true;
   };
 
-  // Şifre validasyonu
   const validatePasswords = () => {
     if (!newPassword || !newPassword2) {
       setPasswordError("Şifre alanları zorunlu");
@@ -90,21 +86,21 @@ const ForgotPasswordScreen: React.FC = () => {
     return true;
   };
 
-  // Adım 1: Mail ile istek
   const handleSendEmail = async () => {
     if (!validateEmail()) return;
     try {
-      await passwordResetRequest(email);
+      const response = await passwordResetRequest(email);
+      if (response && response.code) {
+        setServerCode(response.code);
+      }
     } catch {}
   };
 
-  // Adım 2: Kod gir / tekrar kod gönder
   const handleResendCode = async () => {
     setTimer(CODE_TIMER);
     await passwordResetRequest(passwordResetEmail || email);
   };
 
-  // Adım 3: Şifremi değiştir
   const handlePasswordReset = async () => {
     if (!validatePasswords()) return;
     try {
@@ -142,7 +138,6 @@ const ForgotPasswordScreen: React.FC = () => {
   }
 
   if (passwordResetStep === "verify") {
-    // Kod giriş aşaması
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -203,11 +198,8 @@ const ForgotPasswordScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={async () => {
-                // Burada aslında bir kod doğrulama API'si olmalı
-                // Şimdilik kodun uzunluğu 6 ise başarılı sayalım (örnek)
-                if (code.length === 6) {
-                  // Step'i setPassword'e getir
+              onPress={() => {
+                if (code === serverCode && code.length > 0) {
                   useAuthStore.setState({ passwordResetStep: "setPassword" });
                   setCodeError("");
                 } else {
@@ -236,7 +228,6 @@ const ForgotPasswordScreen: React.FC = () => {
   }
 
   if (passwordResetStep === "setPassword") {
-    // Yeni şifre giriş aşaması
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -306,7 +297,6 @@ const ForgotPasswordScreen: React.FC = () => {
     );
   }
 
-  // İlk/varsayılan adım: e-posta formu
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -328,7 +318,7 @@ const ForgotPasswordScreen: React.FC = () => {
           </View>
           <Text style={tw`text-gray-800 font-semibold mb-1`}>E-posta</Text>
           <TextInput
-            style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-2`}
+            style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-6`}
             value={email}
             onChangeText={setEmail}
             placeholder="ornek@email.com"

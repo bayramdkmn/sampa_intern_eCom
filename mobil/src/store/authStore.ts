@@ -48,7 +48,7 @@ interface AuthState {
   // Actions
   login: (email: string, password: string) => Promise<void>;
   register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
-  passwordResetRequest: (email: string) => Promise<void>;
+  passwordResetRequest: (email: string) => Promise<{ message: string, code?: string }>;
   passwordResetConfirm: (data: { email: string; code: string; new_password: string; new_password2: string }) => Promise<void>;
   resetPassword: (email: string) => Promise<void>; // deprecated, backward compat
   logout: () => Promise<void>;
@@ -176,7 +176,7 @@ export const useAuthStore = create<AuthState>()(
       passwordResetRequest: async (email: string) => {
         try {
           set({ isLoading: true, error: null });
-          await api.requestPasswordReset(email);
+          const apiResponse = await api.requestPasswordReset(email);
           set({
             isLoading: false,
             error: null,
@@ -184,6 +184,7 @@ export const useAuthStore = create<AuthState>()(
             passwordResetEmail: email,
             passwordResetSuccess: false,
           });
+          return apiResponse; // <--- response.message ve response.code erişilebilir olacak
         } catch (error: any) {
           const errorMessage = error?.message || 'Şifre sıfırlama kodu gönderilemedi';
           set({ isLoading: false, error: errorMessage });

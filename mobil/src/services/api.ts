@@ -493,8 +493,8 @@ class ApiClient {
     });
   }
 
-  async requestPasswordReset(email: string): Promise<{ message: string }> {
-    const response = await this.api.post<{ message: string }>(
+  async requestPasswordReset(email: string): Promise<{ message: string, code?: string }> {
+    const response = await this.api.post<{ message: string, code?: string }>(
       '/users/password-reset/request/',
       { email }
     );
