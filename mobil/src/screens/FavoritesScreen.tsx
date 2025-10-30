@@ -35,24 +35,24 @@ const FavoritesScreen: React.FC = () => {
         <View
           style={[
             tw`pt-12 pb-4 px-4 flex-row items-center`,
-            { backgroundColor: theme.colors.primary },
+            { backgroundColor: theme.colors.barColor },
           ]}
         >
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={[
               tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
-              { backgroundColor: theme.colors.card, opacity: 0.2 },
+              { backgroundColor: theme.colors.barColor },
             ]}
           >
-            <Text style={[tw`text-xl`, { color: theme.colors.onPrimary }]}>
+            <Text style={[tw`text-xl`, { color: theme.colors.buttonText }]}>
               ←
             </Text>
           </TouchableOpacity>
           <Text
             style={[
               tw`text-xl font-bold flex-1`,
-              { color: theme.colors.onPrimary },
+              { color: theme.colors.buttonText },
             ]}
           >
             Favorilerim
@@ -60,7 +60,7 @@ const FavoritesScreen: React.FC = () => {
         </View>
 
         <View style={tw`flex-1 justify-center items-center px-8`}>
-          <Text style={tw`text-8xl mb-6`}>❤️</Text>
+          <Text style={tw`text-8xl mb-6 p-4`}>❤️</Text>
           <Text
             style={[
               tw`text-2xl font-bold mb-3 text-center`,
@@ -79,16 +79,16 @@ const FavoritesScreen: React.FC = () => {
             ulaşabilirsiniz.
           </Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate("MainTabs")}
+            onPress={() => navigation.navigate("MainTabs", { screen: "Home" })}
             style={[
               tw`px-8 py-4 rounded-xl`,
-              { backgroundColor: theme.colors.primary },
+              { backgroundColor: theme.colors.barColor },
             ]}
           >
             <Text
               style={[
                 tw`font-bold text-base`,
-                { color: theme.colors.onPrimary },
+                { color: theme.colors.buttonText },
               ]}
             >
               Alışverişe Başla
@@ -154,24 +154,29 @@ const FavoritesScreen: React.FC = () => {
                     <Text style={tw`text-blue-600 font-bold text-lg`}>
                       ₺{product.price.toLocaleString("tr-TR")}
                     </Text>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <>
-                        <Text
-                          style={[
-                            tw`text-sm line-through text-gray-500`,
-                          ]}
-                        >
-                          ₺{product.originalPrice.toLocaleString("tr-TR")}
-                        </Text>
-                        <Text
-                          style={[
-                            tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
-                          ]}
-                        >
-                          %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
-                        </Text>
-                      </>
-                    )}
+                    {product.originalPrice &&
+                      product.originalPrice > product.price && (
+                        <>
+                          <Text
+                            style={[tw`text-sm line-through text-gray-500`]}
+                          >
+                            ₺{product.originalPrice.toLocaleString("tr-TR")}
+                          </Text>
+                          <Text
+                            style={[
+                              tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
+                            ]}
+                          >
+                            %
+                            {Math.round(
+                              ((product.originalPrice - product.price) /
+                                product.originalPrice) *
+                                100
+                            )}{" "}
+                            İndirim
+                          </Text>
+                        </>
+                      )}
                   </View>
                   <TouchableOpacity
                     onPress={(e) => {

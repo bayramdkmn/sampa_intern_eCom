@@ -2,12 +2,14 @@ import React from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import tw from "twrnc";
 import { PaymentMethodCardProps } from "../types";
+import { useTheme } from "../context/ThemeContext";
 
 const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   paymentMethod,
   onDelete,
   onSetDefault,
 }) => {
+  const { theme } = useTheme();
   const handleDelete = () => {
     Alert.alert(
       "Kartı Sil",
@@ -23,23 +25,10 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
     );
   };
 
-  const getCardIcon = () => {
-    switch (paymentMethod.cardType) {
-      case "visa":
-        return "💳";
-      case "mastercard":
-        return "💳";
-      case "amex":
-        return "💳";
-      default:
-        return "💳";
-    }
-  };
-
   const getCardColor = () => {
     switch (paymentMethod.cardType) {
       case "visa":
-        return "bg-blue-600";
+        return theme.mode === "dark" ? "bg-neutral-800" : "bg-blue-500";
       case "mastercard":
         return "bg-orange-600";
       case "amex":
@@ -64,7 +53,6 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
 
   return (
     <View style={tw`mb-4`}>
-      {/* Modern Kart Görünümü */}
       <View style={tw`${getCardColor()} rounded-2xl p-5 shadow-lg`}>
         <View style={tw`flex-row justify-between items-start mb-8`}>
           <View>

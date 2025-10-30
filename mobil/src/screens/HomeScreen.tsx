@@ -171,7 +171,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           { backgroundColor: theme.colors.barColor },
         ]}
       >
-        <View style={tw`flex-row items-center justify-between mb-4`}>
+        <View style={tw`flex-row items-center justify-between mb-4 pt-4`}>
           <Text
             style={[tw`text-2xl font-bold`, { color: theme.colors.buttonText }]}
           >
@@ -372,15 +372,24 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 },
               ]}
             >
-              <View style={{ width: "30%", height: "100%" }}>
+              <View
+                style={{
+                  width: "30%",
+                  height: "100%",
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  padding: 5,
+                }}
+              >
                 <Image
                   source={{ uri: product.image }}
-                  style={[tw`w-full h-44`, { resizeMode: "stretch" }]}
+                  defaultSource={require("../../assets/icon.png")}
+                  style={[tw`w-full h-40 p-2 rounded-xl`]}
+                  resizeMode="stretch"
                 />
               </View>
 
               <View style={[tw`p-4 justify-between`, { width: "70%" }]}>
-                {/* Başlık */}
                 <Text
                   numberOfLines={1}
                   style={[
@@ -401,7 +410,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   {product.description || "Ürün açıklaması bulunmamaktadır"}
                 </Text>
 
-                {/* Fiyat */}
                 <View style={tw`flex-row items-center gap-2 mb-2`}>
                   <Text
                     style={[
@@ -434,21 +442,24 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                     )}
                 </View>
 
-                {/* Butonlar */}
                 <View style={tw`flex-row gap-2`}>
                   <TouchableOpacity
                     onPress={(e) => handleBuyNow(product, e)}
                     disabled={addingToCart === product.id}
                     style={[
-                      tw`flex-1 py-2 rounded-lg`,
+                      tw`flex-1 h-10 rounded-lg border items-center justify-center flex-row`,
                       {
-                        backgroundColor: theme.colors.primary,
+                        borderColor: theme.colors.buttonPrimary,
+                        backgroundColor: "transparent",
                         opacity: addingToCart === product.id ? 0.5 : 1,
                       },
                     ]}
                   >
                     <Text
-                      style={tw`text-white text-xs font-semibold text-center`}
+                      style={[
+                        tw`text-sm font-semibold`,
+                        { color: theme.colors.buttonPrimary },
+                      ]}
                     >
                       {addingToCart === product.id ? "..." : "Satın Al"}
                     </Text>
@@ -458,21 +469,43 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                     onPress={(e) => handleAddToCart(product, e)}
                     disabled={addingToCart === product.id}
                     style={[
-                      tw`flex-1 py-2 rounded-lg border`,
+                      tw`flex-1 h-10 rounded-lg border items-center justify-center flex-row`,
                       {
-                        borderColor: theme.colors.primary,
+                        borderColor: theme.colors.buttonPrimary,
+                        backgroundColor: "transparent",
                         opacity: addingToCart === product.id ? 0.5 : 1,
                       },
                     ]}
                   >
-                    <Text
-                      style={[
-                        tw`text-xs font-semibold text-center`,
-                        { color: theme.colors.primary },
-                      ]}
-                    >
-                      {addingToCart === product.id ? "..." : "🛒 Ekle"}
-                    </Text>
+                    {addingToCart === product.id ? (
+                      <Text
+                        style={[
+                          tw`text-sm font-semibold`,
+                          { color: theme.colors.buttonPrimary },
+                        ]}
+                      >
+                        ...
+                      </Text>
+                    ) : (
+                      <>
+                        <Text
+                          style={[
+                            tw`mr-1`,
+                            { color: theme.colors.buttonPrimary },
+                          ]}
+                        >
+                          🛒
+                        </Text>
+                        <Text
+                          style={[
+                            tw`text-sm font-semibold`,
+                            { color: theme.colors.buttonPrimary },
+                          ]}
+                        >
+                          Ekle
+                        </Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>

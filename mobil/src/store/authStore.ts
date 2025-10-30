@@ -168,12 +168,9 @@ export const useAuthStore = create<AuthState>()(
       resetPassword: async (email: string) => {
         try {
           set({ isLoading: true, error: null });
-
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
           set({ isLoading: false, error: null });
         } catch (error: any) {
-          const errorMessage = error.message || 'Şifre sıfırlama isteği gönderilemedi';
+          const errorMessage = error?.message || 'Şifre sıfırlama isteği gönderilemedi';
           set({ 
             isLoading: false, 
             error: errorMessage,

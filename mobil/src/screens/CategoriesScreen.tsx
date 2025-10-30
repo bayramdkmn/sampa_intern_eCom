@@ -367,7 +367,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      {/* Filter & Sort Bar */}
       <View
         style={[
           tw`px-4 py-3 flex-row items-center justify-between`,
@@ -415,7 +414,6 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Products Grid */}
       <ScrollView
         style={tw`flex-1`}
         contentContainerStyle={{
@@ -438,8 +436,11 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
               <Image
                 source={{ uri: product.image }}
                 style={[
-                  tw`w-full h-48`,
-                  { backgroundColor: theme.colors.surfaceVariant },
+                  tw`w-full h-48 p-2 rounded-xl`,
+                  {
+                    backgroundColor: theme.colors.surfaceVariant,
+                    resizeMode: "stretch",
+                  },
                 ]}
               />
               <View style={tw`p-3`}>
@@ -471,24 +472,29 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                     >
                       ₺{product.price.toLocaleString("tr-TR")}
                     </Text>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <>
-                        <Text
-                          style={[
-                            tw`text-sm line-through text-gray-500`,
-                          ]}
-                        >
-                          ₺{product.originalPrice.toLocaleString("tr-TR")}
-                        </Text>
-                        <Text
-                          style={[
-                            tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
-                          ]}
-                        >
-                          %{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)} İndirim
-                        </Text>
-                      </>
-                    )}
+                    {product.originalPrice &&
+                      product.originalPrice > product.price && (
+                        <>
+                          <Text
+                            style={[tw`text-sm line-through text-gray-500`]}
+                          >
+                            ₺{product.originalPrice.toLocaleString("tr-TR")}
+                          </Text>
+                          <Text
+                            style={[
+                              tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
+                            ]}
+                          >
+                            %
+                            {Math.round(
+                              ((product.originalPrice - product.price) /
+                                product.originalPrice) *
+                                100
+                            )}{" "}
+                            İndirim
+                          </Text>
+                        </>
+                      )}
                   </View>
                 </View>
                 <TouchableOpacity
@@ -497,13 +503,13 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                   style={[
                     tw`py-2 px-3 rounded-lg`,
                     {
-                      backgroundColor: theme.colors.primary,
+                      backgroundColor: theme.colors.buttonPrimary,
                       opacity: addingToCart === product.id ? 0.5 : 1,
                     },
                   ]}
                 >
                   <Text
-                    style={tw`text-white text-xs font-semibold text-center`}
+                    style={tw`text-white text-sm font-semibold text-center`}
                   >
                     {addingToCart === product.id ? "..." : "🛒 Ekle"}
                   </Text>

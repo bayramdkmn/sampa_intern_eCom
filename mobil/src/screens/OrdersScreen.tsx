@@ -11,18 +11,14 @@ import {
 } from "react-native";
 import tw from "twrnc";
 import { useTheme } from "../context/ThemeContext";
-import { BaseOrder, OrderItem, StoreOrder } from "../types";
+import { StoreOrder } from "../types";
 import { useOrderStore } from "../store/orderStore";
 
-// Mock data kaldırıldı - API'den çekilecek
-
 const OrdersScreen: React.FC = () => {
-  const { orders, fetchOrders, cancelOrder, isLoading, error } =
-    useOrderStore();
+  const { orders, fetchOrders } = useOrderStore();
   const [selectedOrder, setSelectedOrder] = useState<StoreOrder | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
-  // API'den siparişleri çek
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -140,16 +136,33 @@ const OrdersScreen: React.FC = () => {
       >
         <View style={tw`flex-1 bg-black/50`}>
           <View style={tw`flex-1 mt-20`}>
-            <View style={tw`flex-1 bg-white rounded-t-3xl`}>
+            <View
+              style={[
+                tw`flex-1 rounded-t-3xl`,
+                {
+                  backgroundColor: theme.mode === "dark" ? "#171717" : "#fff",
+                },
+              ]}
+            >
               <View
                 style={tw`flex-row items-center justify-between px-6 py-4 border-b border-gray-200 `}
               >
                 <View>
-                  <Text style={tw`text-gray-800 text-xl font-bold`}>
+                  <Text
+                    style={[
+                      tw`text-xl font-bold`,
+                      { color: theme.colors.text },
+                    ]}
+                  >
                     Sipariş Detayı
                   </Text>
                   {selectedOrder && (
-                    <Text style={tw`text-blue-600 text-sm font-semibold mt-1`}>
+                    <Text
+                      style={[
+                        tw`text-sm font-semibold mt-1`,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
                       {selectedOrder.orderNumber}
                     </Text>
                   )}
@@ -158,7 +171,14 @@ const OrdersScreen: React.FC = () => {
                   onPress={() => setDetailModalVisible(false)}
                   style={tw`w-10 h-10 items-center justify-center`}
                 >
-                  <Text style={tw`text-gray-400 text-2xl`}>✕</Text>
+                  <Text
+                    style={[
+                      tw`text-2xl`,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
+                    ✕
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -167,11 +187,10 @@ const OrdersScreen: React.FC = () => {
                   style={tw`flex-1`}
                   contentContainerStyle={tw`px-6 py-4`}
                 >
-                  {/* Order Info */}
                   <View style={tw`mb-4`}>
                     <View style={tw`flex-row items-center mb-2`}>
                       <Text style={tw`text-gray-500 text-sm mr-2`}>📅</Text>
-                      <Text style={tw`text-gray-600 text-sm`}>
+                      <Text style={[tw`text-sm`, { color: theme.colors.text }]}>
                         {formatDate(selectedOrder.date)}
                       </Text>
                     </View>
@@ -180,7 +199,12 @@ const OrdersScreen: React.FC = () => {
                         <Text style={tw`text-gray-500 text-sm mr-2 mt-0.5`}>
                           📍
                         </Text>
-                        <Text style={tw`text-gray-600 text-sm flex-1`}>
+                        <Text
+                          style={[
+                            tw`text-sm flex-1`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
                           {selectedOrder.address}
                         </Text>
                       </View>
@@ -207,18 +231,24 @@ const OrdersScreen: React.FC = () => {
                     </View>
                   </View>
 
-                  {/* Divider */}
                   <View style={tw`border-t border-gray-200 my-4`} />
 
-                  {/* Products */}
                   <View style={tw`mb-4`}>
-                    <Text style={tw`text-gray-800 font-bold text-base mb-3`}>
+                    <Text
+                      style={[
+                        tw`font-bold text-base mb-3`,
+                        { color: theme.colors.text },
+                      ]}
+                    >
                       Ürünler
                     </Text>
                     {selectedOrder.items?.map((item, index) => (
                       <View
                         key={`${item.product.id}-${index}`}
-                        style={tw`flex-row items-center mb-3 bg-gray-50 rounded-xl p-3`}
+                        style={[
+                          tw`flex-row items-center mb-3 rounded-xl p-3`,
+                          { backgroundColor: theme.colors.card },
+                        ]}
                       >
                         <Image
                           source={{ uri: item.product.image }}
@@ -226,15 +256,28 @@ const OrdersScreen: React.FC = () => {
                         />
                         <View style={tw`flex-1`}>
                           <Text
-                            style={tw`text-gray-800 font-semibold text-sm mb-1`}
+                            style={[
+                              tw`font-semibold text-sm mb-1`,
+                              { color: theme.colors.text },
+                            ]}
                           >
                             {item.product.name}
                           </Text>
-                          <Text style={tw`text-gray-500 text-xs`}>
+                          <Text
+                            style={[
+                              tw`text-xs`,
+                              { color: theme.colors.textSecondary },
+                            ]}
+                          >
                             {item.quantity} adet
                           </Text>
                         </View>
-                        <Text style={tw`text-gray-800 font-bold text-base`}>
+                        <Text
+                          style={[
+                            tw`font-bold text-base`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
                           Toplam:{" "}
                           {formatPrice(item.product.price * item.quantity)}
                         </Text>
@@ -244,35 +287,74 @@ const OrdersScreen: React.FC = () => {
 
                   <View style={tw`border-t border-gray-200 my-4`} />
 
-                  {/* Price Summary */}
                   <View style={tw`mb-4`}>
-                    <Text style={tw`text-gray-800 font-bold text-base mb-3`}>
+                    <Text
+                      style={[
+                        tw`font-bold text-base mb-3`,
+                        { color: theme.colors.text },
+                      ]}
+                    >
                       Özet
                     </Text>
-                    <View style={tw`bg-gray-50 rounded-xl p-4`}>
+                    <View
+                      style={[
+                        tw`rounded-xl p-4`,
+                        { backgroundColor: theme.colors.card },
+                      ]}
+                    >
                       <View style={tw`flex-row justify-between mb-2`}>
-                        <Text style={tw`text-gray-600 text-sm`}>
+                        <Text
+                          style={[
+                            tw`text-sm`,
+                            { color: theme.colors.textSecondary },
+                          ]}
+                        >
                           Ara Toplam
                         </Text>
-                        <Text style={tw`text-gray-800 font-semibold text-sm`}>
+                        <Text
+                          style={[
+                            tw`font-semibold text-sm`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
                           {formatPrice(calculateSubtotal(selectedOrder))}
                         </Text>
                       </View>
                       <View style={tw`flex-row justify-between mb-2`}>
-                        <Text style={tw`text-gray-600 text-sm`}>
+                        <Text
+                          style={[
+                            tw`text-sm`,
+                            { color: theme.colors.textSecondary },
+                          ]}
+                        >
                           Kargo Ücreti
                         </Text>
-                        <Text style={tw`text-gray-800 font-semibold text-sm`}>
+                        <Text
+                          style={[
+                            tw`font-semibold text-sm`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
                           {formatPrice(selectedOrder.shippingCost || 0)}
                         </Text>
                       </View>
                       <View
                         style={tw`border-t border-gray-200 mt-2 pt-3 flex-row justify-between`}
                       >
-                        <Text style={tw`text-gray-800 font-bold text-base`}>
+                        <Text
+                          style={[
+                            tw`font-bold text-base`,
+                            { color: theme.colors.text },
+                          ]}
+                        >
                           Toplam
                         </Text>
-                        <Text style={tw`text-blue-600 font-bold text-lg`}>
+                        <Text
+                          style={[
+                            tw`font-bold text-lg`,
+                            { color: theme.colors.primary },
+                          ]}
+                        >
                           {formatPrice(selectedOrder.total)}
                         </Text>
                       </View>
@@ -281,7 +363,6 @@ const OrdersScreen: React.FC = () => {
                 </ScrollView>
               )}
 
-              {/* Modal Footer */}
               <View
                 style={tw`px-6 py-4 border-t border-gray-200 ${
                   Platform.OS === "ios" ? "pb-8" : "pb-4"
@@ -289,7 +370,10 @@ const OrdersScreen: React.FC = () => {
               >
                 <TouchableOpacity
                   onPress={() => setDetailModalVisible(false)}
-                  style={tw`bg-blue-600 py-4 rounded-xl`}
+                  style={[
+                    tw`py-4 rounded-xl`,
+                    { backgroundColor: theme.colors.barColor },
+                  ]}
                 >
                   <Text style={tw`text-white font-bold text-center text-base`}>
                     Kapat

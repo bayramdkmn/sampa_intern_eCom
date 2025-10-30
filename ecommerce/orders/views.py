@@ -41,7 +41,6 @@ class CreateOrderView(generics.CreateAPIView):
         if not user or not user.is_authenticated:
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Frontend'den gelen veriyi kullan
         data = request.data
         items = data.get('items', [])
         
@@ -58,7 +57,6 @@ class CreateOrderView(generics.CreateAPIView):
 
         try:
             with transaction.atomic():
-                # Frontend'den gelen total_amount'u kullan
                 total_price = Decimal(str(data.get('total_amount', '0.00')))
                 
                 order = Order.objects.create(
@@ -69,7 +67,6 @@ class CreateOrderView(generics.CreateAPIView):
                     status='pending'
                 )
 
-                # Frontend'den gelen items'ları kullan
                 for item_data in items:
                     from products.models import Product
                     product = Product.objects.get(id=item_data['product_id'])
@@ -81,7 +78,6 @@ class CreateOrderView(generics.CreateAPIView):
                         price=Decimal(str(item_data['price']))
                     )
 
-                # Sepeti temizle
                 CartItem.objects.filter(cart__user=user).delete()
 
             return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
@@ -101,11 +97,9 @@ class CompleteOrderView(generics.UpdateAPIView):
 
     def put(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
-        # only owner or staff can complete
         if order.user != request.user and not request.user.is_staff:
             return Response({"detail": "You do not have permission to complete this order."}, status=status.HTTP_403_FORBIDDEN)
 
-        # don't complete a cancelled order
         if order.status == 'cancelled':
             return Response({"detail": "Cancelled orders cannot be completed."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -119,11 +113,9 @@ class CancelOrderView(generics.UpdateAPIView):
 
     def put(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
-        # only owner or staff can cancel
         if order.user != request.user and not request.user.is_staff:
             return Response({"detail": "You do not have permission to cancel this order."}, status=status.HTTP_403_FORBIDDEN)
 
-        # don't allow cancelling completed orders
         if order.status == 'completed':
             return Response({"detail": "Completed orders cannot be canceled."}, status=status.HTTP_400_BAD_REQUEST)
 

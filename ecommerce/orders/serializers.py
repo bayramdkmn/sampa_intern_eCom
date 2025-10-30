@@ -5,10 +5,11 @@ from products.models import Product
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
+    product_image = serializers.ImageField(source='product.image', read_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'product', 'product_name', 'quantity', 'price']
+        fields = ['id', 'product', 'product_name', 'product_image', 'quantity', 'price']
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -28,10 +29,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderItemDetailSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
+    product_image = serializers.ImageField(source='product.image', read_only=True)
 
     class Meta:
         model = OrderItem
-        fields = ['product_name', 'quantity', 'price']
+        fields = ['product_name', 'product_image', 'quantity', 'price']
 
 
 class OrderListSerializer(serializers.ModelSerializer):

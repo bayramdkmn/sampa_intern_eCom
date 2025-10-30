@@ -60,11 +60,18 @@ const OrderConfirmScreen: React.FC = () => {
       >
         <View style={tw`flex-row items-center justify-between my-4`}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={[tw`text-xl font-bold`, { color: theme.colors.text }]}>
+            <Text
+              style={[
+                tw`text-xl font-bold`,
+                { color: theme.colors.buttonText },
+              ]}
+            >
               ←
             </Text>
           </TouchableOpacity>
-          <Text style={[tw`text-xl font-bold`, { color: theme.colors.text }]}>
+          <Text
+            style={[tw`text-xl font-bold`, { color: theme.colors.buttonText }]}
+          >
             Siparişi Onayla
           </Text>
           <View style={tw`w-6`} />
@@ -72,7 +79,6 @@ const OrderConfirmScreen: React.FC = () => {
       </View>
 
       <ScrollView style={tw`flex-1 px-4`}>
-        {/* Teslimat Adresi */}
         <View style={tw`mt-6`}>
           <View
             style={[
@@ -115,7 +121,6 @@ const OrderConfirmScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Ödeme Yöntemi */}
         <View style={tw`mt-4`}>
           <View
             style={[
@@ -158,7 +163,6 @@ const OrderConfirmScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Sipariş Özeti */}
         <View style={tw`mt-6`}>
           <Text
             style={[tw`text-lg font-bold mb-4`, { color: theme.colors.text }]}
@@ -174,10 +178,11 @@ const OrderConfirmScreen: React.FC = () => {
                 { backgroundColor: theme.colors.card },
               ]}
             >
-              <View style={tw`flex-row items-center`}>
+              <View style={tw`flex-row items-center gap-4`}>
                 <Image
                   source={{ uri: item.product.image }}
-                  style={tw`w-16 h-16 rounded-xl mr-4`}
+                  style={[tw`w-20 h-20 rounded-xl`]}
+                  resizeMode="stretch"
                 />
                 <View style={tw`flex-1`}>
                   <Text
@@ -293,7 +298,9 @@ const OrderConfirmScreen: React.FC = () => {
           onPress={handleCompletePayment}
           style={[
             tw`py-4 rounded-2xl`,
-            { backgroundColor: theme.colors.primary },
+            {
+              backgroundColor: theme.mode === "light" ? "#3B82F6" : "#232323",
+            },
           ]}
         >
           <Text

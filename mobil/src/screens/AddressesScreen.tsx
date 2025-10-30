@@ -57,42 +57,31 @@ const AddressesScreen: React.FC = () => {
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
-      {/* Header */}
       <View
         style={[
-          tw`pt-12 pb-4 px-4 flex-row items-center`,
-          { backgroundColor: theme.colors.primary },
+          tw`pt-14 pb-4 px-4 flex-row items-center`,
+          { backgroundColor: theme.colors.barColor },
         ]}
       >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={[
             tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
-            { backgroundColor: theme.colors.card, opacity: 0.2 },
+            { backgroundColor: theme.colors.barColor },
           ]}
         >
-          <Text style={[tw`text-xl`, { color: theme.colors.onPrimary }]}>
+          <Text style={[tw`text-xl`, { color: theme.colors.buttonText }]}>
             ←
           </Text>
         </TouchableOpacity>
         <Text
           style={[
             tw`text-xl font-bold flex-1`,
-            { color: theme.colors.onPrimary },
+            { color: theme.colors.buttonText },
           ]}
         >
           Adreslerim
         </Text>
-        <View
-          style={[
-            tw`px-3 py-1 rounded-full`,
-            { backgroundColor: theme.colors.card, opacity: 0.2 },
-          ]}
-        >
-          <Text style={[tw`font-bold`, { color: theme.colors.onPrimary }]}>
-            {addresses.length}
-          </Text>
-        </View>
       </View>
 
       <ScrollView
@@ -133,13 +122,22 @@ const AddressesScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* Add Address Button */}
       <View
-        style={tw`bg-white border-t border-gray-200 px-4 pt-3 pb-8 shadow-lg`}
+        style={[
+          tw`border-t px-4 pt-3 pb-8 shadow-lg`,
+          {
+            borderTopColor: theme.colors.divider,
+            backgroundColor: theme.colors.background,
+            shadowColor: theme.colors.shadow,
+          },
+        ]}
       >
         <TouchableOpacity
           onPress={openAddForm}
-          style={tw`bg-blue-600 py-4 rounded-xl`}
+          style={[
+            tw`py-4 rounded-xl`,
+            { backgroundColor: theme.colors.barColor },
+          ]}
         >
           <Text style={tw`text-white font-bold text-center text-base`}>
             + Yeni Adres Ekle
@@ -147,7 +145,6 @@ const AddressesScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Address Form Modal */}
       <AddressFormModal
         visible={formVisible}
         editingAddress={editingAddress}

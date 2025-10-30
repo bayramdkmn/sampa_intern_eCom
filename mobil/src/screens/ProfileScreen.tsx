@@ -39,11 +39,10 @@ const USER: User = {
 };
 
 const SETTINGS_ITEMS = [
-  { id: "1", icon: "🔔", title: "Bildirimler" },
-  { id: "2", icon: "🌙", title: "Tema Değiştir" },
-  { id: "3", icon: "🔒", title: "Gizlilik ve Güvenlik" },
-  { id: "4", icon: "❓", title: "Yardım ve Destek" },
-  { id: "5", icon: "📄", title: "Kullanım Koşulları" },
+  { id: "1", icon: "🌙", title: "Tema Değiştir" },
+  { id: "2", icon: "🔒", title: "Gizlilik ve Güvenlik" },
+  { id: "3", icon: "❓", title: "Yardım ve Destek" },
+  { id: "4", icon: "📄", title: "Kullanım Koşulları" },
 ];
 
 const ProfileScreen: React.FC = () => {
@@ -144,7 +143,6 @@ const ProfileScreen: React.FC = () => {
     }
 
     const settingsItems: { [key: string]: string } = {
-      "1": "Bildirimler",
       "2": "Gizlilik ve Güvenlik",
       "3": "Yardım ve Destek",
       "4": "Kullanım Koşulları",
@@ -268,19 +266,39 @@ const ProfileScreen: React.FC = () => {
               <View style={tw`flex-row gap-3`}>
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}
-                  style={tw`flex-1 bg-gray-200 py-4 rounded-xl`}
+                  style={[
+                    tw`flex-1 py-4 rounded-xl`,
+                    {
+                      backgroundColor:
+                        theme.mode === "light" ? "#F5F5F5" : "#262626",
+                    },
+                  ]}
                 >
                   <Text
-                    style={tw`text-gray-700 font-bold text-center text-base`}
+                    style={[
+                      tw`font-bold text-center text-base`,
+                      { color: theme.colors.text },
+                    ]}
                   >
                     İptal
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleSave}
-                  style={tw`flex-1 bg-blue-600 py-4 rounded-xl`}
+                  style={[
+                    tw`flex-1 py-4 rounded-xl`,
+                    {
+                      backgroundColor:
+                        theme.mode === "light" ? "#F5F5F5" : "#262626",
+                    },
+                  ]}
                 >
-                  <Text style={tw`text-white font-bold text-center text-base`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-center text-base`,
+                      { color: theme.colors.text },
+                    ]}
+                  >
                     Kaydet
                   </Text>
                 </TouchableOpacity>
@@ -328,9 +346,17 @@ const ProfileScreen: React.FC = () => {
                       setAvatarUploading(false);
                     }
                   }}
-                  style={tw`bg-gray-200 py-3 rounded-xl items-center`}
+                  style={[
+                    tw`py-3 rounded-xl items-center`,
+                    {
+                      backgroundColor:
+                        theme.mode === "light" ? "#F5F5F5" : "#262626",
+                    },
+                  ]}
                 >
-                  <Text style={tw`font-semibold`}>
+                  <Text
+                    style={[tw`font-semibold`, { color: theme.colors.text }]}
+                  >
                     {avatarUploading
                       ? "Yükleniyor..."
                       : "Profil Fotoğrafı Yükle"}
@@ -348,7 +374,6 @@ const ProfileScreen: React.FC = () => {
           paddingBottom: Platform.OS === "ios" ? 110 : 90,
         }}
       >
-        {/* Header */}
         <View
           style={[
             tw`pt-12 pb-8 px-4`,
@@ -356,7 +381,10 @@ const ProfileScreen: React.FC = () => {
           ]}
         >
           <Text
-            style={[tw`text-2xl font-bold mb-6`, { color: theme.colors.text }]}
+            style={[
+              tw`text-2xl font-bold mb-6 pt-4`,
+              { color: theme.colors.text },
+            ]}
           >
             Profilim
           </Text>

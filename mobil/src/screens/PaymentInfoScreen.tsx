@@ -131,11 +131,18 @@ const PaymentInfoScreen: React.FC = () => {
       >
         <View style={tw`flex-row items-center justify-between my-4`}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={[tw`text-xl font-bold`, { color: theme.colors.text }]}>
+            <Text
+              style={[
+                tw`text-xl font-bold`,
+                { color: theme.colors.buttonText },
+              ]}
+            >
               ←
             </Text>
           </TouchableOpacity>
-          <Text style={[tw`text-xl font-bold`, { color: theme.colors.text }]}>
+          <Text
+            style={[tw`text-xl font-bold`, { color: theme.colors.buttonText }]}
+          >
             Güvenli Ödeme
           </Text>
           <View style={tw`w-6`} />
@@ -480,7 +487,9 @@ const PaymentInfoScreen: React.FC = () => {
           onPress={handleContinue}
           style={[
             tw`py-4 rounded-2xl`,
-            { backgroundColor: theme.colors.primary },
+            {
+              backgroundColor: theme.mode === "light" ? "#3B82F6" : "#232322",
+            },
           ]}
         >
           <Text

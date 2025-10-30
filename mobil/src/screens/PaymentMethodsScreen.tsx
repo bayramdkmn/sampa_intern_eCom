@@ -49,14 +49,15 @@ const PaymentMethodsScreen: React.FC = () => {
 
   return (
     <>
-      {/* Add Payment Method Modal */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={tw`flex-1 bg-black/50`}>
+        <View
+          style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
+        >
           <View
             style={tw`flex-1 bg-white rounded-t-3xl mt-20 ${
               Platform.OS === "ios" ? "pb-10" : "pb-6"
@@ -71,11 +72,10 @@ const PaymentMethodsScreen: React.FC = () => {
       </Modal>
 
       <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
-        {/* Header */}
         <View
           style={[
-            tw`pt-12 pb-6 px-4`,
-            { backgroundColor: theme.colors.primary },
+            tw`pt-16 pb-6 px-4`,
+            { backgroundColor: theme.colors.barColor },
           ]}
         >
           <View style={tw`flex-row items-center mb-2`}>
@@ -83,22 +83,19 @@ const PaymentMethodsScreen: React.FC = () => {
               onPress={() => navigation.goBack()}
               style={tw`mr-4`}
             >
-              <Text style={[tw`text-2xl`, { color: theme.colors.onPrimary }]}>
+              <Text style={[tw`text-2xl`, { color: theme.colors.buttonText }]}>
                 ←
               </Text>
             </TouchableOpacity>
             <Text
               style={[
                 tw`text-2xl font-bold flex-1`,
-                { color: theme.colors.onPrimary },
+                { color: theme.colors.buttonText },
               ]}
             >
               Ödeme Yöntemlerim
             </Text>
           </View>
-          <Text style={tw`text-blue-100 text-sm ml-12`}>
-            Kayıtlı kartlarınızı yönetin
-          </Text>
         </View>
 
         <ScrollView
@@ -110,7 +107,6 @@ const PaymentMethodsScreen: React.FC = () => {
           }}
         >
           {isLoading ? (
-            // Loading State
             <View style={tw`items-center justify-center py-16`}>
               <Text style={tw`text-4xl mb-4`}>⏳</Text>
               <Text style={tw`text-gray-600 text-lg font-semibold`}>
@@ -118,7 +114,6 @@ const PaymentMethodsScreen: React.FC = () => {
               </Text>
             </View>
           ) : paymentMethods.length === 0 ? (
-            // Boş State
             <View style={tw`items-center justify-center py-16`}>
               <Text style={tw`text-6xl mb-4`}>💳</Text>
               <Text style={tw`text-gray-800 text-xl font-bold mb-2`}>
@@ -137,7 +132,6 @@ const PaymentMethodsScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           ) : (
-            // Kart Listesi
             <>
               {paymentMethods.map((paymentMethod) => (
                 <PaymentMethodCard
@@ -148,12 +142,10 @@ const PaymentMethodsScreen: React.FC = () => {
                 />
               ))}
 
-              {/* Yeni Kart Ekle Butonu */}
               <TouchableOpacity
                 onPress={() => setModalVisible(true)}
-                style={tw`bg-white border-2 border-dashed border-blue-400 rounded-2xl p-6 items-center justify-center mt-2`}
+                style={tw`border-2 border-dashed border-blue-400 rounded-2xl p-6 items-center justify-center mt-2`}
               >
-                <Text style={tw`text-4xl mb-2`}>+</Text>
                 <Text style={tw`text-blue-600 font-bold text-base`}>
                   Yeni Kart Ekle
                 </Text>
@@ -161,36 +153,27 @@ const PaymentMethodsScreen: React.FC = () => {
                   Başka bir ödeme yöntemi ekleyin
                 </Text>
               </TouchableOpacity>
-
-              {/* Bilgilendirme */}
-              <View style={tw`bg-yellow-50 rounded-xl p-4 mt-6`}>
-                <View style={tw`flex-row items-start`}>
-                  <Text style={tw`text-xl mr-3`}>ℹ️</Text>
-                  <View style={tw`flex-1`}>
-                    <Text style={tw`text-yellow-800 font-semibold mb-1`}>
-                      Güvenlik İpucu
-                    </Text>
-                    <Text style={tw`text-yellow-700 text-sm`}>
-                      Kart bilgileriniz şifrelenmiş olarak saklanır ve üçüncü
-                      kişilerle paylaşılmaz.
-                    </Text>
-                  </View>
-                </View>
-              </View>
             </>
           )}
         </ScrollView>
 
-        {/* Sabit Alt Buton (Kart varsa) */}
         {paymentMethods.length > 0 && (
           <View
-            style={tw`absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 ${
-              Platform.OS === "ios" ? "pb-8 pt-4" : "py-4"
-            }`}
+            style={[
+              tw`absolute bottom-0 left-0 right-0 border-t 0 px-4 ${
+                Platform.OS === "ios" ? "pb-8 pt-4" : "py-4"
+              }`,
+              { backgroundColor: theme.mode === "dark" ? "#18181b" : "#fff" },
+            ]}
           >
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
-              style={tw`bg-blue-600 py-4 rounded-xl flex-row items-center justify-center`}
+              style={[
+                [
+                  tw`py-4 rounded-xl flex-row items-center justify-center`,
+                  { backgroundColor: theme.colors.barColor },
+                ],
+              ]}
             >
               <Text style={tw`text-white text-xl mr-2`}>+</Text>
               <Text style={tw`text-white font-bold text-base`}>

@@ -159,21 +159,24 @@ const CartScreen: React.FC = () => {
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
       <View
-        style={[tw`pt-12 pb-4 px-4`, { backgroundColor: theme.colors.primary }]}
+        style={[
+          tw`pt-12 pb-4 px-4`,
+          { backgroundColor: theme.colors.barColor },
+        ]}
       >
-        <View style={tw`flex-row justify-between items-center`}>
+        <View style={tw`flex-row justify-between items-center py-2`}>
           <Text
-            style={[tw`text-2xl font-bold`, { color: theme.colors.onPrimary }]}
+            style={[tw`text-2xl font-bold`, { color: theme.colors.buttonText }]}
           >
             Sepetim
           </Text>
           <View
             style={[
               tw`px-3 py-1 rounded-full`,
-              { backgroundColor: theme.colors.card, opacity: 0.2 },
+              { backgroundColor: theme.colors.surfaceVariant },
             ]}
           >
-            <Text style={[tw`font-bold`, { color: theme.colors.onPrimary }]}>
+            <Text style={[tw`font-bold`, { color: theme.colors.text }]}>
               {items.length} Ürün
             </Text>
           </View>
@@ -198,13 +201,17 @@ const CartScreen: React.FC = () => {
                 },
               ]}
             >
-              <View style={tw`flex-row p-3`}>
+              <View style={tw`flex-row p-3 gap-2`}>
                 <Image
                   source={{ uri: item.product.image }}
                   style={[
-                    tw`w-24 h-24 rounded-xl`,
-                    { backgroundColor: theme.colors.surfaceVariant },
+                    tw`w-28 h-28 rounded-xl`,
+                    {
+                      backgroundColor: theme.colors.surfaceVariant,
+                      resizeMode: "stretch",
+                    },
                   ]}
+                  resizeMode="stretch"
                 />
 
                 <View style={tw`flex-1 ml-3 justify-between`}>

@@ -8,14 +8,6 @@ npm install
 npx expo start -c
 ```
 
-## 📱 Özellikler
-
-- ✅ **Ana Sayfa** - Banner'lar, kategoriler, öne çıkan ürünler
-- ✅ **Kategoriler** - Yan menü ile kategori gezinme, ürün arama
-- ✅ **Ürün Detay** - Ürün bilgileri, yorumlar, sepete ekleme
-- ✅ **Sepet** - Miktar değiştirme, kupon kodu, sipariş özeti
-- ✅ **Profil** - Kullanıcı bilgileri, siparişler, ayarlar
-
 
 ## 📚 Kaynaklar
 

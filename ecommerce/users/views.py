@@ -148,7 +148,8 @@ class PasswordResetRequestView(generics.GenericAPIView):
         mailjet_from_email = os.getenv('MAILJET_FROM_EMAIL', 'no-reply@example.com')
         mailjet_from_name = os.getenv('MAILJET_FROM_NAME', 'Sampa E-comm')
 
-        if mailjet_api_key and mailjet_secret_key:
+        email_sent = False
+        if mailjet_api_key and mailjet_secret_key and mailjet_api_key != 'dkmsakdsmkadkmsakmd':
             try:
                 resp = requests.post(
                     'https://api.mailjet.com/v3.1/send',
@@ -164,10 +165,26 @@ class PasswordResetRequestView(generics.GenericAPIView):
                     timeout=10
                 )
                 resp.raise_for_status()
-            except Exception:
-                pass  # In dev, we ignore email send failures
-
-        return Response({'detail': 'Kod gönderildi'}, status=status.HTTP_200_OK)
+                email_sent = True
+            except Exception as e:
+                print(f"❌ Email gönderilemedi: {str(e)}")
+        
+        # Development mode: print code to console
+        if not email_sent:
+            print(f"\n{'='*60}")
+            print(f"🔑 ŞİFRE SIFIRLAMA KODU (DEVELOPMENT)")
+            print(f"{'='*60}")
+            print(f"Email: {email}")
+            print(f"Kod: {reset_code.code}")
+            print(f"Geçerlilik: {reset_code.expires_at.strftime('%H:%M')} saatine kadar")
+            print(f"{'='*60}\n")
+        
+        # Return code in development mode
+        response_data = {'detail': 'Kod gönderildi'}
+        if os.getenv('DJANGO_DEBUG', 'False') == 'True' and not email_sent:
+            response_data['code'] = reset_code.code  # Only in DEBUG mode!
+        
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class PasswordResetConfirmView(generics.GenericAPIView):
