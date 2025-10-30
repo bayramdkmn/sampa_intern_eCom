@@ -41,11 +41,16 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  passwordResetStep: 'request' | 'verify' | 'setPassword' | 'done';
+  passwordResetEmail: string;
+  passwordResetSuccess: boolean;
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
   register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  passwordResetRequest: (email: string) => Promise<void>;
+  passwordResetConfirm: (data: { email: string; code: string; new_password: string; new_password2: string }) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>; // deprecated, backward compat
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => Promise<void>;
   fetchUserProfile: () => Promise<void>;
@@ -62,6 +67,9 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      passwordResetStep: 'request',
+      passwordResetEmail: '',
+      passwordResetSuccess: false,
 
       login: async (email: string, password: string) => {
         try {
@@ -165,18 +173,42 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      resetPassword: async (email: string) => {
+      passwordResetRequest: async (email: string) => {
         try {
           set({ isLoading: true, error: null });
-          set({ isLoading: false, error: null });
-        } catch (error: any) {
-          const errorMessage = error?.message || 'Şifre sıfırlama isteği gönderilemedi';
-          set({ 
-            isLoading: false, 
-            error: errorMessage,
+          await api.requestPasswordReset(email);
+          set({
+            isLoading: false,
+            error: null,
+            passwordResetStep: 'verify',
+            passwordResetEmail: email,
+            passwordResetSuccess: false,
           });
+        } catch (error: any) {
+          const errorMessage = error?.message || 'Şifre sıfırlama kodu gönderilemedi';
+          set({ isLoading: false, error: errorMessage });
           throw error;
         }
+      },
+      passwordResetConfirm: async (data) => {
+        try {
+          set({ isLoading: true, error: null });
+          await api.confirmPasswordReset(data);
+          set({
+            isLoading: false,
+            error: null,
+            passwordResetStep: 'done',
+            passwordResetSuccess: true,
+          });
+        } catch (error: any) {
+          const errorMessage = error?.message || 'Şifre yenilenirken hata oluştu';
+          set({ isLoading: false, error: errorMessage });
+          throw error;
+        }
+      },
+      resetPassword: async (email: string) => {
+        // eski yöntem, artık passwordResetRequest kullan
+        await get().passwordResetRequest(email);
       },
 
       logout: async () => {
@@ -319,23 +351,4 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
-
-// 🎯 KULLANIM ÖRNEĞİ:
-// 
-// import { useAuthStore } from '../store/authStore';
-// 
-// function LoginScreen() {
-//   const { login, user, isLoading } = useAuthStore();
-//   
-//   const handleLogin = async () => {
-//     await login('ahmet@example.com', '123456');
-//     // Giriş yapıldı, user otomatik güncellendi!
-//   };
-//   
-//   return (
-//     <View>
-//       {user ? <Text>Hoşgeldin {user.name}</Text> : <Text>Giriş Yap</Text>}
-//     </View>
-//   );
-// }
 

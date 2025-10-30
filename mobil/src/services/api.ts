@@ -250,6 +250,17 @@ class ApiClient {
     return response.data;
   }
 
+  /**
+   * Şifre sıfırlama kodu ve yeni şifre(ler) ile backend'e gönder
+   */
+  async confirmPasswordReset(data: { email: string; code: string; new_password: string; new_password2: string }): Promise<{ message: string }> {
+    const response = await this.api.post<{ message: string }>(
+      '/users/password-reset/confirm/',
+      data
+    );
+    return response.data;
+  }
+
   // ==================== ADDRESSES ====================
 
   async getAddresses(): Promise<Address[]> {
