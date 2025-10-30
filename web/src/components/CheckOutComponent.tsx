@@ -12,6 +12,7 @@ interface ShippingFormData {
   city: string;
   state: string;
   zipCode: string;
+  title: string;
 }
 
 interface PaymentFormData {
@@ -59,6 +60,7 @@ export default function CheckOutComponent({
     city: "",
     state: "",
     zipCode: "",
+    title: "",
   });
 
   const [paymentData, setPaymentData] = useState<PaymentFormData>({
@@ -340,6 +342,40 @@ export default function CheckOutComponent({
                 Shipping Information
               </h2>
 
+              {/* Kayıtlı adresler burada gösterilecek */}
+              {userAddresses && userAddresses.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-4">
+                  {userAddresses.map((address, i) => (
+                    <div
+                      key={address.id || i}
+                      className="p-4 rounded-lg border-2 border-blue-100 hover:border-blue-600 cursor-pointer bg-blue-50 min-w-[200px] text-black"
+                      onClick={() =>
+                        setFormData({
+                          email: user.email || "",
+                          firstName: user.firstName || "",
+                          lastName: user.lastName || "",
+                          address: address.address_line_1 || "",
+                          city: address.city || "",
+                          state: address.state_province || "",
+                          zipCode: address.postal_code || "",
+                          title: address.title || "",
+                        })
+                      }
+                    >
+                      <div className="font-bold text-black">
+                        {address.title ? `${address.title} - ` : ""}
+                        {user.firstName} {user.lastName}
+                      </div>
+                      <div>{address.address_line_1}</div>
+                      <div>
+                        {address.city}, {address.state_province}
+                      </div>
+                      <div>{address.postal_code}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="space-y-4 md:space-y-5">
                 <div>
                   <label
@@ -564,82 +600,109 @@ export default function CheckOutComponent({
                 Payment method
               </h3>
 
-              {/* Payment Method Options */}
-              <div className="mb-8 space-y-3">
-                {/* Credit Card */}
-                <div
-                  onClick={() => setPaymentMethod("credit")}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border-2 p-4 transition-all ${
-                    paymentMethod === "credit"
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      checked={paymentMethod === "credit"}
-                      onChange={() => setPaymentMethod("credit")}
-                      className="h-5 w-5 cursor-pointer text-blue-600"
-                    />
-                    <span className="ml-3 font-medium text-gray-900">
-                      Credit card
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="text-2xl">💳</div>
-                  </div>
-                </div>
+              {paymentMethod === "credit" &&
+                userCards &&
+                userCards.length > 0 && (
+                  <div className="mb-4 flex flex-wrap gap-4">
+                    {userCards.map((card: any, i: number) => {
+                      const isSelected =
+                        paymentData.cardNumber &&
+                        card.card_number &&
+                        paymentData.cardNumber
+                          .replace(/\s/g, "")
+                          .endsWith(card.card_number.slice(-4));
+                      return (
+                        <div
+                          key={card.id || i}
+                          className={`relative group p-5 rounded-2xl transition-all min-w-[230px] max-w-[270px] cursor-pointer shadow-md border-2 overflow-hidden bg-gradient-to-br from-white via-blue-50 to-blue-100 ${
+                            isSelected
+                              ? "border-blue-600"
+                              : "border-gray-200 hover:border-blue-400"
+                          }`}
+                          style={{
+                            boxShadow: isSelected
+                              ? "0 8px 32px 0 rgba(56, 189, 248, 0.2)"
+                              : "0 2px 12px 0 rgba(0,0,0,0.06)",
+                          }}
+                          onClick={() =>
+                            setPaymentData({
+                              cardNumber: card.card_number || "",
+                              expiryDate:
+                                card.expiry_month && card.expiry_year
+                                  ? `${card.expiry_month
+                                      .toString()
+                                      .padStart(2, "0")} / ${card.expiry_year
+                                      .toString()
+                                      .slice(-2)}`
+                                  : "",
+                              cvc: "",
+                              nameOnCard: card.card_holder_name || "",
+                            })
+                          }
+                        >
+                          {/* Brand Logo Simülasyonu */}
+                          <div className="absolute top-4 right-5">
+                            {card.brand?.toLowerCase() === "visa" ? (
+                              <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white font-black px-2 py-1 rounded uppercase tracking-widest text-xs shadow-sm">
+                                VISA
+                              </span>
+                            ) : card.brand?.toLowerCase() === "mastercard" ? (
+                              <span className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white font-black px-2 py-1 rounded uppercase tracking-widest text-xs shadow-sm">
+                                MC
+                              </span>
+                            ) : (
+                              <span className="bg-gradient-to-r from-slate-400 to-gray-400 text-white font-black px-2 py-1 rounded uppercase tracking-widest text-xs shadow-sm">
+                                CARD
+                              </span>
+                            )}
+                          </div>
 
-                {/* PayPal */}
-                <div
-                  onClick={() => setPaymentMethod("paypal")}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border-2 p-4 transition-all ${
-                    paymentMethod === "paypal"
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      checked={paymentMethod === "paypal"}
-                      onChange={() => setPaymentMethod("paypal")}
-                      className="h-5 w-5 cursor-pointer text-blue-600"
-                    />
-                    <span className="ml-3 font-medium text-gray-900">
-                      PayPal
-                    </span>
-                  </div>
-                </div>
+                          {/* Son 4 rakam (monospace) */}
+                          <div className="text-[2rem] font-extrabold tracking-widest text-gray-900 mt-6 mb-2 group-hover:text-blue-700 font-mono select-text">
+                            ****{" "}
+                            {card.card_number ? card.card_number.slice(-4) : ""}
+                          </div>
 
-                {/* Google Pay */}
-                <div
-                  onClick={() => setPaymentMethod("google")}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border-2 p-4 transition-all ${
-                    paymentMethod === "google"
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      checked={paymentMethod === "google"}
-                      onChange={() => setPaymentMethod("google")}
-                      className="h-5 w-5 cursor-pointer text-blue-600"
-                    />
-                    <span className="ml-3 font-medium text-gray-900">
-                      Google Pay
-                    </span>
-                  </div>
-                </div>
-              </div>
+                          {/* Kart sahibi */}
+                          <div className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+                            Kart Adı
+                          </div>
+                          <div className="text-base font-semibold text-gray-800 mb-2 font-sans">
+                            {card.card_holder_name}
+                          </div>
 
-              {/* Credit Card Form */}
+                          {/* Son kullanma tarihi */}
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                              Son Kullanma
+                            </span>
+                            <span className="px-2 py-1 rounded bg-blue-50 font-mono text-xs font-black tracking-widest text-blue-600 shadow-sm">
+                              {card.expiry_month && card.expiry_year
+                                ? `${card.expiry_month
+                                    .toString()
+                                    .padStart(2, "0")} / ${card.expiry_year
+                                    .toString()
+                                    .slice(-2)}`
+                                : "-/-"}
+                            </span>
+                          </div>
+
+                          {/* Aktif badge/tik */}
+                          {isSelected && (
+                            <div className="absolute left-3 top-3">
+                              <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow border-2 border-white">
+                                ✓
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
               {paymentMethod === "credit" && (
                 <div className="space-y-5">
-                  {/* Card Number */}
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                       Card number

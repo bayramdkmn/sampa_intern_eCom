@@ -66,7 +66,6 @@ const PaymentMethodsInformation = ({
       // Token kontrolü - logout sırasında API çağrısı yapma
       const token = localStorage.getItem("access_token");
       if (!token) {
-        console.log("⚠️ No token available, skipping cards fetch");
         if (mounted) setLoading(false);
         return;
       }

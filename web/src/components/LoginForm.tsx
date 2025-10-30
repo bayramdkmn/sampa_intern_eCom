@@ -39,25 +39,15 @@ export default function LoginForm() {
         password: password,
       };
 
-      console.log("🔍 Login payload:", loginData);
 
       const response: AuthResponse = await authService.login(loginData);
 
-      console.log("🔍 Login Response:", response);
 
       const accessToken = response.access_token || response.access;
       const refreshToken = response.refresh_token || response.refresh || "";
 
-      console.log(
-        "🔑 Tokens - Access:",
-        accessToken ? "exists" : "null",
-        "Refresh:",
-        refreshToken ? "exists" : "null"
-      );
-
       if (accessToken) {
         authService.saveTokens(accessToken, refreshToken);
-        console.log("✅ Tokens saved to localStorage");
 
         try {
           await fetch("/api/auth/set-cookie", {
@@ -68,22 +58,18 @@ export default function LoginForm() {
               refresh_token: refreshToken,
             }),
           });
-          console.log("✅ HttpOnly cookies set via API route");
         } catch (e) {
           console.error("Cookie set error:", e);
         }
       }
 
-      // Profil fotoğrafı URL'sini normalize et
       const getProfileImageUrl = (imagePath: string | null | undefined) => {
         if (!imagePath) return undefined;
 
-        // Eğer tam URL ise olduğu gibi döndür
         if (imagePath.startsWith("http")) {
           return imagePath;
         }
 
-        // Eğer /media/ ile başlıyorsa base URL ile birleştir
         if (imagePath.startsWith("/media/")) {
           const baseURL =
             process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -94,13 +80,10 @@ export default function LoginForm() {
         return imagePath;
       };
 
-      // Token kaydedildikten sonra backend'den güncel kullanıcı bilgilerini çek
-      console.log("🔄 Fetching user profile from backend...");
       let userData;
 
       try {
         const userProfile = await clientApi.getUserProfile();
-        console.log("✅ User profile fetched from backend:", userProfile);
 
         const profileImagePath =
           userProfile.profile_image || (userProfile as any).pro_photo;
@@ -112,16 +95,12 @@ export default function LoginForm() {
           phoneNumber: userProfile.phone_number,
           profileImage: getProfileImageUrl(profileImagePath),
         };
-
-        console.log("👤 Final user data for AuthContext:", userData);
-        console.log("🖼️ Profile image URL:", userData.profileImage);
       } catch (profileError) {
         console.error(
           "⚠️ Failed to fetch user profile, using response.user fallback:",
           profileError
         );
 
-        // Profil çekilemezse response.user'ı kullan
         if (response.user) {
           const profileImagePath =
             response.user.profile_image || (response.user as any).pro_photo;
@@ -133,8 +112,6 @@ export default function LoginForm() {
             phoneNumber: response.user.phone_number,
             profileImage: getProfileImageUrl(profileImagePath),
           };
-          console.log("👤 User data from response.user:", userData);
-          console.log("🖼️ Profile image URL:", userData.profileImage);
         } else {
           userData = {
             id: "temp-id",
@@ -144,11 +121,9 @@ export default function LoginForm() {
             phoneNumber: undefined,
             profileImage: undefined,
           };
-          console.log("👤 Fallback user data created:", userData);
         }
       }
 
-      console.log("🚀 Calling login() with userData:", userData);
       login(userData);
 
       if (rememberMe) {

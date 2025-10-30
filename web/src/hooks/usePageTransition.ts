@@ -37,8 +37,6 @@ export function usePageTransition() {
         actualLoadingTime = Math.min(loadTime * 0.5, maxLoadingTime);
       }
 
-      console.log(`Sayfa yükleme süresi: ${loadTime.toFixed(0)}ms, Loading süresi: ${actualLoadingTime.toFixed(0)}ms`);
-
       timerRef.current = setTimeout(() => {
         setIsTransitioning(false);
       }, actualLoadingTime);

@@ -73,11 +73,9 @@ export default async function CheckOutPage() {
               price: item.price || item.product?.price || 0,
             }));
           } else {
-            console.log("Items is not an array:", items);
             cartItems = [];
           }
         } else {
-          console.log("Cart data is not an array or object:", cartData);
           cartItems = [];
         }
       } catch (err) {

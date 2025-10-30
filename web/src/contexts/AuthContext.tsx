@@ -26,30 +26,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Sayfa yüklendiğinde authentication state'ini kontrol et
     const initAuth = () => {
       try {
         const savedUser = localStorage.getItem("user");
         const accessToken = localStorage.getItem("access_token");
 
-        console.log("🔍 Auth Init - User:", savedUser ? "exists" : "null");
-        console.log("🔍 Auth Init - Token:", accessToken ? "exists" : "null");
-
         if (savedUser && accessToken) {
           const parsedUser = JSON.parse(savedUser);
           setUser(parsedUser);
-          console.log(
-            "✅ User loaded from localStorage:",
-            parsedUser.firstName
-          );
         } else {
           setUser(null);
-          console.log("❌ No valid auth data found");
+          console.error("❌ No valid auth data found");
         }
       } catch (error) {
         console.error("❌ Auth init error:", error);
         setUser(null);
-        // Hatalı verileri temizle
         localStorage.removeItem("user");
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
@@ -62,20 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (userData: User) => {
-    console.log("🚀 Login called with user:", userData);
-    console.log("🖼️ Profile image in userData:", userData.profileImage);
     setUser(userData);
-    // User bilgisini localStorage'a kaydet
     localStorage.setItem("user", JSON.stringify(userData));
-    console.log("✅ User saved to localStorage:", {
-      firstName: userData.firstName,
-      profileImage: userData.profileImage,
-      phoneNumber: userData.phoneNumber,
-    });
   };
 
   const logout = async () => {
-    console.log("🚪 Logout called");
     try {
       await authService.logout();
       showToast.success(toastMessages.logoutSuccess);
@@ -87,10 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("user");
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
-      console.log("✅ All auth data cleared");
       try {
         await fetch("/api/auth/clear-cookie", { method: "POST" });
-        console.log("✅ HttpOnly cookies cleared via API route");
       } catch (e) {
         console.error("Cookie clear error:", e);
       }

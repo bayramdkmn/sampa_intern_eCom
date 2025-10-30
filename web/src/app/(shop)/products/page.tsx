@@ -35,13 +35,7 @@ export default async function ProductsListPage({
   let error = null;
 
   try {
-    console.log("🔄 Server-side: Ürünler yükleniyor...");
     products = await serverApi.getProducts();
-    console.log(
-      "✅ Server-side: Ürünler başarıyla yüklendi:",
-      products.length,
-      "ürün"
-    );
   } catch (err) {
     console.error("❌ Server-side: Ürün yükleme hatası:", err);
     error =

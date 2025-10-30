@@ -38,13 +38,7 @@ export default async function OrdersPage() {
   let error = null;
 
   try {
-    console.log("🔄 Server-side: Siparişler yükleniyor...");
     orders = await serverApi.getOrders();
-    console.log(
-      "✅ Server-side: Siparişler başarıyla yüklendi:",
-      orders.length,
-      "sipariş"
-    );
   } catch (err) {
     console.error("❌ Server-side: Sipariş yükleme hatası:", err);
     error =

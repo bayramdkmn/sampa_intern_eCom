@@ -93,20 +93,9 @@ export default function Navbar() {
     )}`.toUpperCase();
   };
 
-  // Kullanıcı değiştiğinde log
-  useEffect(() => {
-    if (user) {
-      console.log("🔍 Navbar - User data:", {
-        firstName: user.firstName,
-        profileImage: user.profileImage,
-      });
-    }
-  }, [user]);
-
   const handleLogout = async () => {
     setIsModalOpen(false);
     await logout();
-    // Logout sonrası anında login sayfasına yönlendir
     router.push("/login");
   };
 

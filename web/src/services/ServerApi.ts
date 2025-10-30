@@ -51,13 +51,6 @@ export class ServerApi {
         ...init,
       };
 
-      console.log('🚀 API Request:', {
-        url,
-        method: fetchOptions.method || 'GET',
-        headers: fetchOptions.headers,
-        body: fetchOptions.body
-      });
-
       const response = await fetch(url, fetchOptions);
 
       if (!response.ok) {
@@ -69,12 +62,6 @@ export class ServerApi {
         } catch {
           errorData = { detail: errorBody };
         }
-
-        console.log('❌ API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          data: errorData
-        });
 
         throw {
           message: errorData.message || errorData.detail || 'Bir hata oluştu',
@@ -88,17 +75,14 @@ export class ServerApi {
       
       if (isJson) {
         const data = await response.json();
-        console.log('📡 API Response Data:', data);
         return data;
       } else {
         const text = await response.text();
-        console.log('📡 API Response Text:', text);
         return text;
       }
     };
   }
 
-  // Auth Methods
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
       const fetchReq = await this.fetchInstance();
@@ -107,13 +91,12 @@ export class ServerApi {
         body: JSON.stringify({ email, password }),
       });
 
-      // Save tokens to cookies
       if (response.access_token) {
         const cookieStore = await cookies();
         cookieStore.set({
           name: CookieKeys.AUTH,
           value: response.access_token,
-          maxAge: 30 * 24 * 60 * 60, // 30 days
+          maxAge: 30 * 24 * 60 * 60,
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -123,7 +106,7 @@ export class ServerApi {
           cookieStore.set({
             name: CookieKeys.REFRESH,
             value: response.refresh_token,
-            maxAge: 30 * 24 * 60 * 60, // 30 days
+            maxAge: 30 * 24 * 60 * 60,
             path: "/",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -166,7 +149,6 @@ export class ServerApi {
         });
       }
 
-      // Clear cookies
       cookieStore.delete(CookieKeys.AUTH);
       cookieStore.delete(CookieKeys.REFRESH);
       cookieStore.delete(CookieKeys.USER);
@@ -190,7 +172,6 @@ export class ServerApi {
         body: JSON.stringify({ refresh_token: refreshToken.value }),
       });
 
-      // Update auth token cookie
       cookieStore.set({
         name: CookieKeys.AUTH,
         value: response.access_token,
@@ -207,7 +188,6 @@ export class ServerApi {
     }
   }
 
-  // User Methods
   async getUserProfile(): Promise<UserProfile> {
     try {
       const fetchReq = await this.fetchInstance();
@@ -250,7 +230,6 @@ export class ServerApi {
     }
   }
 
-  // Address Methods
   async getAddresses(): Promise<Address[]> {
     try {
       const fetchReq = await this.fetchInstance();
@@ -339,7 +318,6 @@ export class ServerApi {
     }
   }
 
-  // Payment Card Methods
   async getCards(): Promise<PaymentCard[]> {
     try {
       const fetchReq = await this.fetchInstance();
@@ -402,7 +380,6 @@ export class ServerApi {
     }
   }
 
-  // Password Methods
   async changePassword(data: ChangePasswordData): Promise<{ message: string }> {
     try {
       const fetchReq = await this.fetchInstance();
@@ -456,8 +433,6 @@ export class ServerApi {
   async getOrders(): Promise<Order[]> {
     try {
       const fetchReq = await this.fetchInstance();
-      const response2 = await fetch("http://127.0.0.1:8000/orders/my-orders/");
-      console.log("response2", response2);
       const response = await fetchReq("/orders/my-orders/");
       return response;
     } catch (err) {

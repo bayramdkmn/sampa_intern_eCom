@@ -28,20 +28,16 @@ const ProfileComponent = ({
   const { isAuthenticated, isLoading, user: authUser } = useAuth();
   const router = useRouter();
 
-  // Profil fotoğrafı URL'sini oluştur
   const getProfileImageUrl = (imagePath: string | null | undefined) => {
     if (!imagePath) return null;
 
-    // Eğer tam URL ise olduğu gibi döndür
     if (imagePath.startsWith("http")) {
       return imagePath;
     }
 
-    // Eğer /media/ ile başlıyorsa base URL ile birleştir (api kısmını çıkar)
     if (imagePath.startsWith("/media/")) {
       const baseURL =
         process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-      // API URL'den /api kısmını çıkar
       const cleanBaseURL = baseURL.replace("/api", "");
       return `${cleanBaseURL}${imagePath}`;
     }
@@ -49,23 +45,11 @@ const ProfileComponent = ({
     return imagePath;
   };
 
-  // Server-side'dan gelen verileri state'e aktar
   const profileImageSource =
     (initialUser as any).profileImage ||
     initialUser.profile_image ||
     (initialUser as any).pro_photo;
 
-  console.log("🔍 ProfileComponent - API'den gelen initialUser:", initialUser);
-  console.log(
-    "🔍 ProfileComponent - Profile image source:",
-    profileImageSource
-  );
-  console.log(
-    "🔍 ProfileComponent - Final profile image URL:",
-    getProfileImageUrl(profileImageSource)
-  );
-
-  // initialUser'dan base user objesi oluştur (server-side'dan gelen)
   const baseUser: UiUser | null = initialUser
     ? {
         id: String(initialUser.id || initialUser.pk || ""),
@@ -82,13 +66,10 @@ const ProfileComponent = ({
       }
     : null;
 
-  // authUser varsa (kullanıcı client-side'da güncelleme yaptıysa) onu kullan
-  // ama eksik bilgileri baseUser'dan tamamla
   const profileUser = authUser
     ? {
         ...baseUser,
         ...authUser,
-        // Eksik field'ları baseUser'dan al
         phoneNumber: authUser.phoneNumber || baseUser?.phoneNumber,
         profileImage: authUser.profileImage || baseUser?.profileImage,
       }

@@ -47,8 +47,6 @@ export default function SignupForm() {
 
       const response: AuthResponse = await authService.register(registerData);
 
-      console.log("🔍 Register Response:", response);
-
       const accessTokenDirect = response.access_token || response.access;
       const refreshTokenDirect =
         response.refresh_token || response.refresh || "";
@@ -69,7 +67,7 @@ export default function SignupForm() {
             authService.saveTokens(accessFromLogin, refreshFromLogin);
           }
         } catch (e) {
-          console.log("Otomatik login başarısız:", e);
+          console.error("Otomatik login başarısız:", e);
         }
       }
 
@@ -94,7 +92,6 @@ export default function SignupForm() {
         };
       }
 
-      console.log("👤 User Data:", userData);
       login(userData);
 
       showToast.success(toastMessages.registerSuccess);

@@ -28,12 +28,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      console.log("🔄 ProductContext: Ürünler yükleniyor...");
       const fetchedProducts = await productService.getProducts();
-      console.log(
-        "✅ ProductContext: Ürünler başarıyla yüklendi:",
-        fetchedProducts
-      );
       setProducts(fetchedProducts);
     } catch (err) {
       const errorMessage =
@@ -49,9 +44,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      console.log(`🔄 ProductContext: Ürün ${id} yükleniyor...`);
       const product = await productService.getProduct(id);
-      console.log("✅ ProductContext: Ürün başarıyla yüklendi:", product);
       return product;
     } catch (err) {
       const errorMessage =

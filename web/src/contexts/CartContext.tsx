@@ -45,7 +45,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsLoaded(true);
   }, []);
 
-  // Sepet değiştiğinde LocalStorage'a kaydet
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("cart", JSON.stringify(cartItems));
@@ -56,13 +55,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     item: Omit<CartItem, "quantity"> & { quantity?: number }
   ) => {
     try {
-      // Önce API'ye gönder
       const productId = parseInt(item.id);
       const quantity = item.quantity || 1;
 
       await clientApi.addToCart(productId, quantity);
 
-      // API başarılı olursa local state'i güncelle
       setCartItems((prevItems) => {
         const existingItem = prevItems.find(
           (i) => i.id === item.id && i.color === item.color
@@ -80,7 +77,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
     } catch (error) {
       console.error("Error adding to cart:", error);
-      // API hatası durumunda sadece local state'e ekle (offline mode)
       setCartItems((prevItems) => {
         const existingItem = prevItems.find(
           (i) => i.id === item.id && i.color === item.color
@@ -101,34 +97,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = async (id: string) => {
     try {
-      // Önce API'den sil
       const productId = parseInt(id);
-      await clientApi.removeFromCart(productId);
-
-      // API başarılı olursa local state'i güncelle
+      await clientApi.removeFromCart(productId); // sadece tamamen SİL
       setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error removing from cart:", error);
-      // API hatası durumunda sadece local state'den sil
       setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
     }
   };
 
   const updateQuantity = async (id: string, quantity: number) => {
-    if (quantity < 1) return;
-
+    const current = cartItems.find((item) => item.id === id);
+    const productId = parseInt(id);
+    if (!current) return;
     try {
-      // Önce API'yi güncelle
-      const productId = parseInt(id);
-      await clientApi.updateCartItem(productId, quantity);
-
-      // API başarılı olursa local state'i güncelle
+      if (quantity < 1) {
+        await removeFromCart(id);
+      } else if (quantity > current.quantity) {
+        // arttırmak için addToCart fonksiyonunu kullan
+        await clientApi.addToCart(productId, quantity - current.quantity);
+      } else if (quantity < current.quantity) {
+        // azaltmak için fark kadar decreaseCartItem çağır
+        for (let i = 0; i < current.quantity - quantity; i++) {
+          await clientApi.decreaseCartItem(productId);
+        }
+      }
       setCartItems((prevItems) =>
         prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
       );
     } catch (error) {
       console.error("Error updating cart item:", error);
-      // API hatası durumunda sadece local state'i güncelle
       setCartItems((prevItems) =>
         prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
       );

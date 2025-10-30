@@ -49,13 +49,6 @@ export class ClientApi {
     };
 
     try {
-      console.log('🚀 Client API Request:', {
-        endpoint,
-        method: config.method,
-        headers: config.headers,
-        body: config.body
-      });
-
       const doFetch = async (): Promise<{ response: Response; data: any }> => {
         const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
@@ -69,16 +62,13 @@ export class ClientApi {
           if (hasJson) {
             try {
               data = await response.json();
-              console.log('📡 Client API Response Data:', data);
             } catch (e) {
               const text = await response.text();
-              console.log('📡 Client API Response Text:', text);
               data = text ? { detail: text } : undefined;
             }
           } else {
             const text = await response.text();
             if (text) {
-              console.log('📡 Client API Response Text:', text);
               data = { detail: text };
             }
           }
@@ -105,10 +95,6 @@ export class ClientApi {
       }
 
       if (!response.ok) {
-        console.log('❌ Client API Error Response:', {
-          status: response.status,
-          data: data
-        });
         throw {
           message: (data && (data.message || data.detail || data.error)) || 'Bir hata oluştu',
           errors: (data && (data.errors || data.field_errors)) || {},
@@ -119,7 +105,6 @@ export class ClientApi {
       return data as T;
     } catch (error) {
       if (error instanceof TypeError) {
-        console.log('🌐 Network Error:', error.message);
         throw {
           message: 'Sunucuya bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin.',
         } as ApiError;
@@ -134,7 +119,6 @@ export class ClientApi {
       password: data.password,
     };
 
-    console.log('🚀 Login payload:', payload);
 
     const response = await this.makeRequest<AuthResponse>("/users/login/", {
       method: 'POST',
@@ -160,7 +144,6 @@ export class ClientApi {
       password_confirm: data.password_confirm,
     };
 
-    console.log('🚀 Register payload:', payload);
 
     const response = await this.makeRequest<AuthResponse>("/users/register/", {
       method: 'POST',
@@ -179,9 +162,8 @@ export class ClientApi {
           method: 'POST',
           body: JSON.stringify({ refresh: refreshToken }),
         });
-        console.log('🚀 Logout request sent with refresh token');
       } else {
-        console.log('⚠️ No refresh token found, skipping Django logout');
+        console.error('⚠️ No refresh token found, skipping Django logout');
       }
     } finally {
       localStorage.removeItem('access_token');
@@ -380,13 +362,13 @@ export class ClientApi {
 
   async addToCart(productId: number, quantity: number): Promise<any> {
     try {
-      const response = await this.makeRequest<any>('/cart/add', {
-        method: 'POST',
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: quantity,
-        }),
-      });
+      const response = await this.makeRequest<any>(
+        '/cart/add/',
+        {
+          method: 'POST',
+          body: JSON.stringify({ product_id: productId, quantity }),
+        }
+      );
       return response;
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -394,30 +376,31 @@ export class ClientApi {
     }
   }
 
-  async updateCartItem(productId: number, quantity: number): Promise<any> {
+  async decreaseCartItem(productId: number): Promise<any> {
     try {
-      const response = await this.makeRequest<any>('/cart/update', {
-        method: 'PUT',
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: quantity,
-        }),
-      });
+      const response = await this.makeRequest<any>(
+        '/cart/decrease/',
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ product_id: productId }),
+        }
+      );
       return response;
     } catch (error) {
-      console.error('Error updating cart item:', error);
+      console.error('Error decreasing cart item:', error);
       throw error;
     }
   }
 
   async removeFromCart(productId: number): Promise<any> {
     try {
-      const response = await this.makeRequest<any>('/cart/remove', {
-        method: 'DELETE',
-        body: JSON.stringify({
-          product_id: productId,
-        }),
-      });
+      const response = await this.makeRequest<any>(
+        '/cart/remove/',
+        {
+          method: 'DELETE',
+          body: JSON.stringify({ product_id: productId }),
+        }
+      );
       return response;
     } catch (error) {
       console.error('Error removing from cart:', error);

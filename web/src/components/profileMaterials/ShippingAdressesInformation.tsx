@@ -30,14 +30,12 @@ interface ShippingAdressesInformationProps {
 const ShippingAdressesInformation = ({
   user,
   initialAddresses = [],
-  onAddressesUpdate,
 }: ShippingAdressesInformationProps) => {
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Eğer initialAddresses varsa API çağrısı yapma
     if (initialAddresses.length > 0) {
       return;
     }
@@ -47,7 +45,6 @@ const ShippingAdressesInformation = ({
       setLoading(true);
       setError(null);
 
-      // User kontrolü - eğer user yoksa zaten ProfileComponent'te render edilmez
       if (!user) {
         if (mounted) {
           setError("Adresleri görmek için lütfen giriş yapın.");
@@ -56,10 +53,8 @@ const ShippingAdressesInformation = ({
         return;
       }
 
-      // Token kontrolü - logout sırasında API çağrısı yapma
       const token = localStorage.getItem("access_token");
       if (!token) {
-        console.log("⚠️ No token available, skipping address fetch");
         if (mounted) setLoading(false);
         return;
       }
@@ -95,7 +90,7 @@ const ShippingAdressesInformation = ({
     return () => {
       mounted = false;
     };
-  }, [user]); // user dependency eklendi
+  }, [user]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -190,7 +185,6 @@ const ShippingAdressesInformation = ({
     }
 
     try {
-      // Backend beklenen payload formatı
       const payload = {
         title: formData.title,
         address_line: formData.street,
@@ -200,7 +194,6 @@ const ShippingAdressesInformation = ({
         country: formData.country,
       };
       await authService.createAddress(payload);
-      // Başarı sonrası listeyi yeniden çek
       const res = await authService.getAddresses();
       const normalized = (res || []).map((a: any) => ({
         id: String(a.id ?? a.pk ?? crypto.randomUUID?.() ?? Date.now()),

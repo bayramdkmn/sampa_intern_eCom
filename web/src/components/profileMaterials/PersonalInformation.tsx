@@ -92,14 +92,7 @@ const PersonalInformation = ({ user }: { user: User }) => {
     return { code: "+90", number: fullPhone };
   };
 
-  // User değiştiğinde profil bilgilerini güncelle
   useEffect(() => {
-    console.log("👤 PersonalInformation - User changed:", {
-      firstName: user.firstName,
-      phoneNumber: user.phoneNumber,
-      profileImage: user.profileImage,
-    });
-
     const updatedProfileImage = getProfileImageUrl(user.profileImage);
     setProfileImage(updatedProfileImage);
 
@@ -282,17 +275,12 @@ const PersonalInformation = ({ user }: { user: User }) => {
         ? `${countryCode} ${formatPhoneNumber(cleanNumber)}`
         : "";
 
-      // API'ye gönderilecek veri (email hariç)
       const profileData = {
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone_number: fullPhoneNumber,
       };
 
-      console.log("API'ye gönderilecek veri:", profileData);
-      console.log("Seçilen dosya:", selectedFile);
-
-      // Fotoğraf değiştiyse yeni metodu kullan, değilse eski metodu kullan
       let response;
       if (selectedFile) {
         response = await clientApi.updateUserProfileWithPhoto(
@@ -303,14 +291,11 @@ const PersonalInformation = ({ user }: { user: User }) => {
         response = await clientApi.updateUserProfile(profileData);
       }
 
-      console.log("API yanıtı:", response);
-
-      // API başarılı olursa local state'i güncelle
       const updatedUser: User = {
         ...user,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: user.email, // Email değiştirilmez
+        email: user.email,
         phoneNumber: fullPhoneNumber,
         profileImage:
           getProfileImageUrl(response.pro_photo || response.profile_image) ||
@@ -320,7 +305,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
 
       login(updatedUser);
 
-      // Seçili dosyayı temizle
       setSelectedFile(null);
 
       setShowSuccessMessage(true);
@@ -328,7 +312,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
     } catch (error) {
       console.error("Profil güncelleme hatası:", error);
 
-      // Hata mesajını ayarla
       let errorMsg = "Profil güncellenirken bir hata oluştu";
       if (error && typeof error === "object" && "message" in error) {
         errorMsg = (error as any).message || errorMsg;
@@ -352,7 +335,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
       </div>
       <div className="border-b mt-1 mb-3 border-gray-300 w-full"></div>
 
-      {/* Responsive Layout: mobilde dikey, masaüstünde yatay */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4 md:gap-10">
         {/* Profil Fotoğrafı */}
         <div className="relative flex-shrink-0">
@@ -365,12 +347,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
                 console.error("❌ Profil fotoğrafı yüklenemedi:", profileImage);
                 console.error("❌ Hata detayı:", e);
                 setProfileImage(null);
-              }}
-              onLoad={() => {
-                console.log(
-                  "✅ Profil fotoğrafı başarıyla yüklendi:",
-                  profileImage
-                );
               }}
             />
           ) : (
