@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Product } from "@/types/api";
+import { useCart } from "@/contexts/CartContext";
+import { showToast } from "@/utils/toast";
 
 interface ProductsListComponentProps {
   products: Product[];
@@ -19,6 +21,7 @@ export default function ProductsListComponent({
   initialSearchQuery = "",
   showNewArrivals = false,
 }: ProductsListComponentProps) {
+  const { addToCart } = useCart();
   const [priceRange, setPriceRange] = useState<[number, number]>([10, 10000]);
   const [minInput, setMinInput] = useState<string>("10");
   const [maxInput, setMaxInput] = useState<string>("10000");
@@ -93,7 +96,6 @@ export default function ProductsListComponent({
 
     const matchesNewArrivals = (() => {
       if (!showNewArrivals) return true;
-      // Öncelik: stock_updated_at, yoksa created_at; ISO beklenir
       const refDate = product.stock_updated_at || product.created_at;
       if (!refDate) return false;
       const created = new Date(refDate).getTime();
@@ -282,59 +284,82 @@ export default function ProductsListComponent({
             {filteredProducts.length} ürün)
           </h1>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-6 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-3">
             {paginatedProducts.map((product) => {
               const price =
                 typeof product.price === "string"
                   ? parseFloat(product.price)
                   : product.price;
               return (
-                <Link
-                  key={product.id}
-                  href={`/products/${product.id}`}
-                  className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
+                <div
+                  key={String(product.id)}
+                  className="group bg-white rounded-lg border border-gray-200 hover:shadow-xl transition-all flex flex-col h-full"
                 >
-                  <div className="bg-gray-100 aspect-square overflow-hidden flex items-center justify-center">
-                    <img
-                      src={product.image || "/sampa-logo.png"}
-                      alt={product.name}
-                      className="w-full h-full p-8 object-contain group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3
-                      className="font-semibold text-lg text-gray-900 mb-1 group-hover:text-blue-600 transition-colors truncate"
-                      title={product.name}
-                    >
-                      {product.name}
-                    </h3>
-                    <h2
-                      className="text-sm text-gray-600 mb-1 group-hover:text-blue-600 transition-colors truncate"
-                      title={product.brand}
-                    >
+                  <Link href={`/products/${product.id}`} className="block">
+                    <div className="aspect-square w-full bg-gray-100 rounded-t-lg overflow-hidden flex items-center justify-center">
+                      <img
+                        src={product.image || "/sampa-logo.png"}
+                        alt={product.name}
+                        className="w-full h-full object-contain max-h-full transition-transform duration-200 group-hover:scale-95 mx-auto"
+                      />
+                    </div>
+                  </Link>
+                  <div className="flex flex-col flex-1 p-4 justify-between">
+                    <Link href={`/products/${product.id}`}>
+                      <h3 className="font-semibold text-lg text-gray-900 mb-1 hover:text-blue-600 transition-colors line-clamp-2">
+                        {product.name}
+                      </h3>
+                    </Link>
+                    <div className="text-xs text-gray-500 truncate mb-1">
                       {product.brand}
-                    </h2>
-                    <p
-                      className="text-sm text-gray-600 mb-3 line-clamp-2"
-                      title={product.description || "Ürün açıklaması"}
-                    >
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                       {product.description || "Ürün açıklaması"}
                     </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-gray-900">
+                    <div className="flex items-center justify-between mb-2 mt-auto">
+                      <span className="text-xl font-bold text-blue-600">
                         ₺{price.toFixed(2)}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-400">
                         Stok: {product.stock || 0}
                       </span>
                     </div>
+                    <button
+                      className="w-full mt-auto bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold rounded-md py-2 transition-all cursor-pointer shadow-sm hover:shadow-lg flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
+                      onClick={() => {
+                        addToCart({
+                          id: String(product.id),
+                          name: product.name,
+                          price: price,
+                          image: product.image || "",
+                          color: "",
+                          quantity: 1,
+                        });
+                        showToast.success("Ürün sepete eklendi!");
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5 mr-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.3 5.2A1 1 0 007.6 20h8.8a1 1 0 00.9-1.3L17 13M17 13l1.3-5.2M5 21a1 1 0 100-2 1 1 0 000 2zm14 0a1 1 0 100-2 1 1 0 000 2z"
+                        />
+                      </svg>
+                      Sepete Ekle
+                    </button>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2">
               <button

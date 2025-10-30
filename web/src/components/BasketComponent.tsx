@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function BasketComponent() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -41,7 +43,19 @@ export default function BasketComponent() {
           Shopping Cart
         </h1>
 
-        {cartItems.length === 0 ? (
+        {!isAuthenticated ? (
+          <div className="rounded-lg bg-white p-8 md:p-12 text-center shadow-sm">
+            <p className="mb-4 text-lg text-gray-600">
+              Lütfen önce giriş yapın
+            </p>
+            <Link
+              href="/login"
+              className="inline-block rounded-lg bg-blue-600 px-5 py-2.5 text-white font-semibold hover:bg-blue-700"
+            >
+              Giriş Yap
+            </Link>
+          </div>
+        ) : cartItems.length === 0 ? (
           <div className="rounded-lg bg-white p-8 md:p-12 text-center shadow-sm">
             <p className="mb-4 text-lg text-gray-600">Sepetiniz boş</p>
             <Link

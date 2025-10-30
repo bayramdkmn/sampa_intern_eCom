@@ -7,6 +7,8 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { IconButton } from "@mui/material";
 import { Product } from "@/types/api";
 import { getRecentlyViewedIds } from "@/lib/recentlyViewed";
+import { useCart } from "@/contexts/CartContext";
+import { showToast } from "@/utils/toast";
 
 interface ProductsSliderComponentProps {
   products: Product[];
@@ -21,6 +23,7 @@ const ProductsSliderComponent = ({
 }: ProductsSliderComponentProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [recentIds, setRecentIds] = useState<string[]>([]);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     setRecentIds(getRecentlyViewedIds());
@@ -126,7 +129,7 @@ const ProductsSliderComponent = ({
             normalizedProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-lg transition-shadow min-w-[280px] max-w-[280px] flex-shrink-0"
+                className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col hover:shadow-xl transition-all min-w-[280px] max-w-[280px] flex-shrink-0"
               >
                 <Link href={`/products/${product.id}`} className="block mb-3">
                   <div className="w-full aspect-square bg-gray-50 rounded-2xl overflow-hidden flex items-center justify-center">
@@ -170,6 +173,22 @@ const ProductsSliderComponent = ({
                     <div className="text-lg font-bold text-blue-600">
                       €{product.priceNumber.toFixed(2)}
                     </div>
+                    <button
+                      className="mt-3 w-full bg-blue-500 hover:bg-blue-700 hover:scale-95 text-white font-semibold rounded-lg py-2 px-1 transition-all cursor-pointer shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
+                      onClick={() => {
+                        addToCart({
+                          id: product.id,
+                          name: product.name,
+                          price: product.priceNumber,
+                          image: product.image ?? "",
+                          color: "",
+                          quantity: 1,
+                        });
+                        showToast.success("Ürün sepete eklendi!");
+                      }}
+                    >
+                      Sepete Ekle
+                    </button>
                   </div>
                 </div>
               </div>

@@ -44,8 +44,27 @@ const PaymentMethodsInformation = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Eğer initialCards varsa API çağrısı yapma
+    // Eğer initialCards varsa, state'e yükle ve API çağrısı yapma
     if (initialCards.length > 0) {
+      const normalized: PaymentMethod[] = (initialCards || []).map(
+        (c: any) => ({
+          id: String(c.id ?? c.pk ?? crypto.randomUUID?.() ?? Date.now()),
+          cardType: (c.card_type ||
+            c.brand ||
+            "Visa") as PaymentMethod["cardType"],
+          lastFourDigits: String(
+            c.last4 ||
+              c.last_four ||
+              c.lastFourDigits ||
+              c.card_number ||
+              "****"
+          ).slice(-4),
+          expiryMonth: String(c.exp_month || c.expiry_month || ""),
+          expiryYear: String(c.exp_year || c.expiry_year || ""),
+          isPrimary: Boolean(c.is_primary || c.isPrimary),
+        })
+      );
+      setPaymentMethods(normalized);
       return;
     }
 
