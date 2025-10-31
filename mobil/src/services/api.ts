@@ -43,11 +43,7 @@ class ApiClient {
     this.setupInterceptors();
   }
 
-  /**
-   * Request & Response Interceptors
-   */
   private setupInterceptors() {
-    // Request interceptor - Her isteğe token ekle
     this.api.interceptors.request.use(
       async (config) => {
         const token = await tokenStorage.getAccessToken();
@@ -131,7 +127,6 @@ class ApiClient {
     if (error.response?.data) {
       const errorData = error.response.data as any;
       
-      // Backend'den gelen tüm olası hata formatlarını kontrol et
       apiError.message = 
         errorData.message || 
         errorData.detail || 
@@ -157,7 +152,6 @@ class ApiClient {
     const response = await this.api.post<AuthResponse>('/users/login/', data);
     
 
-    // Backend'den access veya access_token gelebilir
     const accessToken = response.data.access_token || response.data.access;
     const refreshToken = response.data.refresh_token || response.data.refresh;
 
@@ -225,8 +219,6 @@ class ApiClient {
     const ext = filename.split('.').pop()?.toLowerCase();
     const mime = ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'application/octet-stream';
 
-    // React Native FormData file objesi
-    // Backend beklenen alan adı: pro_photo
     formData.append('pro_photo' as any, {
       uri: fileUri as any,
       name: filename,
@@ -353,7 +345,6 @@ class ApiClient {
     try {
       const response = await this.api.get<any>('/cart/');
       
-      // Backend response'unu kontrol et
       let cartItems: any[] = [];
       if (Array.isArray(response.data)) {
         cartItems = response.data;
@@ -363,7 +354,6 @@ class ApiClient {
         cartItems = response.data.results;
       }
       
-      // Backend'den gelen item'ları CartItem formatına çevir
       return cartItems.map(item => ({
         id: item.id.toString(),
         product: {
@@ -397,18 +387,14 @@ class ApiClient {
   }
 
   async updateCartItem(productId: number, quantity: number): Promise<CartItem> {
-    // Backend'de update endpoint'i yok, mevcut endpoint'leri kullanacağız
     if (quantity <= 0) {
-      // Miktar 0 veya negatif, ürünü sepetten çıkar
       await this.api.post('/cart/remove/', { product_id: productId });
       throw new Error('Ürün sepetten çıkarıldı');
     }
 
-    // Önce mevcut sepeti al
     const cartResponse = await this.api.get<any>('/cart/');
     let cartItems: any[] = [];
     
-    // Backend response'unu kontrol et
     if (Array.isArray(cartResponse.data)) {
       cartItems = cartResponse.data;
     } else if (cartResponse.data && Array.isArray(cartResponse.data.items)) {
@@ -428,20 +414,16 @@ class ApiClient {
       const difference = quantity - currentQuantity;
       
       if (difference > 0) {
-        // Artırma gerekiyor - add endpoint'ini kullan
         await this.api.post('/cart/add/', { product_id: productId, quantity: difference });
       } else if (difference < 0) {
-        // Azaltma gerekiyor - decrease endpoint'ini kullan
         for (let i = 0; i < Math.abs(difference); i++) {
           await this.api.post('/cart/decrease/', { product_id: productId });
         }
       }
     } else {
-      // Ürün sepette yok, ekle
       await this.api.post('/cart/add/', { product_id: productId, quantity: quantity });
     }
     
-    // Güncellenmiş sepeti döndür
     const updatedCart = await this.api.get<any>('/cart/');
     let updatedCartItems: any[] = [];
     
@@ -463,7 +445,6 @@ class ApiClient {
       throw new Error('Ürün sepetten bulunamadı');
     }
     
-    // Backend'den gelen item'ı CartItem formatına çevir
     return {
       id: updatedItem.id.toString(),
       product: {
@@ -506,7 +487,6 @@ class ApiClient {
       const token = await tokenStorage.getAccessToken();
       if (!token) return false;
       
-      // Token var mı ve geçerli mi kontrol et
       await this.api.get('/users/me/');
       return true;
     } catch (error) {
@@ -524,6 +504,5 @@ class ApiClient {
   }
 }
 
-// Singleton instance export
 export const api = new ApiClient();
 export default api;

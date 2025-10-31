@@ -12,7 +12,6 @@ import { useTheme } from "../context/ThemeContext";
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const BottomTabNavigator: React.FC = () => {
-  // 🛒 Sepetteki ürün sayısını al (dinamik badge için)
   const itemCount = useCartStore((state) => state.itemCount);
   const { theme } = useTheme();
 
@@ -143,7 +142,7 @@ const BottomTabNavigator: React.FC = () => {
               )}
             </View>
           ),
-          tabBarBadge: undefined, // Kendi custom badge kullanıyoruz
+          tabBarBadge: undefined,
         }}
       />
       <Tab.Screen

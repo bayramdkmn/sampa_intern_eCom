@@ -466,7 +466,6 @@ export class ServerApi {
     }
   }
 
-  // Cart Methods
   async getCartItems(): Promise<any[]> {
     try {
       const fetchReq = await this.fetchInstance();

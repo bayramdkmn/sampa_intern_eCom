@@ -3,7 +3,6 @@ import { PaymentMethod } from "../types";
 import { api } from "../services/api";
 import type { PaymentCard as ApiPaymentCard, UpdateCardData } from "../types/api";
 
-// Kart numarasından kart tipini tespit et
 const detectCardType = (cardNumber: string): 'visa' | 'mastercard' | 'amex' => {
   const cleanNumber = cardNumber.replace(/\D/g, '');
   
@@ -102,12 +101,10 @@ export const usePaymentStore = create<PaymentState>()((set, get) => ({
       
       set((state) => ({
         paymentMethods: [
-          // Eski kartları güncelle (eğer yeni kart primary ise, eski primary'leri false yap)
           ...state.paymentMethods.map(pm => ({
             ...pm,
             isDefault: paymentMethod.isDefault ? false : pm.isDefault
           })),
-          // Yeni kartı ekle
           newLocalPaymentMethod
         ],
         isLoading: false,
@@ -122,7 +119,6 @@ export const usePaymentStore = create<PaymentState>()((set, get) => ({
     }
   },
 
-  // ✏️ Ödeme Yöntemini Güncelle
   updatePaymentMethod: async (id: string, updatedData: Partial<PaymentMethod>) => {
     try {
       set({ isLoading: true, error: null });

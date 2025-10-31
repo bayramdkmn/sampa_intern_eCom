@@ -40,20 +40,16 @@ const PersonalInformation = ({ user }: { user: User }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Profil fotoğrafı URL'sini oluştur
   const getProfileImageUrl = (imagePath: string | null | undefined) => {
     if (!imagePath) return null;
 
-    // Eğer tam URL ise olduğu gibi döndür
     if (imagePath.startsWith("http")) {
       return imagePath;
     }
 
-    // Eğer /media/ ile başlıyorsa base URL ile birleştir (api kısmını çıkar)
     if (imagePath.startsWith("/media/")) {
       const baseURL =
         process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-      // API URL'den /api kısmını çıkar
       const cleanBaseURL = baseURL.replace("/api", "");
       return `${cleanBaseURL}${imagePath}`;
     }
@@ -68,7 +64,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Crop modal için state'ler
   const [showCropModal, setShowCropModal] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string>("");
   const [crop, setCrop] = useState<Crop>({
@@ -82,7 +77,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const [tempFileName, setTempFileName] = useState<string>("");
 
-  // Telefon numarasını parse et
   const parsePhoneNumber = (fullPhone: string | undefined) => {
     if (!fullPhone) return { code: "+90", number: "" };
     const parts = fullPhone.trim().split(" ");
@@ -152,7 +146,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
       phoneNumber: phoneOnly,
     });
 
-    // Profil fotoğrafı ve seçilen dosyayı sıfırla
     setProfileImage(getProfileImageUrl(user.profileImage) || null);
     setSelectedFile(null);
 
@@ -181,21 +174,18 @@ const PersonalInformation = ({ user }: { user: User }) => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Dosya boyutunu kontrol et (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setErrorMessage("Dosya boyutu 5MB'dan küçük olmalıdır");
         setShowErrorMessage(true);
         return;
       }
 
-      // Dosya tipini kontrol et
       if (!file.type.startsWith("image/")) {
         setErrorMessage("Sadece resim dosyaları yüklenebilir");
         setShowErrorMessage(true);
         return;
       }
 
-      // Kırpma için dosyayı oku
       const reader = new FileReader();
       reader.onload = (e) => {
         setImageToCrop(e.target?.result as string);
@@ -250,7 +240,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
         const croppedFile = await getCroppedImg(imgRef.current, completedCrop);
         setSelectedFile(croppedFile);
 
-        // Önizleme için URL oluştur
         const reader = new FileReader();
         reader.onload = (e) => {
           setProfileImage(e.target?.result as string);
@@ -336,7 +325,6 @@ const PersonalInformation = ({ user }: { user: User }) => {
       <div className="border-b mt-1 mb-3 border-gray-300 w-full"></div>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4 md:gap-10">
-        {/* Profil Fotoğrafı */}
         <div className="relative flex-shrink-0">
           {profileImage ? (
             <img
@@ -376,10 +364,8 @@ const PersonalInformation = ({ user }: { user: User }) => {
           )}
         </div>
 
-        {/* Bilgiler ve Butonlar */}
         <div className="text-black flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
           <div className="flex-1 w-full">
-            {/* Ad Soyad */}
             <div className="mb-3">
               <div className="text-gray-600 font-semibold mb-1 text-sm md:text-base">
                 Name and Surname

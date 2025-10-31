@@ -98,7 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeFromCart = async (id: string) => {
     try {
       const productId = parseInt(id);
-      await clientApi.removeFromCart(productId); // sadece tamamen SİL
+      await clientApi.removeFromCart(productId);
       setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error removing from cart:", error);
@@ -114,10 +114,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (quantity < 1) {
         await removeFromCart(id);
       } else if (quantity > current.quantity) {
-        // arttırmak için addToCart fonksiyonunu kullan
         await clientApi.addToCart(productId, quantity - current.quantity);
       } else if (quantity < current.quantity) {
-        // azaltmak için fark kadar decreaseCartItem çağır
         for (let i = 0; i < current.quantity - quantity; i++) {
           await clientApi.decreaseCartItem(productId);
         }

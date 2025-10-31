@@ -3,7 +3,6 @@ import { Product, Category } from "../types";
 import { api } from "../services/api";
 import type { Product as ApiProduct } from "../types/api";
 
-// API Product'tan Local Product'a dönüşüm
 const mapApiProductToLocalProduct = (apiProduct: ApiProduct): Product => ({
   id: apiProduct.id.toString(),
   name: apiProduct.name,
@@ -51,7 +50,6 @@ export const useProductStore = create<ProductState>()((set, get) => ({
   isLoading: false,
   error: null,
 
-  // 📦 Ürünleri API'den Çek
   fetchProducts: async () => {
     try {
       set({ isLoading: true, error: null });
@@ -69,14 +67,10 @@ export const useProductStore = create<ProductState>()((set, get) => ({
     }
   },
 
-  // 📱 Kategorileri API'den Çek
   fetchCategories: async () => {
     try {
       set({ isLoading: true, error: null });
 
-      // TODO: Gerçek API çağrısı
-      // const response = await fetch('YOUR_API/categories');
-      // const data = await response.json();
 
       const mockCategories: Category[] = [
         { id: "1", name: "Elektronik", icon: "📱", productCount: 1245 },
@@ -98,23 +92,19 @@ export const useProductStore = create<ProductState>()((set, get) => ({
     }
   },
 
-  // 🔍 ID'ye Göre Ürün Bul
   fetchProductById: async (id: string) => {
     try {
       set({ isLoading: true, error: null });
 
-      // Önce local state'de var mı kontrol et
       const existingProduct = get().products.find((p) => p.id === id);
       if (existingProduct) {
         set({ isLoading: false });
         return existingProduct;
       }
 
-      // Yoksa API'den çek
       const apiProduct = await api.getProduct(id);
       const localProduct = mapApiProductToLocalProduct(apiProduct);
 
-      // Store'a ekle
       set((state) => ({
         products: [...state.products, localProduct],
         isLoading: false,
@@ -131,30 +121,25 @@ export const useProductStore = create<ProductState>()((set, get) => ({
     }
   },
 
-  // 🏷️ Kategori Seç
   setSelectedCategory: (categoryId: string | null) => {
     set({ selectedCategory: categoryId });
   },
 
-  // 🔎 Arama Sorgusu Ayarla
   setSearchQuery: (query: string) => {
     set({ searchQuery: query });
   },
 
-  // 🎯 Filtrelenmiş Ürünleri Al
   getFilteredProducts: () => {
     const { products, selectedCategory, searchQuery } = get();
 
     let filtered = products;
 
-    // Kategoriye göre filtrele
     if (selectedCategory) {
       filtered = filtered.filter(
         (p) => p.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
-    // Arama sorgusuna göre filtrele
     if (searchQuery) {
       filtered = filtered.filter((p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -164,47 +149,7 @@ export const useProductStore = create<ProductState>()((set, get) => ({
     return filtered;
   },
 
-  // 🧹 Hatayı Temizle
   clearError: () => {
     set({ error: null });
   },
 }));
-
-// 🎯 KULLANIM ÖRNEĞİ:
-// 
-// import { useProductStore } from '../store/productStore';
-// 
-// function HomeScreen() {
-//   const { products, fetchProducts, isLoading } = useProductStore();
-//   
-//   useEffect(() => {
-//     fetchProducts();
-//   }, []);
-//   
-//   if (isLoading) return <ActivityIndicator />;
-//   
-//   return (
-//     <FlatList
-//       data={products}
-//       renderItem={({ item }) => <ProductCard product={item} />}
-//     />
-//   );
-// }
-// 
-// function CategoriesScreen() {
-//   const { 
-//     setSelectedCategory, 
-//     setSearchQuery, 
-//     getFilteredProducts 
-//   } = useProductStore();
-//   
-//   const filteredProducts = getFilteredProducts();
-//   
-//   return (
-//     <View>
-//       <TextInput onChangeText={setSearchQuery} placeholder="Ara..." />
-//       {filteredProducts.map(p => <Text>{p.name}</Text>)}
-//     </View>
-//   );
-// }
-

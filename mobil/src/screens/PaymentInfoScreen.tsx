@@ -23,7 +23,6 @@ const PaymentInfoScreen: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [showAddCard, setShowAddCard] = useState(false);
 
-  // Card form states
   const [cardHolderName, setCardHolderName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiryMonth, setExpiryMonth] = useState("");
@@ -35,58 +34,18 @@ const PaymentInfoScreen: React.FC = () => {
     fetchPaymentMethods();
   }, []);
 
-  const handleAddCard = async () => {
-    if (
-      !cardHolderName.trim() ||
-      !cardNumber.trim() ||
-      !expiryMonth.trim() ||
-      !expiryYear.trim() ||
-      !cvv.trim()
-    ) {
-      Alert.alert("Hata", "Lütfen tüm alanları doldurun.");
-      return;
-    }
-
-    if (cvv.length < 3) {
-      Alert.alert("Hata", "Lütfen geçerli bir CVV girin.");
-      return;
-    }
-
-    try {
-      await addPaymentMethod({
-        cardNumber: cardNumber.replace(/\s/g, ""),
-        cardHolderName: cardHolderName,
-        expiryDate: `${expiryMonth}/${expiryYear}`,
-        cardType: "other",
-        cvv: cvv,
-        isDefault: false,
-      });
-
-      Alert.alert("Başarılı", "Kart başarıyla eklendi!");
-      setShowAddCard(false);
-      setCardHolderName("");
-      setCardNumber("");
-      setExpiryMonth("");
-      setExpiryYear("");
-      setCvv("");
-    } catch (error) {
-      Alert.alert("Hata", "Kart eklenirken bir hata oluştu.");
-    }
-  };
-
   const handleContinue = () => {
     if (!selectedPayment) {
       Alert.alert("Hata", "Lütfen ödeme yöntemi seçin.");
       return;
     }
-    // Navigate to confirmation screen
     navigation.navigate("OrderConfirm" as never);
   };
 
   const formatCardNumber = (text: string) => {
     const cleaned = text.replace(/\s/g, "");
     const formatted = cleaned.replace(/(.{4})/g, "$1 ").trim();
-    return formatted.slice(0, 19); // Max 16 digits + 3 spaces
+    return formatted.slice(0, 19);
   };
 
   const handleCardNumberChange = (text: string) => {
@@ -95,7 +54,6 @@ const PaymentInfoScreen: React.FC = () => {
   };
 
   const handleExpiryDateChange = (text: string) => {
-    // Sadece rakam girişine izin ver
     const cleaned = text.replace(/\D/g, "");
 
     if (cleaned.length <= 2) {
@@ -115,14 +73,12 @@ const PaymentInfoScreen: React.FC = () => {
   };
 
   const handleCardHolderNameChange = (text: string) => {
-    // Sadece harf, boşluk ve Türkçe karakterlere izin ver
     const cleaned = text.replace(/[^a-zA-ZçğıöşüÇĞIİÖŞÜ\s]/g, "");
     setCardHolderName(cleaned);
   };
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
-      {/* Header */}
       <View
         style={[
           tw`pt-12 pb-4 px-4`,
@@ -171,7 +127,6 @@ const PaymentInfoScreen: React.FC = () => {
       </View>
 
       <ScrollView style={tw`flex-1 px-4`}>
-        {/* Kayıtlı Kartlarım */}
         <View style={tw`mt-6`}>
           <Text
             style={[tw`text-lg font-bold mb-4`, { color: theme.colors.text }]}
@@ -259,7 +214,6 @@ const PaymentInfoScreen: React.FC = () => {
             </TouchableOpacity>
           ))}
 
-          {/* Yeni Kart Ekle Button */}
           <TouchableOpacity
             onPress={() => setShowAddCard(!showAddCard)}
             style={[
@@ -281,7 +235,6 @@ const PaymentInfoScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Yeni Kart Ekle Form */}
         {showAddCard && (
           <View style={tw`mt-8`}>
             <Text
@@ -346,7 +299,6 @@ const PaymentInfoScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Son Kullanma Tarihi ve CVV */}
               <View style={tw`flex-row space-x-4`}>
                 <View style={tw`flex-1`}>
                   <Text
@@ -410,7 +362,6 @@ const PaymentInfoScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Save Card Checkbox */}
               <TouchableOpacity
                 onPress={() => setSaveCard(!saveCard)}
                 style={tw`flex-row items-center mt-4`}
@@ -447,7 +398,6 @@ const PaymentInfoScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Özet */}
         <View style={tw`mt-8 mb-6`}>
           <View style={tw`space-y-2`}>
             <View style={tw`flex-row justify-between`}>

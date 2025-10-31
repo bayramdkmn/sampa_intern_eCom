@@ -12,7 +12,6 @@ import { API_BASE_URL } from "../config/api";
 import { tokenStorage } from "../utils/storage";
 import type { User as ApiUser } from "../types/api";
 
-// Görsel URL normalize edici (relative ise host ekler)
 const normalizeImageUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
@@ -20,7 +19,6 @@ const normalizeImageUrl = (url?: string | null): string | undefined => {
   return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
-// API User'dan Local User'a dönüşüm
 const mapApiUserToLocalUser = (apiUser: ApiUser): User => {
   const rawPhoto = (apiUser.pro_photo || apiUser.profile_image) as string | undefined;
   const avatar = normalizeImageUrl(rawPhoto);
@@ -35,7 +33,6 @@ const mapApiUserToLocalUser = (apiUser: ApiUser): User => {
 };
 
 interface AuthState {
-  // State
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
@@ -45,12 +42,11 @@ interface AuthState {
   passwordResetEmail: string;
   passwordResetSuccess: boolean;
 
-  // Actions
   login: (email: string, password: string) => Promise<void>;
   register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
   passwordResetRequest: (email: string) => Promise<{ message: string, code?: string }>;
   passwordResetConfirm: (data: { email: string; code: string; new_password: string; new_password2: string }) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>; // deprecated, backward compat
+  resetPassword: (email: string) => Promise<void>; 
   logout: () => Promise<void>;
   updateUser: (user: Partial<User>) => Promise<void>;
   fetchUserProfile: () => Promise<void>;
@@ -77,7 +73,6 @@ export const useAuthStore = create<AuthState>()(
 
           const response = await api.login({ email, password });
 
-          // Backend'den access veya access_token gelebilir
           const accessToken = response.access_token || response.access;
 
           if (response.user && accessToken) {
@@ -110,7 +105,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null });
 
-          // 1. Kayıt ol
           const registerResponse = await api.register({
             email,
             password,
@@ -120,7 +114,6 @@ export const useAuthStore = create<AuthState>()(
           });
 
 
-          // 2. Backend token dönmüyorsa otomatik login yap
           const accessToken = registerResponse.access_token || registerResponse.access;
           
           if (!accessToken) {
@@ -184,7 +177,7 @@ export const useAuthStore = create<AuthState>()(
             passwordResetEmail: email,
             passwordResetSuccess: false,
           });
-          return apiResponse; // <--- response.message ve response.code erişilebilir olacak
+          return apiResponse; 
         } catch (error: any) {
           const errorMessage = error?.message || 'Şifre sıfırlama kodu gönderilemedi';
           set({ isLoading: false, error: errorMessage });
@@ -208,7 +201,6 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       resetPassword: async (email: string) => {
-        // eski yöntem, artık passwordResetRequest kullan
         await get().passwordResetRequest(email);
       },
 

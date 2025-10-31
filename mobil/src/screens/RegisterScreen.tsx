@@ -95,17 +95,15 @@ const RegisterScreen: React.FC = () => {
   const handleRegister = async () => {
     if (!validateForm()) return;
 
-    clearError(); // Önceki hatayı temizle
+    clearError();
 
     try {
       await register(firstName.trim(), lastName.trim(), email, password);
 
-      // Başarı ekranına yönlendir
       navigation.navigate("WelcomeSuccess", {
         userName: `${firstName.trim()} ${lastName.trim()}`,
       });
     } catch (err: any) {
-      // Hata mesajı store'da error state'inde
       console.error("Register error:", err);
     }
   };

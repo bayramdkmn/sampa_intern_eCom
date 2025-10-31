@@ -41,7 +41,6 @@ const mapApiOrderToLocalOrder = (apiOrder: any): StoreOrder => {
 };
 
 interface OrderState {
-  // State
   orders: StoreOrder[];
   currentOrder: StoreOrder | null;
   isLoading: boolean;

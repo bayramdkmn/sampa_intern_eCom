@@ -63,7 +63,6 @@ const ProductsSliderComponent = ({
       recentIds.map((id, idx) => [id, idx])
     );
     filtered.sort((a, b) => (order[a.id] ?? 0) - (order[b.id] ?? 0));
-    // Eğer son görüntülenenlerle eşleşme yoksa veya çok azsa, tüm listeyi göster
     return filtered.length > 1 ? filtered : all;
   }, [products, recentIds]);
 

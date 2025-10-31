@@ -44,7 +44,6 @@ const PaymentMethodsInformation = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Eğer initialCards varsa, state'e yükle ve API çağrısı yapma
     if (initialCards.length > 0) {
       const normalized: PaymentMethod[] = (initialCards || []).map(
         (c: any) => ({
@@ -73,7 +72,6 @@ const PaymentMethodsInformation = ({
       setLoading(true);
       setError(null);
 
-      // User kontrolü - eğer user yoksa zaten ProfileComponent'te render edilmez
       if (!user) {
         if (mounted) {
           setError("Kartları görmek için lütfen giriş yapın.");
@@ -82,7 +80,6 @@ const PaymentMethodsInformation = ({
         return;
       }
 
-      // Token kontrolü - logout sırasında API çağrısı yapma
       const token = localStorage.getItem("access_token");
       if (!token) {
         if (mounted) setLoading(false);
@@ -92,7 +89,6 @@ const PaymentMethodsInformation = ({
       try {
         const res = await authService.getCards();
         if (!mounted) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const normalized: PaymentMethod[] = (res || []).map((c: any) => ({
           id: String(c.id ?? c.pk ?? crypto.randomUUID?.() ?? Date.now()),
           cardType: (c.card_type ||

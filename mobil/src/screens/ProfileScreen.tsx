@@ -55,27 +55,22 @@ const ProfileScreen: React.FC = () => {
   const { orders, fetchOrders } = useOrderStore();
   const { theme, toggleTheme } = useTheme();
 
-  // Fallback to mock user if not authenticated
   const currentUser = user || USER;
 
-  // API'den profil çek (avatar yoksa veya kullanıcı yoksa)
   useEffect(() => {
     if (isAuthenticated && (!user || !user.avatar)) {
       fetchUserProfile().catch(() => {});
     }
   }, [isAuthenticated, user?.avatar]);
 
-  // Siparişleri çek
   useEffect(() => {
     if (isAuthenticated) {
       fetchOrders();
     }
   }, [isAuthenticated]);
 
-  // Debug: Avatar URL'yi logla
   useEffect(() => {}, [currentUser?.avatar]);
 
-  // İstatistik hesaplamaları
   const totalOrders = orders.length;
   const pendingOrders = orders.filter(
     (order) => order.status === "pending"
@@ -84,7 +79,6 @@ const ProfileScreen: React.FC = () => {
     (order) => order.status === "delivered"
   ).length;
 
-  // Profile Edit Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [editedName, setEditedName] = useState(currentUser.name);
   const [editedPhone, setEditedPhone] = useState(currentUser.phone || "");
@@ -137,7 +131,6 @@ const ProfileScreen: React.FC = () => {
 
   const handleSettingsPress = (itemId: string) => {
     if (itemId === "2") {
-      // Tema değiştirme butonu
       toggleTheme();
       return;
     }
@@ -236,8 +229,6 @@ const ProfileScreen: React.FC = () => {
                 />
               </View>
 
-              {/* E-posta alanı kaldırıldı */}
-
               <View style={tw`mb-6`}>
                 <Text
                   style={[
@@ -304,14 +295,12 @@ const ProfileScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* Profil fotoğrafı yükleme */}
               <View style={tw`mt-4`}>
                 <TouchableOpacity
                   disabled={avatarUploading}
                   onPress={async () => {
                     try {
                       setAvatarUploading(true);
-                      // Expo Image Picker entegrasyonu
                       const perm =
                         await ImagePicker.requestMediaLibraryPermissionsAsync();
                       if (perm.status !== "granted") {
@@ -339,7 +328,6 @@ const ProfileScreen: React.FC = () => {
                       if (!result.canceled && result.assets?.length) {
                         const uri = result.assets[0].uri;
                         await api.uploadProfilePhoto(uri);
-                        // Profili yenile
                         await fetchUserProfile();
                       }
                     } finally {
@@ -500,7 +488,6 @@ const ProfileScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Stats Cards - Sadece giriş yapmış kullanıcılar için */}
         {isAuthenticated && (
           <View style={tw`px-4 -mt-6 mb-4`}>
             <View
@@ -577,7 +564,6 @@ const ProfileScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Hesabım bölümü - Sadece giriş yapmış kullanıcılar için */}
         {isAuthenticated && (
           <View style={tw`px-4 mb-4`}>
             <Text

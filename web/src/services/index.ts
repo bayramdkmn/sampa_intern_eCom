@@ -1,10 +1,8 @@
-// API Services Export
 export { clientApi, ClientApi } from './ClientApi';
 export { serverApi, ServerApi } from './ServerApi';
 export { authService } from './authService';
 export { productService } from './productService';
 
-// Types Export - From API types
 export type {
   User,
   UserProfile,

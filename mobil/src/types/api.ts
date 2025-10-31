@@ -1,4 +1,3 @@
-// API Response Types
 export interface User {
   id: string | number;
   pk?: string | number;
@@ -26,12 +25,12 @@ export interface Address {
   first_name: string;
   last_name: string;
   company?: string;
-  address_line: string; // Backend'de address_line kullanılıyor
-  address_line_1?: string; // Eski format için fallback
+  address_line: string; 
+  address_line_1?: string; 
   address_line_2?: string;
   city: string;
-  district: string; // Backend'de district kullanılıyor
-  state_province?: string; // Eski format için fallback
+  district: string; 
+  state_province?: string; 
   postal_code: string;
   country: string;
   phone_number?: string;
@@ -45,12 +44,12 @@ export interface CreateAddressData {
   first_name: string;
   last_name: string;
   company?: string;
-  address_line: string; // Backend'de address_line kullanılıyor
-  address_line_1?: string; // Eski format için fallback
+  address_line: string; 
+  address_line_1?: string; 
   address_line_2?: string;
   city: string;
-  district: string; // Backend'de district kullanılıyor
-  state_province?: string; // Eski format için fallback
+  district: string; 
+  state_province?: string; 
   postal_code: string;
   country: string;
   phone_number?: string;
@@ -82,12 +81,12 @@ export interface CreateCardData {
   cvv: string;
   brand?: string;
   is_default?: boolean;
-  is_primary?: boolean; // Backend'de is_primary kullanılıyor
+  is_primary?: boolean; 
 }
 
 export interface UpdateCardData extends Partial<CreateCardData> {
-  id?: string; // id'yi optional yap
-  is_primary?: boolean; // Backend'de is_primary kullanılıyor
+  id?: string; 
+  is_primary?: boolean; 
 }
 
 export interface Product {
@@ -143,14 +142,14 @@ export interface OrderItem {
 }
 
 export interface CreateOrderData {
-  shipping_address: string; // Address ID
-  billing_address?: string; // Address ID
-  payment_method?: string; // Card ID
+  shipping_address: string; 
+  billing_address?: string; 
+  payment_method?: string; 
   notes?: string;
   items: {
     product_id: number;
     quantity: number;
-    price: string; // Backend price bekliyor ve bu toplam fiyat olmalı
+    price: string; 
   }[];
   total_amount: string;
 }

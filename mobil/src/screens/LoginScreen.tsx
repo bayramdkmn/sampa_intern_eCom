@@ -55,17 +55,15 @@ const LoginScreen: React.FC = () => {
   const handleLogin = async () => {
     if (!validateForm()) return;
 
-    clearError(); // Önceki hatayı temizle
+    clearError(); 
 
     try {
       await login(email, password);
-      // Başarılı giriş - navigation MainTabs'a otomatik yönlendirilecek
       navigation.reset({
         index: 0,
         routes: [{ name: "MainTabs" }],
       });
     } catch (err: any) {
-      // Hata mesajı store'da error state'inde
       console.error("Login error:", err);
     }
   };
@@ -185,7 +183,6 @@ const LoginScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          {/* Backend Hata Mesajı */}
           {error && (
             <View
               style={[

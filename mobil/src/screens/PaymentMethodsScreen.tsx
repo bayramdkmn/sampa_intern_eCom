@@ -29,7 +29,6 @@ const PaymentMethodsScreen: React.FC = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Ekran yüklendiğinde ödeme yöntemlerini çek
   useEffect(() => {
     fetchPaymentMethods();
   }, [fetchPaymentMethods]);

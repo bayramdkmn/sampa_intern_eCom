@@ -58,22 +58,18 @@ const PaymentMethodForm: React.FC<PaymentMethodFormProps> = ({
       const formatted = formatExpiryDate(cleaned);
       setExpiryDate(formatted);
 
-      // Ay kontrolü (MM/YY formatında)
       if (cleaned.length >= 2) {
         const month = parseInt(cleaned.slice(0, 2));
         if (month > 12) {
-          // Geçersiz ay girildi, sadece ilk haneyi al
           const corrected = cleaned.slice(0, 1);
           setExpiryDate(corrected);
         }
       }
 
-      // Yıl kontrolü (YY formatında)
       if (cleaned.length >= 4) {
         const year = parseInt(cleaned.slice(2, 4));
-        const currentYear = new Date().getFullYear() % 100; // Son 2 hane
+        const currentYear = new Date().getFullYear() % 100;
         if (year < currentYear) {
-          // Geçmiş yıl girildi, sadece ilk 2 haneyi al
           const corrected = cleaned.slice(0, 2);
           setExpiryDate(formatExpiryDate(corrected));
         }
@@ -89,7 +85,6 @@ const PaymentMethodForm: React.FC<PaymentMethodFormProps> = ({
   };
 
   const handleCardHolderNameChange = (text: string) => {
-    // Sadece harf, boşluk ve Türkçe karakterlere izin ver
     const cleaned = text.replace(/[^a-zA-ZçğıöşüÇĞIİÖŞÜ\s]/g, "");
     setCardHolderName(cleaned);
   };
@@ -109,7 +104,6 @@ const PaymentMethodForm: React.FC<PaymentMethodFormProps> = ({
       return;
     }
 
-    // Ay kontrolü
     const month = parseInt(expiryDate.slice(0, 2));
     if (month < 1 || month > 12) {
       alert("Ay 01-12 arasında olmalıdır");
@@ -131,7 +125,7 @@ const PaymentMethodForm: React.FC<PaymentMethodFormProps> = ({
       expiryDate,
       cardType: detectCardType(cardNumber),
       isDefault,
-      cvv: cvv, // CVV'yi de gönder
+      cvv: cvv,
     });
   };
 

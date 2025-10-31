@@ -1,4 +1,3 @@
-// Legacy productService - now using new ClientApi system
 import { clientApi } from './ClientApi';
 import { Product } from '../types/api';
 

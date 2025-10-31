@@ -3,7 +3,6 @@ import { serverApi } from "@/services/ServerApi";
 import { Metadata } from "next";
 import { Product } from "@/types/api";
 
-// SEO Metadata - Server-side rendered
 export const metadata: Metadata = {
   title: "Sampa Connect - Ürünler",
   description:

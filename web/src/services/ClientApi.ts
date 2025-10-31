@@ -349,7 +349,6 @@ export class ClientApi {
     return localStorage.getItem('access_token');
   }
 
-  // Cart Methods
   async getCartItems(): Promise<any[]> {
     try {
       const response = await this.makeRequest<any[]>('/cart/');
@@ -408,7 +407,6 @@ export class ClientApi {
     }
   }
 
-  // User Profile Methods
   async updateUserProfile(data: {
     first_name?: string;
     last_name?: string;
@@ -437,7 +435,6 @@ export class ClientApi {
     try {
       const formData = new FormData();
       
-      // Text verilerini ekle
       if (profileData.first_name) {
         formData.append('first_name', profileData.first_name);
       }
@@ -448,7 +445,6 @@ export class ClientApi {
         formData.append('phone_number', profileData.phone_number);
       }
       
-      // Fotoğraf dosyasını ekle
       if (photoFile) {
         formData.append('pro_photo', photoFile);
       }

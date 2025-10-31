@@ -89,7 +89,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
           style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800`}
           value={postalCode}
           onChangeText={(text) => {
-            // Sadece rakam kabul et, max 5 karakter
             const cleaned = text.replace(/\D/g, "");
             if (cleaned.length <= 5) {
               onPostalCodeChange(cleaned);

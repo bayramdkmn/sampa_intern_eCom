@@ -10,9 +10,8 @@ interface CartState {
   itemCount: number;
   isLoading: boolean;
   error: string | null;
-  isSyncing: boolean; // API ile senkronizasyon durumu
+  isSyncing: boolean; 
 
-  // Actions
   addToCart: (product: Product, quantity?: number, color?: string, size?: string) => Promise<void>;
   removeFromCart: (productId: string) => Promise<void>;
   updateQuantity: (productId: string, quantity: number) => Promise<void>;
@@ -20,8 +19,8 @@ interface CartState {
   calculateTotal: () => void;
   setItems: (items: CartItem[]) => void;
   setTotal: (total: number) => void;
-  syncWithBackend: () => Promise<void>; // Backend'den sepeti çek
-  syncCartToBackend: () => Promise<void>; // Local sepeti backend'e gönder
+  syncWithBackend: () => Promise<void>; 
+  syncCartToBackend: () => Promise<void>; 
   clearError: () => void;
 }
 
@@ -40,7 +39,6 @@ export const useCartStore = create<CartState>()(
           const items = get().items;
           const existingItem = items.find((item) => item.product.id === product.id);
 
-          // Önce local state'i güncelle (optimistic update)
           if (existingItem) {
             set({
               items: items.map((item) =>
@@ -57,7 +55,6 @@ export const useCartStore = create<CartState>()(
 
           get().calculateTotal();
 
-          // Backend'e gönder (arka planda)
           try {
             await api.addToCart({
               product_id: parseInt(product.id),
@@ -67,7 +64,6 @@ export const useCartStore = create<CartState>()(
             });
           } catch (apiError) {
             console.warn('Sepete ekleme API hatası (offline mode):', apiError);
-            // Hata olsa bile local state'i değiştirme (offline-first)
           }
         } catch (error: any) {
           console.error('Sepete ekleme hatası:', error);
@@ -78,22 +74,18 @@ export const useCartStore = create<CartState>()(
 
       removeFromCart: async (productId: string) => {
         try {
-          // Mevcut state'i sakla (rollback için)
           const currentItems = get().items;
           const currentTotal = get().total;
 
-          // Önce local state'i güncelle
           set({
             items: get().items.filter((item) => item.product.id !== productId),
           });
           get().calculateTotal();
 
-          // Backend'den sil (arka planda, hata olsa bile local state'i değiştirme)
           try {
             await api.removeFromCart(parseInt(productId));
           } catch (apiError) {
             console.warn('⚠️ Backend remove failed (offline mode):', apiError);
-            // Backend hatası olsa bile local state'i değiştirme (offline-first approach)
           }
         } catch (error: any) {
           console.error('Sepetten silme hatası:', error);
@@ -193,9 +185,6 @@ export const useCartStore = create<CartState>()(
 
           const backendCartItems = await api.getCartItems();
           
-          // Backend cart item'larını local Product formatına çevir
-          // Not: Bu kısım backend'in döndüğü cart yapısına göre ayarlanmalı
-          // Şimdilik basit bir mapping yapıyoruz
           const localCartItems: CartItem[] = backendCartItems.map((item: any) => ({
             product: {
               id: item.product.id.toString(),
@@ -236,36 +225,4 @@ export const useCartStore = create<CartState>()(
     }
   )
 );
-
-// 🎯 KULLANIM ÖRNEĞİ:
-// 
-// import { useCartStore } from '../store/cartStore';
-// 
-// function ProductDetailScreen({ product }) {
-//   const { addToCart, items } = useCartStore();
-//   
-//   const handleAddToCart = () => {
-//     addToCart(product, 1);
-//     alert('Sepete eklendi!');
-//   };
-//   
-//   return (
-//     <TouchableOpacity onPress={handleAddToCart}>
-//       <Text>Sepete Ekle</Text>
-//     </TouchableOpacity>
-//   );
-// }
-// 
-// function CartScreen() {
-//   const { items, total, removeFromCart } = useCartStore();
-//   
-//   return (
-//     <View>
-//       <Text>Toplam: ₺{total}</Text>
-//       {items.map(item => (
-//         <Text key={item.product.id}>{item.product.name}</Text>
-//       ))}
-//     </View>
-//   );
-// }
 

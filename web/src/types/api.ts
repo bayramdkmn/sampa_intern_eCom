@@ -1,4 +1,3 @@
-// API Response Types
 export interface User {
   id: string;
   pk: string;
@@ -61,10 +60,10 @@ export interface PaymentCard {
   id: string;
   user: string;
   card_holder_name: string;
-  card_number: string; // Masked
+  card_number: string; 
   expiry_month: string;
   expiry_year: string;
-  brand: string; // visa, mastercard, etc.
+  brand: string;
   is_default?: boolean;
   created_at: string;
   updated_at: string;
@@ -102,7 +101,6 @@ export interface Product {
   main_window_display: boolean;
   created_at: string;
   updated_at: string;
-  // Backend ileride sağlayacak: ürün stok güncelleme tarihi
   stock_updated_at?: string;
 }
 
@@ -138,9 +136,9 @@ export interface OrderItem {
 }
 
 export interface CreateOrderData {
-  shipping_address: string; // Address ID
-  billing_address?: string; // Address ID
-  payment_method?: string; // Card ID
+  shipping_address: string; 
+  billing_address?: string; 
+  payment_method?: string; 
   notes?: string;
 }
 

@@ -10,7 +10,6 @@ interface LoadingContextType {
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
-// useSearchParams kullanan component'i Suspense ile sarmalayalım
 function LoadingProviderInner({ children }: { children: React.ReactNode }) {
   const [isManualLoading, setIsManualLoading] = useState(false);
   const isTransitioning = usePageTransition();

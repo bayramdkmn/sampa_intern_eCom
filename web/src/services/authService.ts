@@ -1,4 +1,3 @@
-// Legacy authService - now using new ClientApi system
 import { clientApi } from './ClientApi';
 import { 
   RegisterData, 
@@ -11,7 +10,6 @@ import {
 } from '../types/api';
 
 class AuthService {
-  // Address methods - now using ClientApi
   async getAddresses(): Promise<Address[]> {
     return await clientApi.getAddresses();
   }
@@ -28,7 +26,6 @@ class AuthService {
     await clientApi.deleteAddress(id);
   }
 
-  // Card methods - now using ClientApi
   async getCards(): Promise<PaymentCard[]> {
     return await clientApi.getCards();
   }
@@ -41,14 +38,9 @@ class AuthService {
     return await clientApi.createCard(data);
   }
 
-  // Password methods - now using ClientApi
   async changePassword(data: ChangePasswordData): Promise<{ message: string }> {
     return await clientApi.changePassword(data);
   }
-  // Legacy makeRequest method - now using ClientApi internally
-  // This method is kept for backward compatibility but delegates to ClientApi
-
-  // Auth methods - now using ClientApi
   async register(data: RegisterData): Promise<AuthResponse> {
     return await clientApi.register(data);
   }
@@ -65,7 +57,6 @@ class AuthService {
     return await clientApi.refreshToken();
   }
 
-  // Token management methods - now using ClientApi
   saveTokens(accessToken: string, refreshToken: string): void {
     clientApi.saveTokens(accessToken, refreshToken);
   }
