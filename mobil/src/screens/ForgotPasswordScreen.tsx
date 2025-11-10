@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  ImageBackground,
 } from "react-native";
 import tw from "twrnc";
 import { useNavigation } from "@react-navigation/native";
@@ -115,25 +116,35 @@ const ForgotPasswordScreen: React.FC = () => {
 
   if (passwordResetStep === "done" || passwordResetSuccess) {
     return (
-      <View style={tw`flex-1 bg-white px-6 justify-center`}>
-        <View style={tw`items-center mb-8`}>
-          <Text style={tw`text-green-700 text-3xl font-bold mb-2`}>✓</Text>
-          <Text style={tw`text-gray-800 text-2xl font-bold mb-2 text-center`}>
-            Şifre başarıyla değiştirildi!
-          </Text>
-          <Text style={tw`text-gray-500 text-center mb-8`}>
-            Yeni şifreyle giriş yapabilirsin.
-          </Text>
+      <ImageBackground
+        source={require("../../assets/background.jpeg")}
+        style={tw`flex-1`}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)" }}>
+          <View style={tw`flex-1 px-6 justify-center`}>
+            <View style={tw`items-center mb-8`}>
+              <Text style={tw`text-green-700 text-3xl font-bold mb-2`}>✓</Text>
+              <Text
+                style={tw`text-gray-800 text-2xl font-bold mb-2 text-center`}
+              >
+                Şifre başarıyla değiştirildi!
+              </Text>
+              <Text style={tw`text-gray-500 text-center mb-8`}>
+                Yeni şifreyle giriş yapabilirsin.
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Login")}
+              style={tw`bg-blue-600 py-4 rounded-xl mb-3`}
+            >
+              <Text style={tw`text-white font-bold text-center text-base`}>
+                Girişe Dön
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Login")}
-          style={tw`bg-blue-600 py-4 rounded-xl mb-3`}
-        >
-          <Text style={tw`text-white font-bold text-center text-base`}>
-            Girişe Dön
-          </Text>
-        </TouchableOpacity>
-      </View>
+      </ImageBackground>
     );
   }
 
@@ -141,88 +152,102 @@ const ForgotPasswordScreen: React.FC = () => {
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
+        style={tw`flex-1`}
       >
-        <ScrollView
-          contentContainerStyle={tw`flex-1`}
-          showsVerticalScrollIndicator={false}
+        <ImageBackground
+          source={require("../../assets/background.jpeg")}
+          style={tw`flex-1`}
+          resizeMode="cover"
         >
-          <View style={tw`flex-1 px-6 justify-center`}>
-            <View style={tw`items-center mb-8`}>
-              <Text style={tw`text-4xl mb-2`}>✉️</Text>
-              <Text style={tw`text-gray-800 text-xl font-bold mb-2`}>
-                Kod Gönderildi!
-              </Text>
-              <Text style={tw`text-gray-500 text-center mb-8`}>
-                Şifre sıfırlama kodu{" "}
-                <Text style={tw`font-semibold text-blue-600`}>
-                  {passwordResetEmail || email}
-                </Text>{" "}
-                adresine gönderildi.
-              </Text>
-            </View>
-
-            <Text style={tw`text-gray-800 font-semibold mb-1`}>Kodu Girin</Text>
-            <TextInput
-              style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-2`}
-              value={code}
-              onChangeText={setCode}
-              placeholder="Kodu girin"
-              keyboardType="numeric"
-              autoCapitalize="none"
-              placeholderTextColor="#9CA3AF"
-            />
-            {codeError ? (
-              <Text style={tw`text-red-500 text-sm mt-1`}>{codeError}</Text>
-            ) : null}
-
-            <TouchableOpacity
-              onPress={() => setTimer(CODE_TIMER)}
-              style={tw`mb-4`}
-              disabled={timer > 0}
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)" }}>
+            <ScrollView
+              contentContainerStyle={tw`flex-1`}
+              showsVerticalScrollIndicator={false}
             >
-              <Text style={tw`text-blue-600 font-semibold text-center`}>
-                {timer > 0
-                  ? `Kodu tekrar göndermek için ${timer}s`
-                  : "Tekrar kod gönder"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleResendCode}
-              disabled={timer > 0}
-              style={tw`bg-blue-100 py-3 rounded-xl mb-6`}
-            >
-              <Text style={tw`text-blue-800 font-bold text-center`}>
-                Kod Gönder
-              </Text>
-            </TouchableOpacity>
+              <View style={tw`flex-1 px-6 justify-center`}>
+                <View style={tw`items-center mb-8`}>
+                  <Text style={tw`text-4xl mb-2`}>✉️</Text>
+                  <Text style={tw`text-gray-800 text-xl font-bold mb-2`}>
+                    Kod Gönderildi!
+                  </Text>
+                  <Text style={tw`text-gray-500 text-center mb-8`}>
+                    Şifre sıfırlama kodu{" "}
+                    <Text style={tw`font-semibold text-blue-600`}>
+                      {passwordResetEmail || email}
+                    </Text>{" "}
+                    adresine gönderildi.
+                  </Text>
+                </View>
 
-            <TouchableOpacity
-              onPress={() => {
-                if (code === serverCode && code.length > 0) {
-                  useAuthStore.setState({ passwordResetStep: "setPassword" });
-                  setCodeError("");
-                } else {
-                  setCodeError("Kod hatalı veya eksik");
-                }
-              }}
-              style={tw`bg-blue-600 py-4 rounded-xl`}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={tw`text-white font-bold text-center text-base`}>
-                  Kodu Doğrula
+                <Text style={tw`text-gray-800 font-semibold mb-1`}>
+                  Kodu Girin
                 </Text>
-              )}
-            </TouchableOpacity>
+                <TextInput
+                  style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-2`}
+                  value={code}
+                  onChangeText={setCode}
+                  placeholder="Kodu girin"
+                  keyboardType="numeric"
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                />
+                {codeError ? (
+                  <Text style={tw`text-red-500 text-sm mt-1`}>{codeError}</Text>
+                ) : null}
 
-            {error ? (
-              <Text style={tw`text-red-500 text-sm mt-4`}>{error}</Text>
-            ) : null}
+                <TouchableOpacity
+                  onPress={() => setTimer(CODE_TIMER)}
+                  style={tw`mb-4`}
+                  disabled={timer > 0}
+                >
+                  <Text style={tw`text-blue-600 font-semibold text-center`}>
+                    {timer > 0
+                      ? `Kodu tekrar göndermek için ${timer}s`
+                      : "Tekrar kod gönder"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleResendCode}
+                  disabled={timer > 0}
+                  style={tw`bg-blue-100 py-3 rounded-xl mb-6`}
+                >
+                  <Text style={tw`text-blue-800 font-bold text-center`}>
+                    Kod Gönder
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    if (code === serverCode && code.length > 0) {
+                      useAuthStore.setState({
+                        passwordResetStep: "setPassword",
+                      });
+                      setCodeError("");
+                    } else {
+                      setCodeError("Kod hatalı veya eksik");
+                    }
+                  }}
+                  style={tw`bg-blue-600 py-4 rounded-xl`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text
+                      style={tw`text-white font-bold text-center text-base`}
+                    >
+                      Kodu Doğrula
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                {error ? (
+                  <Text style={tw`text-red-500 text-sm mt-4`}>{error}</Text>
+                ) : null}
+              </View>
+            </ScrollView>
           </View>
-        </ScrollView>
+        </ImageBackground>
       </KeyboardAvoidingView>
     );
   }
@@ -231,68 +256,82 @@ const ForgotPasswordScreen: React.FC = () => {
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
+        style={tw`flex-1`}
       >
-        <ScrollView
-          contentContainerStyle={tw`flex-1`}
-          showsVerticalScrollIndicator={false}
+        <ImageBackground
+          source={require("../../assets/background.jpeg")}
+          style={tw`flex-1`}
+          resizeMode="cover"
         >
-          <View style={tw`flex-1 px-6 justify-center`}>
-            <View style={tw`items-center mb-8`}>
-              <Text style={tw`text-4xl mb-2`}>🔒</Text>
-              <Text style={tw`text-gray-800 text-xl font-bold mb-2`}>
-                Yeni Şifre Belirle
-              </Text>
-              <Text style={tw`text-gray-500 text-center mb-8`}>
-                Hesabın için yeni şifreyi iki kere gir.
-              </Text>
-            </View>
-
-            <Text style={tw`text-gray-800 font-semibold mb-1`}>Yeni Şifre</Text>
-            <TextInput
-              style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-2`}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="Yeni şifre"
-              secureTextEntry
-              autoCapitalize="none"
-              placeholderTextColor="#9CA3AF"
-            />
-            <Text style={tw`text-gray-800 font-semibold mb-1 mt-2`}>
-              Yeni Şifre (Tekrar)
-            </Text>
-            <TextInput
-              style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-4`}
-              value={newPassword2}
-              onChangeText={setNewPassword2}
-              placeholder="Yeni şifre tekrar"
-              secureTextEntry
-              autoCapitalize="none"
-              placeholderTextColor="#9CA3AF"
-            />
-            {passwordError ? (
-              <Text style={tw`text-red-500 text-sm mt-1`}>{passwordError}</Text>
-            ) : null}
-
-            <TouchableOpacity
-              onPress={handlePasswordReset}
-              style={tw`bg-blue-600 py-4 rounded-xl`}
-              disabled={isLoading}
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)" }}>
+            <ScrollView
+              contentContainerStyle={tw`flex-1`}
+              showsVerticalScrollIndicator={false}
             >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={tw`text-white font-bold text-center text-base`}>
-                  Şifreyi Kaydet
-                </Text>
-              )}
-            </TouchableOpacity>
+              <View style={tw`flex-1 px-6 justify-center`}>
+                <View style={tw`items-center mb-8`}>
+                  <Text style={tw`text-4xl mb-2`}>🔒</Text>
+                  <Text style={tw`text-gray-800 text-xl font-bold mb-2`}>
+                    Yeni Şifre Belirle
+                  </Text>
+                  <Text style={tw`text-gray-500 text-center mb-8`}>
+                    Hesabın için yeni şifreyi iki kere gir.
+                  </Text>
+                </View>
 
-            {error ? (
-              <Text style={tw`text-red-500 text-sm mt-4`}>{error}</Text>
-            ) : null}
+                <Text style={tw`text-gray-800 font-semibold mb-1`}>
+                  Yeni Şifre
+                </Text>
+                <TextInput
+                  style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-2`}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  placeholder="Yeni şifre"
+                  secureTextEntry
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                />
+                <Text style={tw`text-gray-800 font-semibold mb-1 mt-2`}>
+                  Yeni Şifre (Tekrar)
+                </Text>
+                <TextInput
+                  style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-4`}
+                  value={newPassword2}
+                  onChangeText={setNewPassword2}
+                  placeholder="Yeni şifre tekrar"
+                  secureTextEntry
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                />
+                {passwordError ? (
+                  <Text style={tw`text-red-500 text-sm mt-1`}>
+                    {passwordError}
+                  </Text>
+                ) : null}
+
+                <TouchableOpacity
+                  onPress={handlePasswordReset}
+                  style={tw`bg-blue-600 py-4 rounded-xl`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text
+                      style={tw`text-white font-bold text-center text-base`}
+                    >
+                      Şifreyi Kaydet
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                {error ? (
+                  <Text style={tw`text-red-500 text-sm mt-4`}>{error}</Text>
+                ) : null}
+              </View>
+            </ScrollView>
           </View>
-        </ScrollView>
+        </ImageBackground>
       </KeyboardAvoidingView>
     );
   }
@@ -300,54 +339,62 @@ const ForgotPasswordScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
+      style={tw`flex-1`}
     >
-      <ScrollView
-        contentContainerStyle={tw`flex-1`}
-        showsVerticalScrollIndicator={false}
+      <ImageBackground
+        source={require("../../assets/background.jpeg")}
+        style={tw`flex-1`}
+        resizeMode="cover"
       >
-        <View style={tw`flex-1 px-6 justify-center`}>
-          <View style={tw`items-center mb-8`}>
-            <Text style={tw`text-4xl mb-2`}>🔑</Text>
-            <Text style={tw`text-gray-800 text-2xl font-bold mb-2`}>
-              Şifremi Unuttum
-            </Text>
-            <Text style={tw`text-gray-500 text-center mb-8`}>
-              Şifreni sıfırlamak için e-posta adresini gir.
-            </Text>
-          </View>
-          <Text style={tw`text-gray-800 font-semibold mb-1`}>E-posta</Text>
-          <TextInput
-            style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-6`}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="ornek@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholderTextColor="#9CA3AF"
-          />
-          {emailError ? (
-            <Text style={tw`text-red-500 text-sm mt-1`}>{emailError}</Text>
-          ) : null}
-
-          <TouchableOpacity
-            onPress={handleSendEmail}
-            disabled={isLoading}
-            style={tw`bg-blue-600 py-4 rounded-xl mb-4`}
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)" }}>
+          <ScrollView
+            contentContainerStyle={tw`flex-1`}
+            showsVerticalScrollIndicator={false}
           >
-            {isLoading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={tw`text-white font-bold text-center text-base`}>
-                Kod Gönder
-              </Text>
-            )}
-          </TouchableOpacity>
-          {error ? (
-            <Text style={tw`text-red-500 text-sm mt-4`}>{error}</Text>
-          ) : null}
+            <View style={tw`flex-1 px-6 justify-center`}>
+              <View style={tw`items-center mb-8`}>
+                <Text style={tw`text-4xl mb-2`}>🔑</Text>
+                <Text style={tw`text-white text-2xl font-bold mb-2`}>
+                  Şifremi Unuttum
+                </Text>
+                <Text style={tw`text-slate-300 text-center mb-8`}>
+                  Şifreni sıfırlamak için e-posta adresini gir.
+                </Text>
+              </View>
+              <Text style={tw`text-gray-800 font-semibold mb-1`}>E-posta</Text>
+              <TextInput
+                style={tw`bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-800 mb-6`}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="ornek@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor="#9CA3AF"
+              />
+              {emailError ? (
+                <Text style={tw`text-red-500 text-sm mt-1`}>{emailError}</Text>
+              ) : null}
+
+              <TouchableOpacity
+                onPress={handleSendEmail}
+                disabled={isLoading}
+                style={tw`bg-blue-600 py-4 rounded-xl mb-4`}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={tw`text-white font-bold text-center text-base`}>
+                    Kod Gönder
+                  </Text>
+                )}
+              </TouchableOpacity>
+              {error ? (
+                <Text style={tw`text-red-500 text-sm mt-4`}>{error}</Text>
+              ) : null}
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
+      </ImageBackground>
     </KeyboardAvoidingView>
   );
 };

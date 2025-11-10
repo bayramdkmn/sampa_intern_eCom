@@ -130,7 +130,7 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleSettingsPress = (itemId: string) => {
-    if (itemId === "2") {
+    if (itemId === "1") {
       toggleTheme();
       return;
     }
