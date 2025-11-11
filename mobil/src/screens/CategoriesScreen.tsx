@@ -17,6 +17,11 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Category, Product } from "../types";
 import { useTheme } from "../context/ThemeContext";
 import { useProductStore, useCartStore, useAuthStore } from "../store";
+import {
+  FadeInView,
+  SlideInView,
+  StaggeredList,
+} from "../components/AnimatedViews";
 
 type CategoriesScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -218,17 +223,24 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
 
         <View
           style={[
-            tw`rounded-xl px-4 py-3 flex-row items-center`,
-            { backgroundColor: theme.colors.card },
+            tw`rounded-2xl px-4 py-3 flex-row items-center`,
+            {
+              backgroundColor: theme.colors.card,
+              shadowColor: theme.colors.shadow,
+              shadowOpacity: 0.08,
+              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 8,
+              elevation: 3,
+            },
           ]}
         >
-          <Text style={tw`text-xl mr-2`}>🔍</Text>
+          <Text style={tw`text-lg mr-3`}>🔍</Text>
           <TextInput
             placeholder="Ürün ara..."
-            placeholderTextColor={theme.mode === "dark" ? "#FFFFFF" : "#000000"}
+            placeholderTextColor={theme.colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            style={[tw`flex-1`, { color: theme.colors.text }]}
+            style={[tw`flex-1 text-base`, { color: theme.colors.text }]}
           />
         </View>
       </View>
@@ -253,16 +265,22 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                   style={[
                     tw`px-4 py-2 rounded-full flex-row items-center`,
                     selectedCategories.includes(category.id)
-                      ? { backgroundColor: theme.colors.barColor }
-                      : { backgroundColor: theme.colors.surfaceVariant },
+                      ? {
+                          backgroundColor: theme.colors.primary,
+                        }
+                      : {
+                          backgroundColor: theme.colors.surfaceVariant,
+                          borderWidth: 1,
+                          borderColor: theme.colors.divider,
+                        },
                   ]}
                 >
-                  <Text style={tw`text-base mr-1`}>{category.icon}</Text>
+                  <Text style={tw`text-base mr-2`}>{category.icon}</Text>
                   <Text
                     style={[
                       tw`font-semibold text-sm`,
                       selectedCategories.includes(category.id)
-                        ? { color: theme.colors.buttonText }
+                        ? { color: theme.colors.onPrimary }
                         : { color: theme.colors.textSecondary },
                     ]}
                   >
@@ -328,53 +346,64 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
           paddingBottom: Platform.OS === "ios" ? 110 : 90,
         }}
       >
-        <View style={tw`p-4 flex-row flex-wrap gap-3`}>
-          {filteredProducts.map((product) => (
-            <TouchableOpacity
-              key={product.id}
-              onPress={() => handleProductPress(product.id)}
-              style={[
-                tw`rounded-2xl overflow-hidden shadow-sm w-[48%]`,
-                {
-                  backgroundColor: theme.colors.card,
-                  shadowColor: theme.colors.shadow,
-                },
-              ]}
-            >
-              <Image
-                source={{ uri: product.image }}
+        <StaggeredList staggerDelay={50}>
+          <View style={tw`p-4 flex-row flex-wrap gap-3`}>
+            {filteredProducts.map((product) => (
+              <TouchableOpacity
+                key={product.id}
+                onPress={() => handleProductPress(product.id)}
                 style={[
-                  tw`w-full h-48 p-2 rounded-xl`,
+                  tw`rounded-2xl overflow-hidden w-[48%]`,
                   {
-                    backgroundColor: theme.colors.surfaceVariant,
-                    resizeMode: "stretch",
+                    backgroundColor: theme.colors.card,
+                    shadowColor: theme.colors.shadow,
+                    shadowOpacity: 0.1,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowRadius: 12,
+                    elevation: 5,
                   },
                 ]}
-              />
-              <View style={tw`p-3`}>
-                <Text
-                  style={[
-                    tw`font-bold text-sm mb-1`,
-                    { color: theme.colors.text },
-                  ]}
-                  numberOfLines={2}
+              >
+                <View
+                  style={{
+                    width: "100%",
+                    height: 160,
+                    backgroundColor: theme.colors.surfaceVariant,
+                    overflow: "hidden",
+                  }}
                 >
-                  {product.name}
-                </Text>
-                <Text
-                  style={[
-                    tw`text-xs mb-2`,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {product.description}
-                </Text>
-                <View style={tw`flex-row justify-between items-center mb-2`}>
-                  <View style={tw`flex-row items-center gap-2`}>
+                  <Image
+                    source={{ uri: product.image }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      resizeMode: "cover",
+                    }}
+                  />
+                </View>
+                <View style={tw`p-3`}>
+                  <Text
+                    style={[
+                      tw`font-bold text-base mb-1`,
+                      { color: theme.colors.text },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {product.name}
+                  </Text>
+                  <Text
+                    style={[
+                      tw`text-xs mb-3`,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {product.description}
+                  </Text>
+                  <View style={tw`mb-3`}>
                     <Text
                       style={[
-                        tw`font-bold text-base`,
+                        tw`font-bold text-lg mb-1`,
                         { color: theme.colors.primary },
                       ]}
                     >
@@ -382,67 +411,75 @@ const CategoriesScreen: React.FC<Props> = ({ navigation }) => {
                     </Text>
                     {product.originalPrice &&
                       product.originalPrice > product.price && (
-                        <>
+                        <View style={tw`flex-row items-center gap-2`}>
                           <Text
-                            style={[tw`text-sm line-through text-gray-500`]}
+                            style={[
+                              tw`text-sm line-through`,
+                              { color: theme.colors.textTertiary },
+                            ]}
                           >
                             ₺{product.originalPrice.toLocaleString("tr-TR")}
                           </Text>
-                          <Text
+                          <View
                             style={[
-                              tw`text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded`,
+                              tw`px-2 py-0.5 rounded`,
+                              { backgroundColor: "rgba(239, 68, 68, 0.1)" },
                             ]}
                           >
-                            %
-                            {Math.round(
-                              ((product.originalPrice - product.price) /
-                                product.originalPrice) *
-                                100
-                            )}{" "}
-                            İndirim
-                          </Text>
-                        </>
+                            <Text
+                              style={[tw`text-xs font-semibold text-red-600`]}
+                            >
+                              %
+                              {Math.round(
+                                ((product.originalPrice - product.price) /
+                                  product.originalPrice) *
+                                  100
+                              )}{" "}
+                              İND
+                            </Text>
+                          </View>
+                        </View>
                       )}
                   </View>
-                </View>
-                <TouchableOpacity
-                  onPress={() => handleAddToCart(product)}
-                  disabled={addingToCart === product.id}
-                  style={[
-                    tw`py-2 px-3 rounded-lg`,
-                    {
-                      backgroundColor: theme.colors.buttonPrimary,
-                      opacity: addingToCart === product.id ? 0.5 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={tw`text-white text-sm font-semibold text-center`}
+                  <TouchableOpacity
+                    onPress={() => handleAddToCart(product)}
+                    disabled={addingToCart === product.id}
+                    style={[
+                      tw`py-2.5 px-3 rounded-xl`,
+                      {
+                        backgroundColor: theme.colors.buttonPrimary,
+                        opacity: addingToCart === product.id ? 0.6 : 1,
+                      },
+                    ]}
                   >
-                    {addingToCart === product.id ? "..." : "🛒 Ekle"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {filteredProducts.length === 0 && (
-          <View style={tw`items-center py-16`}>
-            <Text style={tw`text-6xl mb-3`}>🔍</Text>
-            <Text
-              style={[
-                tw`text-lg font-semibold mb-1`,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
-              Ürün bulunamadı
-            </Text>
-            <Text style={[tw``, { color: theme.colors.textTertiary }]}>
-              Filtrelerinizi değiştirmeyi deneyin
-            </Text>
+                    <Text
+                      style={tw`text-white text-sm font-semibold text-center`}
+                    >
+                      {addingToCart === product.id ? "..." : "🛒 Ekle"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
-        )}
+
+          {filteredProducts.length === 0 && (
+            <View style={tw`items-center py-16`}>
+              <Text style={tw`text-6xl mb-3`}>🔍</Text>
+              <Text
+                style={[
+                  tw`text-lg font-semibold mb-1`,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Ürün bulunamadı
+              </Text>
+              <Text style={[tw``, { color: theme.colors.textTertiary }]}>
+                Filtrelerinizi değiştirmeyi deneyin
+              </Text>
+            </View>
+          )}
+        </StaggeredList>
       </ScrollView>
 
       <Modal

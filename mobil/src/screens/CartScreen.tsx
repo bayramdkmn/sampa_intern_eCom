@@ -18,6 +18,11 @@ import {
 } from "../store";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
+import {
+  FadeInView,
+  SlideInView,
+  StaggeredList,
+} from "../components/AnimatedViews";
 import { useAuthStore } from "../store";
 
 const CartScreen: React.FC = () => {
@@ -218,30 +223,35 @@ const CartScreen: React.FC = () => {
 
   return (
     <View style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}>
-      <View
-        style={[
-          tw`pt-12 pb-4 px-4`,
-          { backgroundColor: theme.colors.barColor },
-        ]}
-      >
-        <View style={tw`flex-row justify-between items-center py-2`}>
-          <Text
-            style={[tw`text-2xl font-bold`, { color: theme.colors.buttonText }]}
-          >
-            Sepetim
-          </Text>
-          <View
-            style={[
-              tw`px-3 py-1 rounded-full`,
-              { backgroundColor: theme.colors.surfaceVariant },
-            ]}
-          >
-            <Text style={[tw`font-bold`, { color: theme.colors.text }]}>
-              {items.length} Ürün
+      <SlideInView from="top" duration={400}>
+        <View
+          style={[
+            tw`pt-12 pb-4 px-4`,
+            { backgroundColor: theme.colors.barColor },
+          ]}
+        >
+          <View style={tw`flex-row justify-between items-center py-2`}>
+            <Text
+              style={[
+                tw`text-2xl font-bold`,
+                { color: theme.colors.buttonText },
+              ]}
+            >
+              Sepetim
             </Text>
+            <View
+              style={[
+                tw`px-3 py-1 rounded-full`,
+                { backgroundColor: theme.colors.surfaceVariant },
+              ]}
+            >
+              <Text style={[tw`font-bold`, { color: theme.colors.text }]}>
+                {items.length} Ürün
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
+      </SlideInView>
 
       <ScrollView
         style={tw`flex-1`}

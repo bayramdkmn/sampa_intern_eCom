@@ -13,6 +13,11 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import { useFavoriteStore } from "../store/favoriteStore";
 import { useTheme } from "../context/ThemeContext";
+import {
+  FadeInView,
+  SlideInView,
+  StaggeredList,
+} from "../components/AnimatedViews";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

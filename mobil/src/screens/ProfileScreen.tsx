@@ -27,6 +27,11 @@ import {
 } from "../store";
 import { useTheme } from "../context/ThemeContext";
 import { api } from "../services/api";
+import {
+  FadeInView,
+  SlideInView,
+  ScaleInView,
+} from "../components/AnimatedViews";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -362,214 +367,289 @@ const ProfileScreen: React.FC = () => {
           paddingBottom: Platform.OS === "ios" ? 110 : 90,
         }}
       >
-        <View
-          style={[
-            tw`pt-12 pb-8 px-4`,
-            { backgroundColor: theme.mode === "dark" ? "#0F0F0F" : "#F5F5F5" },
-          ]}
-        >
-          <Text
+        <SlideInView from="top" duration={400}>
+          <View
             style={[
-              tw`text-2xl font-bold mb-6 pt-4`,
-              { color: theme.colors.text },
+              tw`pt-12 pb-8 px-4`,
+              {
+                backgroundColor: theme.mode === "dark" ? "#0F0F0F" : "#F5F5F5",
+              },
             ]}
           >
-            Profilim
-          </Text>
-
-          {isAuthenticated ? (
-            <View
+            <Text
               style={[
-                tw`rounded-2xl p-4 flex-row items-center`,
-                { backgroundColor: theme.colors.card },
+                tw`text-2xl font-bold mb-6 pt-4`,
+                { color: theme.colors.text },
               ]}
             >
-              <Image
-                source={{ uri: currentUser.avatar }}
+              Profilim
+            </Text>
+
+            {isAuthenticated ? (
+              <View
                 style={[
-                  tw`w-20 h-20 rounded-full mr-4`,
+                  tw`rounded-2xl p-4 flex-row items-center`,
                   { backgroundColor: theme.colors.card },
                 ]}
-              />
-              <View style={tw`flex-1`}>
-                <Text
+              >
+                <Image
+                  source={{ uri: currentUser.avatar }}
                   style={[
-                    tw`text-xl font-bold mb-1`,
-                    { color: theme.colors.headerText },
+                    tw`w-20 h-20 rounded-full mr-4`,
+                    { backgroundColor: theme.colors.card },
                   ]}
-                >
-                  {currentUser.name}
-                </Text>
-                <Text
-                  style={[tw`text-sm mb-1`, { color: theme.colors.headerText }]}
-                >
-                  {currentUser.email}
-                </Text>
-                {currentUser.phone && (
+                />
+                <View style={tw`flex-1`}>
                   <Text
-                    style={[tw`text-sm`, { color: theme.colors.headerText }]}
+                    style={[
+                      tw`text-xl font-bold mb-1`,
+                      { color: theme.colors.headerText },
+                    ]}
                   >
-                    {currentUser.phone}
+                    {currentUser.name}
                   </Text>
-                )}
+                  <Text
+                    style={[
+                      tw`text-sm mb-1`,
+                      { color: theme.colors.headerText },
+                    ]}
+                  >
+                    {currentUser.email}
+                  </Text>
+                  {currentUser.phone && (
+                    <Text
+                      style={[tw`text-sm`, { color: theme.colors.headerText }]}
+                    >
+                      {currentUser.phone}
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity onPress={handleEditPress}>
+                  <Text
+                    style={[tw`text-2xl`, { color: theme.colors.buttonText }]}
+                  >
+                    ✏️
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={handleEditPress}>
-                <Text
-                  style={[tw`text-2xl`, { color: theme.colors.buttonText }]}
-                >
-                  ✏️
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View
-              style={[
-                tw`rounded-2xl p-6`,
-                { backgroundColor: theme.colors.card, opacity: 0.85 },
-              ]}
-            >
-              <View style={tw`items-center mb-4`}>
-                <Text
-                  style={[
-                    tw`text-lg font-bold mb-2`,
-                    { color: theme.colors.text },
-                  ]}
-                >
-                  Hesabınıza Giriş Yapın
-                </Text>
-                <Text
-                  style={[
-                    tw`text-center text-sm`,
-                    { color: theme.colors.text, opacity: 0.8 },
-                  ]}
-                >
-                  Siparişlerinizi takip edin ve özel fırsatlardan yararlanın
-                </Text>
+            ) : (
+              <View
+                style={[
+                  tw`rounded-2xl p-6`,
+                  { backgroundColor: theme.colors.card, opacity: 0.85 },
+                ]}
+              >
+                <View style={tw`items-center mb-4`}>
+                  <Text
+                    style={[
+                      tw`text-lg font-bold mb-2`,
+                      { color: theme.colors.text },
+                    ]}
+                  >
+                    Hesabınıza Giriş Yapın
+                  </Text>
+                  <Text
+                    style={[
+                      tw`text-center text-sm`,
+                      { color: theme.colors.text, opacity: 0.8 },
+                    ]}
+                  >
+                    Siparişlerinizi takip edin ve özel fırsatlardan yararlanın
+                  </Text>
+                </View>
+                <View style={tw`flex-row gap-3`}>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("Login")}
+                    style={[
+                      tw`flex-1 py-3 rounded-xl`,
+                      theme.mode === "light"
+                        ? { backgroundColor: "#F5F5F5" }
+                        : { backgroundColor: "#262626" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        tw`font-bold text-center`,
+                        { color: theme.colors.text },
+                      ]}
+                    >
+                      Giriş Yap
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("Register")}
+                    style={[
+                      tw`flex-1 py-3 rounded-xl`,
+                      theme.mode === "light"
+                        ? { backgroundColor: "#F5F5F5" }
+                        : { backgroundColor: "#262626" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        tw`font-bold text-center`,
+                        { color: theme.colors.text },
+                      ]}
+                    >
+                      Kayıt Ol
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={tw`flex-row gap-3`}>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate("Login")}
+            )}
+          </View>
+
+          {isAuthenticated && (
+            <View style={tw`px-4 -mt-6 mb-4`}>
+              <View
+                style={[
+                  tw`rounded-2xl shadow-md p-4 flex-row`,
+                  {
+                    backgroundColor: theme.colors.card,
+                    shadowColor: theme.colors.shadow,
+                  },
+                ]}
+              >
+                <View
                   style={[
-                    tw`flex-1 py-3 rounded-xl`,
-                    theme.mode === "light"
-                      ? { backgroundColor: "#F5F5F5" }
-                      : { backgroundColor: "#262626" },
+                    tw`flex-1 items-center`,
+                    {
+                      borderRightWidth: 1,
+                      borderRightColor: theme.colors.divider,
+                    },
                   ]}
                 >
                   <Text
                     style={[
-                      tw`font-bold text-center`,
-                      { color: theme.colors.text },
+                      tw`text-2xl font-bold mb-1`,
+                      { color: theme.colors.primary },
                     ]}
                   >
-                    Giriş Yap
+                    {totalOrders}
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate("Register")}
+                  <Text
+                    style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
+                  >
+                    Sipariş
+                  </Text>
+                </View>
+                <View
                   style={[
-                    tw`flex-1 py-3 rounded-xl`,
-                    theme.mode === "light"
-                      ? { backgroundColor: "#F5F5F5" }
-                      : { backgroundColor: "#262626" },
+                    tw`flex-1 items-center`,
+                    {
+                      borderRightWidth: 1,
+                      borderRightColor: theme.colors.divider,
+                    },
                   ]}
                 >
                   <Text
                     style={[
-                      tw`font-bold text-center`,
-                      { color: theme.colors.text },
+                      tw`text-2xl font-bold mb-1`,
+                      { color: theme.colors.primary },
                     ]}
                   >
-                    Kayıt Ol
+                    {pendingOrders}
                   </Text>
-                </TouchableOpacity>
+                  <Text
+                    style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
+                  >
+                    Beklemede
+                  </Text>
+                </View>
+                <View style={tw`flex-1 items-center`}>
+                  <Text
+                    style={[
+                      tw`text-2xl font-bold mb-1`,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
+                    {deliveredOrders}
+                  </Text>
+                  <Text
+                    style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
+                  >
+                    Teslim Edildi
+                  </Text>
+                </View>
               </View>
             </View>
           )}
-        </View>
 
-        {isAuthenticated && (
-          <View style={tw`px-4 -mt-6 mb-4`}>
-            <View
-              style={[
-                tw`rounded-2xl shadow-md p-4 flex-row`,
-                {
-                  backgroundColor: theme.colors.card,
-                  shadowColor: theme.colors.shadow,
-                },
-              ]}
-            >
+          {isAuthenticated && (
+            <View style={tw`px-4 mb-4`}>
+              <Text
+                style={[
+                  tw`font-bold text-lg mb-3`,
+                  { color: theme.colors.text },
+                ]}
+              >
+                Hesabım
+              </Text>
               <View
                 style={[
-                  tw`flex-1 items-center`,
+                  tw`rounded-2xl overflow-hidden shadow-sm`,
                   {
-                    borderRightWidth: 1,
-                    borderRightColor: theme.colors.divider,
+                    backgroundColor: theme.colors.card,
+                    shadowColor: theme.colors.shadow,
                   },
                 ]}
               >
-                <Text
-                  style={[
-                    tw`text-2xl font-bold mb-1`,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {totalOrders}
-                </Text>
-                <Text
-                  style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
-                >
-                  Sipariş
-                </Text>
-              </View>
-              <View
-                style={[
-                  tw`flex-1 items-center`,
-                  {
-                    borderRightWidth: 1,
-                    borderRightColor: theme.colors.divider,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    tw`text-2xl font-bold mb-1`,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {pendingOrders}
-                </Text>
-                <Text
-                  style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
-                >
-                  Beklemede
-                </Text>
-              </View>
-              <View style={tw`flex-1 items-center`}>
-                <Text
-                  style={[
-                    tw`text-2xl font-bold mb-1`,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {deliveredOrders}
-                </Text>
-                <Text
-                  style={[tw`text-xs`, { color: theme.colors.textSecondary }]}
-                >
-                  Teslim Edildi
-                </Text>
+                {MENU_ITEMS.map((item, index) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    onPress={() => handleMenuPress(item.id)}
+                    style={[
+                      tw`p-4 flex-row items-center`,
+                      index < MENU_ITEMS.length - 1 &&
+                        tw`border-b border-gray-100`,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        tw`w-12 h-12 rounded-xl items-center justify-center mr-3`,
+                        {
+                          backgroundColor:
+                            theme.mode === "light" ? "#F5F5F5" : "#262626",
+                          color: theme.colors.text,
+                        },
+                      ]}
+                    >
+                      <Text style={tw`text-2xl`}>{item.icon}</Text>
+                    </View>
+                    <View style={tw`flex-1`}>
+                      <Text
+                        style={[
+                          tw`text-gray-800 font-semibold text-base`,
+                          { color: theme.colors.text },
+                        ]}
+                      >
+                        {item.title}
+                      </Text>
+                      <Text style={tw`text-gray-500 text-sm`}>
+                        {item.description}
+                      </Text>
+                    </View>
+                    {item.badge && (
+                      <View
+                        style={tw`bg-red-500 rounded-full w-6 h-6 items-center justify-center mr-2`}
+                      >
+                        <Text style={tw`text-white font-bold text-xs`}>
+                          {item.badge}
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={tw`text-gray-400 text-xl`}>›</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {isAuthenticated && (
           <View style={tw`px-4 mb-4`}>
             <Text
               style={[tw`font-bold text-lg mb-3`, { color: theme.colors.text }]}
             >
-              Hesabım
+              Ayarlar
             </Text>
             <View
               style={[
@@ -580,122 +660,59 @@ const ProfileScreen: React.FC = () => {
                 },
               ]}
             >
-              {MENU_ITEMS.map((item, index) => (
+              {SETTINGS_ITEMS.map((item, index) => (
                 <TouchableOpacity
                   key={item.id}
-                  onPress={() => handleMenuPress(item.id)}
+                  onPress={() => handleSettingsPress(item.id)}
                   style={[
-                    tw`p-4 flex-row items-center`,
-                    index < MENU_ITEMS.length - 1 &&
-                      tw`border-b border-gray-100`,
+                    tw`p-4 flex-row items-center justify-between`,
+                    index < SETTINGS_ITEMS.length - 1 && {
+                      borderBottomWidth: 1,
+                      borderBottomColor: theme.colors.divider,
+                    },
                   ]}
                 >
-                  <View
-                    style={[
-                      tw`w-12 h-12 rounded-xl items-center justify-center mr-3`,
-                      {
-                        backgroundColor:
-                          theme.mode === "light" ? "#F5F5F5" : "#262626",
-                        color: theme.colors.text,
-                      },
-                    ]}
-                  >
-                    <Text style={tw`text-2xl`}>{item.icon}</Text>
-                  </View>
-                  <View style={tw`flex-1`}>
+                  <View style={tw`flex-row items-center flex-1`}>
+                    <Text style={tw`text-2xl mr-3`}>{item.icon}</Text>
                     <Text
-                      style={[
-                        tw`text-gray-800 font-semibold text-base`,
-                        { color: theme.colors.text },
-                      ]}
+                      style={[tw`font-semibold`, { color: theme.colors.text }]}
                     >
                       {item.title}
                     </Text>
-                    <Text style={tw`text-gray-500 text-sm`}>
-                      {item.description}
-                    </Text>
                   </View>
-                  {item.badge && (
-                    <View
-                      style={tw`bg-red-500 rounded-full w-6 h-6 items-center justify-center mr-2`}
-                    >
-                      <Text style={tw`text-white font-bold text-xs`}>
-                        {item.badge}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={tw`text-gray-400 text-xl`}>›</Text>
+                  <Text
+                    style={[tw`text-xl`, { color: theme.colors.textTertiary }]}
+                  >
+                    ›
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
-        )}
 
-        <View style={tw`px-4 mb-4`}>
-          <Text
-            style={[tw`font-bold text-lg mb-3`, { color: theme.colors.text }]}
-          >
-            Ayarlar
-          </Text>
-          <View
-            style={[
-              tw`rounded-2xl overflow-hidden shadow-sm`,
-              {
-                backgroundColor: theme.colors.card,
-                shadowColor: theme.colors.shadow,
-              },
-            ]}
-          >
-            {SETTINGS_ITEMS.map((item, index) => (
+          {isAuthenticated && (
+            <View style={tw`px-4 pb-8`}>
               <TouchableOpacity
-                key={item.id}
-                onPress={() => handleSettingsPress(item.id)}
+                onPress={handleLogout}
                 style={[
-                  tw`p-4 flex-row items-center justify-between`,
-                  index < SETTINGS_ITEMS.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.colors.divider,
-                  },
+                  tw`bg-white border-2 border-red-500 py-4 rounded-xl flex-row items-center justify-center`,
+                  { backgroundColor: theme.colors.card },
                 ]}
               >
-                <View style={tw`flex-row items-center flex-1`}>
-                  <Text style={tw`text-2xl mr-3`}>{item.icon}</Text>
-                  <Text
-                    style={[tw`font-semibold`, { color: theme.colors.text }]}
-                  >
-                    {item.title}
-                  </Text>
-                </View>
-                <Text
-                  style={[tw`text-xl`, { color: theme.colors.textTertiary }]}
-                >
-                  ›
+                <Text style={tw`text-2xl mr-2`}>🚪</Text>
+                <Text style={tw`text-red-500 font-bold text-base`}>
+                  Çıkış Yap
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+            </View>
+          )}
+        </SlideInView>
 
-        {isAuthenticated && (
-          <View style={tw`px-4 pb-8`}>
-            <TouchableOpacity
-              onPress={handleLogout}
-              style={[
-                tw`bg-white border-2 border-red-500 py-4 rounded-xl flex-row items-center justify-center`,
-                { backgroundColor: theme.colors.card },
-              ]}
-            >
-              <Text style={tw`text-2xl mr-2`}>🚪</Text>
-              <Text style={tw`text-red-500 font-bold text-base`}>
-                Çıkış Yap
-              </Text>
-            </TouchableOpacity>
+        <FadeInView delay={300}>
+          <View style={tw`items-center pb-6`}>
+            <Text style={tw`text-gray-400 text-sm`}>Sampa Shop v1.0.0</Text>
           </View>
-        )}
-
-        <View style={tw`items-center pb-6`}>
-          <Text style={tw`text-gray-400 text-sm`}>Sampa Shop v1.0.0</Text>
-        </View>
+        </FadeInView>
       </ScrollView>
     </>
   );

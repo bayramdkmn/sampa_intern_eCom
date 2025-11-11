@@ -13,6 +13,11 @@ import tw from "twrnc";
 import { useTheme } from "../context/ThemeContext";
 import { StoreOrder } from "../types";
 import { useOrderStore } from "../store/orderStore";
+import {
+  FadeInView,
+  SlideInView,
+  StaggeredList,
+} from "../components/AnimatedViews";
 
 const OrdersScreen: React.FC = () => {
   const { orders, fetchOrders } = useOrderStore();
@@ -385,21 +390,26 @@ const OrdersScreen: React.FC = () => {
         </View>
       </Modal>
 
-      <View
-        style={[
-          tw`pt-16 pb-6 px-4`,
-          { backgroundColor: theme.colors.headerBackground },
-        ]}
-      >
-        <Text style={[tw`text-2xl font-bold`, { color: theme.colors.text }]}>
-          Siparişlerim
-        </Text>
-        <Text
-          style={[tw`text-sm mt-1`, { color: theme.colors.text, opacity: 0.8 }]}
+      <SlideInView from="top" duration={400}>
+        <View
+          style={[
+            tw`pt-16 pb-6 px-4`,
+            { backgroundColor: theme.colors.headerBackground },
+          ]}
         >
-          {orders.length} sipariş
-        </Text>
-      </View>
+          <Text style={[tw`text-2xl font-bold`, { color: theme.colors.text }]}>
+            Siparişlerim
+          </Text>
+          <Text
+            style={[
+              tw`text-sm mt-1`,
+              { color: theme.colors.text, opacity: 0.8 },
+            ]}
+          >
+            {orders.length} sipariş
+          </Text>
+        </View>
+      </SlideInView>
 
       <ScrollView
         style={[tw`flex-1`, { backgroundColor: theme.colors.background }]}
@@ -408,140 +418,145 @@ const OrdersScreen: React.FC = () => {
           padding: 16,
         }}
       >
-        {orders.map((order) => {
-          const statusConfig = getStatusConfig(order.status);
-          const canCancel = order.status === "pending";
+        <StaggeredList staggerDelay={100}>
+          {orders.map((order) => {
+            const statusConfig = getStatusConfig(order.status);
+            const canCancel = order.status === "pending";
 
-          return (
-            <View
-              key={order.id}
-              style={[
-                tw`rounded-2xl p-4 mb-4 shadow-sm`,
-                { backgroundColor: theme.colors.card },
-              ]}
-            >
-              <View style={tw`flex-row items-center justify-between mb-3`}>
-                <View style={tw`flex-row items-center`}>
-                  <Text
-                    style={[
-                      tw`font-bold text-lg mr-2`,
-                      { color: theme.colors.primary },
-                    ]}
-                  >
-                    {order.orderNumber}
-                  </Text>
-                  <View
-                    style={tw`${statusConfig.bgColor} px-3 py-1 rounded-full flex-row items-center`}
-                  >
-                    <Text style={tw`mr-1`}>{statusConfig.icon}</Text>
+            return (
+              <View
+                key={order.id}
+                style={[
+                  tw`rounded-2xl p-4 mb-4 shadow-sm`,
+                  { backgroundColor: theme.colors.card },
+                ]}
+              >
+                <View style={tw`flex-row items-center justify-between mb-3`}>
+                  <View style={tw`flex-row items-center`}>
                     <Text
-                      style={tw`${statusConfig.textColor} text-xs font-semibold`}
+                      style={[
+                        tw`font-bold text-lg mr-2`,
+                        { color: theme.colors.primary },
+                      ]}
                     >
-                      {statusConfig.label}
+                      {order.orderNumber}
+                    </Text>
+                    <View
+                      style={tw`${statusConfig.bgColor} px-3 py-1 rounded-full flex-row items-center`}
+                    >
+                      <Text style={tw`mr-1`}>{statusConfig.icon}</Text>
+                      <Text
+                        style={tw`${statusConfig.textColor} text-xs font-semibold`}
+                      >
+                        {statusConfig.label}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={tw`mb-3`}>
+                  <View style={tw`flex-row items-center mb-2`}>
+                    <Text style={tw`text-sm mr-2`}>📅</Text>
+                    <Text style={[tw`text-sm`, { color: theme.colors.text }]}>
+                      {formatDate(order.date)}
+                    </Text>
+                  </View>
+                  <View style={tw`flex-row items-center mb-2`}>
+                    <Text style={tw`text-gray-500 text-sm mr-2`}>📦</Text>
+                    <Text
+                      style={[
+                        tw`text-sm`,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
+                      {order.items?.length || 0} ürün
+                    </Text>
+                  </View>
+                  <View style={tw`flex-row items-center`}>
+                    <Text style={tw`text-gray-500 text-sm mr-2`}>💰</Text>
+                    <Text
+                      style={[
+                        tw`font-bold text-base`,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
+                      {formatPrice(order.total)}
                     </Text>
                   </View>
                 </View>
-              </View>
 
-              <View style={tw`mb-3`}>
-                <View style={tw`flex-row items-center mb-2`}>
-                  <Text style={tw`text-sm mr-2`}>📅</Text>
-                  <Text style={[tw`text-sm`, { color: theme.colors.text }]}>
-                    {formatDate(order.date)}
-                  </Text>
-                </View>
-                <View style={tw`flex-row items-center mb-2`}>
-                  <Text style={tw`text-gray-500 text-sm mr-2`}>📦</Text>
-                  <Text
-                    style={[tw`text-sm`, { color: theme.colors.textSecondary }]}
-                  >
-                    {order.items?.length || 0} ürün
-                  </Text>
-                </View>
-                <View style={tw`flex-row items-center`}>
-                  <Text style={tw`text-gray-500 text-sm mr-2`}>💰</Text>
-                  <Text
-                    style={[
-                      tw`font-bold text-base`,
-                      { color: theme.colors.primary },
-                    ]}
-                  >
-                    {formatPrice(order.total)}
-                  </Text>
-                </View>
-              </View>
-
-              <View
-                style={[
-                  tw`border-t my-3`,
-                  { borderTopColor: theme.colors.divider },
-                ]}
-              />
-
-              <View style={tw`flex-row gap-2`}>
-                <TouchableOpacity
-                  onPress={() => handleViewOrder(order)}
+                <View
                   style={[
-                    tw`flex-1 py-3 rounded-xl`,
-                    {
-                      backgroundColor: theme.colors.buttonSecondary,
-                    },
+                    tw`border-t my-3`,
+                    { borderTopColor: theme.colors.divider },
                   ]}
-                >
-                  <Text
-                    style={[
-                      tw`font-semibold text-center text-sm`,
-                      { color: theme.colors.text },
-                    ]}
-                  >
-                    Detayları Gör
-                  </Text>
-                </TouchableOpacity>
+                />
 
-                {canCancel && (
+                <View style={tw`flex-row gap-2`}>
                   <TouchableOpacity
-                    onPress={() => handleCancelOrder(order)}
+                    onPress={() => handleViewOrder(order)}
                     style={[
                       tw`flex-1 py-3 rounded-xl`,
-                      { backgroundColor: theme.colors.error },
+                      {
+                        backgroundColor: theme.colors.buttonSecondary,
+                      },
                     ]}
                   >
                     <Text
                       style={[
                         tw`font-semibold text-center text-sm`,
-                        { color: theme.colors.onPrimary },
+                        { color: theme.colors.text },
                       ]}
                     >
-                      İptal Et
+                      Detayları Gör
                     </Text>
                   </TouchableOpacity>
-                )}
-              </View>
-            </View>
-          );
-        })}
 
-        {orders.length === 0 && (
-          <View style={tw`items-center justify-center py-20`}>
-            <Text style={tw`text-6xl mb-4`}>📦</Text>
-            <Text
-              style={[
-                tw`text-lg font-semibold mb-2`,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
-              Henüz siparişiniz yok
-            </Text>
-            <Text
-              style={[
-                tw`text-sm text-center`,
-                { color: theme.colors.textTertiary },
-              ]}
-            >
-              Alışverişe başlayın ve siparişlerinizi buradan takip edin
-            </Text>
-          </View>
-        )}
+                  {canCancel && (
+                    <TouchableOpacity
+                      onPress={() => handleCancelOrder(order)}
+                      style={[
+                        tw`flex-1 py-3 rounded-xl`,
+                        { backgroundColor: theme.colors.error },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          tw`font-semibold text-center text-sm`,
+                          { color: theme.colors.onPrimary },
+                        ]}
+                      >
+                        İptal Et
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+
+          {orders.length === 0 && (
+            <View style={tw`items-center justify-center py-20`}>
+              <Text style={tw`text-6xl mb-4`}>📦</Text>
+              <Text
+                style={[
+                  tw`text-lg font-semibold mb-2`,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Henüz siparişiniz yok
+              </Text>
+              <Text
+                style={[
+                  tw`text-sm text-center`,
+                  { color: theme.colors.textTertiary },
+                ]}
+              >
+                Alışverişe başlayın ve siparişlerinizi buradan takip edin
+              </Text>
+            </View>
+          )}
+        </StaggeredList>
       </ScrollView>
     </View>
   );
