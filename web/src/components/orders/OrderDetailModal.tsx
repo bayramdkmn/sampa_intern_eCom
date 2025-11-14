@@ -109,7 +109,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      ${product.price.toFixed(2)}
+                      ₺{product.price.toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -153,7 +153,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 Toplam Tutar
               </span>
               <span className="text-2xl font-bold text-gray-900">
-                ${order.total.toFixed(2)}
+                ₺{order.total.toFixed(2)}
               </span>
             </div>
           </div>

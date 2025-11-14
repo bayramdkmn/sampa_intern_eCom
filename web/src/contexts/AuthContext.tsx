@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(parsedUser);
         } else {
           setUser(null);
-          console.error("❌ No valid auth data found");
+          // User is not logged in - this is not an error, so we don't log it
         }
       } catch (error) {
         console.error("❌ Auth init error:", error);

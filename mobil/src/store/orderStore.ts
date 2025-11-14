@@ -3,11 +3,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CartItem, StoreOrder } from "../types";
 import { api } from "../services/api";
-import type { Order as ApiOrder } from "../types/api";
 import { useCartStore } from "./cartStore";
 
 const mapApiOrderToLocalOrder = (apiOrder: any): StoreOrder => {
-  console.log('🔍 Mapping order:', JSON.stringify(apiOrder, null, 2));
   
   const items: CartItem[] = (apiOrder.items || []).map((item: any) => ({
     product: {
@@ -165,10 +163,7 @@ export const useOrderStore = create<OrderState>()(
           set({ isLoading: true, error: null });
 
           const cancelledApiOrder = await api.cancelOrder(orderId);
-          console.log('🔄 CANCEL ORDER - Backend response:', JSON.stringify(cancelledApiOrder, null, 2));
-          
           const cancelledLocalOrder = mapApiOrderToLocalOrder(cancelledApiOrder);
-          console.log('🔄 CANCEL ORDER - Mapped order:', JSON.stringify(cancelledLocalOrder, null, 2));
 
           set((state) => ({
             orders: state.orders.map(order =>

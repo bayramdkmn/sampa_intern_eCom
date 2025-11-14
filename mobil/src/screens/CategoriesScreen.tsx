@@ -18,8 +18,6 @@ import { RootStackParamList, Category, Product } from "../types";
 import { useTheme } from "../context/ThemeContext";
 import { useProductStore, useCartStore, useAuthStore } from "../store";
 import {
-  FadeInView,
-  SlideInView,
   StaggeredList,
 } from "../components/AnimatedViews";
 

@@ -170,7 +170,7 @@ const ProductsSliderComponent = ({
                       Single Net Price
                     </div>
                     <div className="text-lg font-bold text-blue-600">
-                      €{product.priceNumber.toFixed(2)}
+                      ₺{product.priceNumber.toFixed(2)}
                     </div>
                     <button
                       className="mt-3 w-full bg-blue-500 hover:bg-blue-700 hover:scale-95 text-white font-semibold rounded-lg py-2 px-1 transition-all cursor-pointer shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"

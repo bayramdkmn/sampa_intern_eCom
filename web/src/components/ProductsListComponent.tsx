@@ -286,10 +286,13 @@ export default function ProductsListComponent({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-3">
             {paginatedProducts.map((product) => {
-              const price =
-                typeof product.price === "string"
-                  ? parseFloat(product.price)
-                  : product.price;
+              const price = parseFloat(
+                product.discount_price || product.price || "0"
+              );
+              const originalPrice = parseFloat(product.price || "0");
+              const hasDiscount =
+                product.discount_price && price < originalPrice;
+
               return (
                 <div
                   key={String(product.id)}
@@ -317,9 +320,16 @@ export default function ProductsListComponent({
                       {product.description || "Ürün açıklaması"}
                     </p>
                     <div className="flex items-center justify-between mb-2 mt-auto">
-                      <span className="text-xl font-bold text-blue-600">
-                        ₺{price.toFixed(2)}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-xl font-bold text-blue-600">
+                          ₺{price.toFixed(2)}
+                        </span>
+                        {hasDiscount && (
+                          <span className="text-sm text-gray-400 line-through">
+                            ₺{originalPrice.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs text-gray-400">
                         Stok: {product.stock || 0}
                       </span>
@@ -327,6 +337,13 @@ export default function ProductsListComponent({
                     <button
                       className="w-full mt-auto bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold rounded-md py-2 transition-all cursor-pointer shadow-sm hover:shadow-lg flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
                       onClick={() => {
+                        console.log("🛒 Sepete ekleniyor:", {
+                          productId: product.id,
+                          name: product.name,
+                          originalPrice: product.price,
+                          discountPrice: product.discount_price,
+                          calculatedPrice: price,
+                        });
                         addToCart({
                           id: String(product.id),
                           name: product.name,

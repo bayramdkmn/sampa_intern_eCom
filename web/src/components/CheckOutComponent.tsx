@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 
 interface ShippingFormData {
   email: string;
@@ -45,6 +46,7 @@ export default function CheckOutComponent({
 }: CheckOutComponentProps) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { cartItems, getTotalPrice, clearCart } = useCart();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -70,20 +72,45 @@ export default function CheckOutComponent({
     nameOnCard: "",
   });
 
-  const [orderItems] = useState<OrderItem[]>(
-    initialOrderItems.length > 0
-      ? initialOrderItems
-      : [
-          {
-            id: 1,
-            name: "Eco-Friendly Water Bottle",
-            quantity: 2,
-            price: 30.0,
-          },
-          { id: 2, name: "Organic Cotton T-Shirt", quantity: 1, price: 25.0 },
-          { id: 3, name: "Reusable Shopping Bag", quantity: 3, price: 15.0 },
-        ]
-  );
+  // Sepetten gerçek ürünleri al, yoksa initialOrderItems, o da yoksa mock data
+  const [orderItems, setOrderItems] = useState<OrderItem[]>(() => {
+    if (cartItems.length > 0) {
+      return cartItems.map((item) => ({
+        id: parseInt(item.id),
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+    }
+    if (initialOrderItems.length > 0) {
+      return initialOrderItems;
+    }
+    return [
+      {
+        id: 1,
+        name: "Eco-Friendly Water Bottle",
+        quantity: 2,
+        price: 30.0,
+      },
+      { id: 2, name: "Organic Cotton T-Shirt", quantity: 1, price: 25.0 },
+      { id: 3, name: "Reusable Shopping Bag", quantity: 3, price: 15.0 },
+    ];
+  });
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setOrderItems(
+        cartItems.map((item) => ({
+          id: parseInt(item.id),
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        }))
+      );
+    } else if (initialOrderItems.length > 0) {
+      setOrderItems(initialOrderItems);
+    }
+  }, [cartItems, initialOrderItems]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -243,7 +270,7 @@ export default function CheckOutComponent({
 
   const handleConfirmOrder = () => {
     setShowSuccessModal(true);
-
+    clearCart();
     setTimeout(() => {
       router.push("/");
     }, 3000);
@@ -837,7 +864,7 @@ export default function CheckOutComponent({
                               {item.quantity}
                             </td>
                             <td className="py-4 text-right text-gray-900">
-                              ${item.price.toFixed(2)}
+                              ₺{item.price.toFixed(2)}
                             </td>
                           </tr>
                         ))}
@@ -911,7 +938,7 @@ export default function CheckOutComponent({
                     <div className="flex justify-between text-gray-700">
                       <span>Subtotal</span>
                       <span className="font-semibold">
-                        ${calculateSubtotal().toFixed(2)}
+                        ₺{calculateSubtotal().toFixed(2)}
                       </span>
                     </div>
 
@@ -920,21 +947,21 @@ export default function CheckOutComponent({
                       <span className="font-semibold">
                         {getShippingCost() === 0
                           ? "Free"
-                          : `$${getShippingCost().toFixed(2)}`}
+                          : `₺${getShippingCost().toFixed(2)}`}
                       </span>
                     </div>
 
                     <div className="flex justify-between text-gray-700">
                       <span>Tax (7.5%)</span>
                       <span className="font-semibold">
-                        ${calculateTax().toFixed(2)}
+                        ₺{calculateTax().toFixed(2)}
                       </span>
                     </div>
 
                     <div className="border-t pt-3">
                       <div className="flex justify-between text-lg font-bold text-gray-900">
                         <span>Total</span>
-                        <span>${calculateTotal().toFixed(2)}</span>
+                        <span>₺{calculateTotal().toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -983,11 +1010,6 @@ export default function CheckOutComponent({
                 Siparişiniz başarıyla oluşturuldu. Kısa süre içinde ana sayfaya
                 yönlendirileceksiniz.
               </p>
-
-              <div className="rounded-lg bg-gray-50 p-4">
-                <p className="text-sm text-gray-600">Sipariş Numarası</p>
-                <p className="text-lg font-bold text-gray-900">#12345</p>
-              </div>
 
               <div className="mt-6">
                 <div className="mx-auto h-1 w-full max-w-xs overflow-hidden rounded-full bg-gray-200">

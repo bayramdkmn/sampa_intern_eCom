@@ -359,7 +359,8 @@ class ApiClient {
         product: {
           id: item.id.toString(),
           name: item.product_name || 'Ürün',
-          price: item.product?.price || item.product_price || 0,
+          // Prefer discounted price if backend provides it on the product object
+          price: item.product?.discount_price ?? item.product?.price ?? item.product_price ?? 0,
           image: '',
           category: '',
           stock: 1,
@@ -450,7 +451,8 @@ class ApiClient {
       product: {
         id: updatedItem.product?.id?.toString() || updatedItem.product_id?.toString() || updatedItem.id.toString(),
         name: updatedItem.product_name || updatedItem.product?.name || 'Ürün',
-        price: updatedItem.product?.price || updatedItem.product_price || 0,
+        // Prefer discounted price if provided by backend
+        price: updatedItem.product?.discount_price ?? updatedItem.product?.price ?? updatedItem.product_price ?? 0,
         image: updatedItem.product?.image || '',
         category: updatedItem.product?.category || '',
         stock: updatedItem.product?.stock || 1,

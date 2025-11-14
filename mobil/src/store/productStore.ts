@@ -7,10 +7,9 @@ const mapApiProductToLocalProduct = (apiProduct: ApiProduct): Product => ({
   id: apiProduct.id.toString(),
   name: apiProduct.name,
   description: apiProduct.description || "",
-  price: parseFloat(apiProduct.price),
-  originalPrice: apiProduct.discount_price 
-    ? parseFloat(apiProduct.discount_price) 
-    : undefined,
+  // Use discounted price as the effective price when available. Keep the original (non-discount) price in originalPrice for UI (strike-through) if discount exists.
+  price: apiProduct.discount_price ? parseFloat(apiProduct.discount_price) : parseFloat(apiProduct.price),
+  originalPrice: apiProduct.discount_price ? parseFloat(apiProduct.price) : undefined,
   image: apiProduct.image || apiProduct.images?.[0] || "https://via.placeholder.com/400",
   images: apiProduct.images || (apiProduct.image ? [apiProduct.image] : []),
   category: apiProduct.category || "Diğer",

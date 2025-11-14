@@ -137,12 +137,13 @@ export class ClientApi {
 
   async register(data: RegisterData): Promise<AuthResponse> {
     const payload = {
-      first_name: data.first_name,
-      last_name: data.last_name,
       email: data.email,
       password: data.password,
       password_confirm: data.password_confirm,
+      first_name: data.first_name,
+      last_name: data.last_name,
     };
+    console.log(payload)
 
 
     const response = await this.makeRequest<AuthResponse>("/users/register/", {
@@ -318,7 +319,7 @@ export class ClientApi {
   }
 
   async createOrder(data: CreateOrderData): Promise<Order> {
-    return await this.makeRequest<Order>("/orders/", {
+    return await this.makeRequest<Order>("/orders/create", {
       method: 'POST',
       body: JSON.stringify(data),
     });

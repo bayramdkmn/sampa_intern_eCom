@@ -112,7 +112,7 @@ const OrdersTable: React.FC<OrdersTableProps> = ({
                 Total:
               </span>
               <span className="text-gray-900 font-medium">
-                ${order.total.toFixed(2)}
+                ₺{order.total.toFixed(2)}
               </span>
             </div>
 

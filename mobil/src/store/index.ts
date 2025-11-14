@@ -9,5 +9,4 @@ export { useAddressStore } from "./addressStore";
 export { usePaymentStore } from "./paymentStore";
 export { useThemeStore } from "./themeStore";
 
-export type { Order } from "./orderStore";
 

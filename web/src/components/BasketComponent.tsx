@@ -105,7 +105,7 @@ export default function BasketComponent() {
 
                         {/* Price */}
                         <div className="col-span-2 text-center text-gray-700">
-                          ${item.price.toFixed(2)}
+                          ₺{item.price.toFixed(2)}
                         </div>
 
                         {/* Quantity Controls */}
@@ -143,7 +143,7 @@ export default function BasketComponent() {
                         </div>
 
                         <div className="col-span-2 text-center font-semibold text-gray-900">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ₺{(item.price * item.quantity).toFixed(2)}
                         </div>
 
                         <div className="col-span-1 flex justify-center">
@@ -176,7 +176,7 @@ export default function BasketComponent() {
                               {item.size ? `, ${item.size}` : ""}
                             </p>
                             <p className="text-sm font-semibold text-gray-900 mt-1">
-                              ${item.price.toFixed(2)}
+                              ₺{item.price.toFixed(2)}
                             </p>
                           </div>
 
@@ -228,7 +228,7 @@ export default function BasketComponent() {
                           <div className="text-right">
                             <p className="text-xs text-gray-500">Subtotal</p>
                             <p className="text-base font-bold text-gray-900">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ₺{(item.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
                         </div>
@@ -250,7 +250,7 @@ export default function BasketComponent() {
                   <div className="flex justify-between text-sm md:text-base text-gray-700">
                     <span>Subtotal</span>
                     <span className="font-semibold">
-                      ${subtotal.toFixed(2)}
+                      ₺{subtotal.toFixed(2)}
                     </span>
                   </div>
 
@@ -271,7 +271,7 @@ export default function BasketComponent() {
                   <div className="border-t pt-3 md:pt-4">
                     <div className="flex justify-between text-base md:text-lg font-bold text-gray-900">
                       <span>Total</span>
-                      <span>${subtotal.toFixed(2)}</span>
+                      <span>₺{subtotal.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

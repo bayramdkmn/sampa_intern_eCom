@@ -161,7 +161,7 @@ export default function ProductsComponent({ id }: ProductProps) {
           </div>
 
           <div className="text-4xl font-bold text-gray-900">
-            ${product.price.toFixed(2)}
+            ₺{product.price.toFixed(2)}
           </div>
 
           <div>
